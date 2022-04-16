@@ -1,0 +1,3 @@
+FROM balena/%%ARCH%%-balena-multibuild-scripts
+COPY remove.json /usr/src/
+RUN ["/bin/bash", "/usr/src/remove.sh"]

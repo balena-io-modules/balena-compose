@@ -1,0 +1,11 @@
+{
+	"version": "2",
+	"services": {
+		"test1": {
+			"build": "test1"
+		},
+		"test2": {
+			"build": "test1"
+		}
+	}
+}
