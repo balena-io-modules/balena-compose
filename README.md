@@ -231,3 +231,7 @@ Resolve takes a tar stream and outputs a tar stream, which can be passed to the 
 ## parse
 
 Parse docker-compose.yml files into a general, usable and fully typed object.
+
+## release
+
+Create releases on balenaCloud without having to deal with the boilerplate.
