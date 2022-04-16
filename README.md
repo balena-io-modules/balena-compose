@@ -17,10 +17,7 @@ images present on the given docker daemon.
 function splitBuildStream(composition: Composition, buildStream: ReadableStream): Promise<BuildTask[]>
 ```
 
-Given a Composition which conforms to the type from
-[@balena/compose-parse](https://github.com/balena-io-modules/balena-compose-parse)
-and a stream which will produce a tar archive, split this tar archive into a set
-of build tasks which can then be further processed.
+Given a Composition which conforms to the type from [`parse`](#parse) and a stream which will produce a tar archive, split this tar archive into a set of build tasks which can then be further processed.
 
 ```
 function performResolution(
@@ -56,9 +53,9 @@ function. The fields for these functions are `streamHook` and `progressHook`.
 ```typescript
 import * as Promise from 'bluebird';
 
-import { Composition, normalize } from '@balena/compose-parse';
-import { multibuild } from '@balena/compose';
+import { multibuild, parse } from '@balena/compose';
 
+const { Composition, normalize } = parse;
 const { splitBuildStream, performBuilds } = multibuild;
 
 // Get a tar stream and composition from somewhere
@@ -230,3 +227,7 @@ Your resolvers can then be passed to the `resolveBundle` function.
 ### What is the input and output?
 
 Resolve takes a tar stream and outputs a tar stream, which can be passed to the docker daemon or further processed.
+
+## parse
+
+Parse docker-compose.yml files into a general, usable and fully typed object.

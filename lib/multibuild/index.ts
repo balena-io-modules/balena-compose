@@ -19,10 +19,11 @@ import * as Bluebird from 'bluebird';
 import type * as Dockerode from 'dockerode';
 import * as _ from 'lodash';
 import * as path from 'path';
-import * as Compose from '@balena/compose-parse';
 import type * as Stream from 'stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
+
+import * as Compose from '../parse';
 
 import { runBuildTask } from './build';
 import BuildMetadata from './build-metadata';

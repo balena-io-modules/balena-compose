@@ -17,7 +17,8 @@
     "lint": "npm run lint:lib && npm run lint:tests && tsc --noEmit",
     "lint:lib": "balena-lint --typescript lib/ typings/",
     "lint:tests": "balena-lint --typescript --tests test/",
-    "copy": "npm run copy:secrets",
+    "copy": "npm run copy:secrets && npm run copy:schemas",
+    "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
     "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
@@ -62,7 +63,6 @@
     "typescript": "^4.2.4"
   },
   "dependencies": {
-    "@balena/compose-parse": "^3.1.0",
     "ajv": "^6.12.3",
     "bluebird": "^3.7.2",
     "bluebird-lru-cache": "^1.0.1",

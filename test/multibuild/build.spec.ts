@@ -17,7 +17,6 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs';
-import * as Compose from '@balena/compose-parse';
 import * as semver from 'semver';
 
 import {
@@ -28,6 +27,8 @@ import {
 	TestBuildMetadata,
 	TEST_FILES_PATH,
 } from './build-utils';
+
+import * as Compose from '../../lib/parse';
 
 import {
 	splitBuildStream,
