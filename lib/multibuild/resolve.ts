@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import * as Resolve from 'resin-bundle-resolve';
 import type * as Stream from 'stream';
 
-import type { BuildTask } from './build-task';
-
-import { ResolveListeners } from 'resin-bundle-resolve';
+import * as Resolve from '../resolve';
+import { ResolveListeners } from '../resolve';
 export { ResolveListeners };
+
+import type { BuildTask } from './build-task';
 
 /**
  * Given a BuildTask, resolve the project type to something that

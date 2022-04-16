@@ -32,8 +32,7 @@ function performResolution(
 
 Given a list of build tasks, resolve the projects to a form which the docker
 daemon can build. Currently this function supports all project types which
-[resin-bundle-resolve](https://github.com/resin-io-modules/resin-bundle-resolve)
-supports.
+[`resolve`](#resolve) supports.
 
 Note that this function will also populate the `dockerfile` and `projectType`
 values in the build tasks.
@@ -198,3 +197,36 @@ const getHooks = (archive: string): BuildHooks => {
 
 builder.createBuildStream({}, getHooks('my-archive.tar'))
 ```
+
+
+## resolve
+
+Resolve balena project bundles into a format recognised by the docker daemon.
+
+### What is a project bundle?
+
+A project bundle is a tar archive which contains a type of Dockerfile and metadata used to create a Dockerfile proper, which docker can understand.
+
+### Which bundles are supported
+
+Currently default resolvers included are;
+
+* Dockerfile.template
+   * Resolve template variables with metadata, currently supported:
+       * `%%RESIN_MACHINE_NAME%%`
+       * `%%RESIN_ARCH%%`
+       * `%%BALENA_MACHINE_NAME%%`
+       * `%%BALENA_ARCH%%`
+* Architecture Specific Dockerfiles
+   * Choose the correct Dockerfile for a given build architecture or device type
+* Standard Dockerfile projects
+
+### How do I add a resolver?
+
+Resolve supports the adding of generic resolvers, by implementing the `resolver.d.ts` interface in `./lib/resolve`. Examples of this can be found in the `lib/resolve/resolvers/` directory.
+
+Your resolvers can then be passed to the `resolveBundle` function.
+
+### What is the input and output?
+
+Resolve takes a tar stream and outputs a tar stream, which can be passed to the docker daemon or further processed.
