@@ -21,8 +21,9 @@ import * as t from 'io-ts';
 import * as _ from 'lodash';
 import { fs } from 'mz';
 import * as path from 'path';
-import { Builder } from 'resin-docker-build';
 import * as tar from 'tar-stream';
+
+import { Builder } from '../../build';
 
 import type BuildMetadata from '../build-metadata';
 import { BuildSecretMissingError, SecretPopulationError } from '../errors';
@@ -149,7 +150,7 @@ export async function populateSecrets(
 		volumes: [`${tmpDir}:${tmpDir}:rw`],
 		forcerm: true,
 	};
-	const builder = Builder.fromDockerode(docker as any);
+	const builder = Builder.fromDockerode(docker);
 	try {
 		await new Promise((resolve, reject) => {
 			builder.createBuildStream(dockerOpts, {
@@ -209,7 +210,7 @@ export async function removeSecrets(
 		volumes: [`${tmpDir}:${tmpDir}:rw`],
 		forcerm: true,
 	};
-	const builder = Builder.fromDockerode(docker as any);
+	const builder = Builder.fromDockerode(docker);
 	try {
 		await new Promise((resolve, reject) => {
 			builder.createBuildStream(dockerOpts, {

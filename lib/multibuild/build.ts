@@ -17,9 +17,10 @@
 
 import type * as Dockerode from 'dockerode';
 import * as _ from 'lodash';
-import { Builder, BuildHooks, FromTagInfo } from 'resin-docker-build';
 import * as semver from 'semver';
 import type * as Stream from 'stream';
+
+import { Builder, BuildHooks, FromTagInfo } from '../build';
 
 import type { SecretsPopulationMap } from './build-secrets';
 import type { BuildTask } from './build-task';
@@ -187,7 +188,7 @@ export async function runBuildTask(
 				});
 			}
 
-			const builder = Builder.fromDockerode(docker as any);
+			const builder = Builder.fromDockerode(docker);
 			const hooks = taskHooks(task, docker, resolve);
 
 			builder.createBuildStream(dockerOpts, hooks, reject);
