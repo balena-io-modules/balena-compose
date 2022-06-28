@@ -16,7 +16,7 @@
  */
 import { posix } from 'path';
 
-import * as DockerfileTemplate from 'dockerfile-template';
+import * as DockerfileTemplate from '../../dockerfile';
 
 import { Bundle, FileInfo, Resolver } from '../resolver';
 import { ParsedPathPlus, removeExtension } from '../utils';

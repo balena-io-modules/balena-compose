@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as DockerfileTemplate from 'dockerfile-template';
 import { TypedError } from 'typed-error';
 
+import * as DockerfileTemplate from '../../dockerfile';
 import { Bundle, FileInfo, Resolver } from '../resolver';
 import { ParsedPathPlus, removeExtension } from '../utils';
 

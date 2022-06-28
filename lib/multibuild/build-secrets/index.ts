@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import * as crypto from 'crypto';
-import * as dockerfileTemplate from 'dockerfile-template';
 import type * as Dockerode from 'dockerode';
 import * as t from 'io-ts';
 import * as _ from 'lodash';
@@ -24,6 +23,7 @@ import * as path from 'path';
 import * as tar from 'tar-stream';
 
 import { Builder } from '../../build';
+import * as dockerfileTemplate from '../../dockerfile';
 
 import type BuildMetadata from '../build-metadata';
 import { BuildSecretMissingError, SecretPopulationError } from '../errors';

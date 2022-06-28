@@ -73,7 +73,6 @@
     "docker-modem": "^3.0.3",
     "docker-progress": "^5.1.0",
     "dockerfile-ast": "^0.2.1",
-    "dockerfile-template": "^0.2.1",
     "dockerode": "^3.3.1",
     "duplexify": "^4.1.2",
     "event-stream": "^4.0.1",
