@@ -266,9 +266,44 @@ Your resolvers can then be passed to the `resolveBundle` function.
 
 Resolve takes a tar stream and outputs a tar stream, which can be passed to the docker daemon or further processed.
 
+
+## dockerfile
+
+Process dockerfile templates, a format that allows replacing variables in dockerfiles.
+The format is the same as a Dockerfile, but augmented with variables.
+
+Variables have the format %%VARIABLE_NAME%%, where variable name starts with an
+uppercase letter, and can contain uppercase letters and underscores.
+
+Variables in comments (lines that start with #) are not processed.
+
+### Usage
+
+The module exposes a single `process` method. It receives a dockerfile template body
+and key-value pairs and replaces variables in the template.
+
+If the template has variables that cannot be found, it throws an error.
+
+Example:
+
+```typescript
+import { dockerfile } from '@balena/compose';
+
+const variables = {
+    BASE: 'debian',
+    TAG: 'latest',
+};
+const res = dockerfile.process('FROM %%BASE%%:%%TAG%%', variables);
+console.log(res);
+// Output:
+// FROM debian:latest
+```
+
+
 ## parse
 
 Parse docker-compose.yml files into a general, usable and fully typed object.
+
 
 ## release
 
