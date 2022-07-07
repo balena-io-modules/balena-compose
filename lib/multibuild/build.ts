@@ -134,7 +134,8 @@ export async function runBuildTask(
 			semver.coerce((await docker.version()).ApiVersion) || '0.0.0',
 			'>=1.38.0',
 		) &&
-		(await checkAllowDockerPlatformHandling(task, docker));
+		(task.useDefaultPlatformForMultiarchBaseImages === true ||
+			(await checkAllowDockerPlatformHandling(task, docker)));
 
 	task.dockerOpts = _.merge(
 		usePlatformOption ? { platform: task.dockerPlatform } : {},
