@@ -203,6 +203,24 @@ describe('validation', () => {
 		}
 	});
 
+	it('label name accepts legal characters', (done) => {
+		const f = () => {
+			compose.normalize({
+				version: '2.1',
+				services: {
+					main: {
+						image: 'some/image',
+						labels: {
+							'@not.mal_formed': 'true',
+						},
+					},
+				},
+			});
+		};
+		expect(f).not.to.throw();
+		done();
+	});
+
 	it('should throw if label name contains forbidden characters', (done) => {
 		const f = () => {
 			compose.normalize({
@@ -211,13 +229,13 @@ describe('validation', () => {
 					main: {
 						image: 'some/image',
 						labels: {
-							mal_formed: 'true',
+							'mal"formed': 'true',
 						},
 					},
 				},
 			});
 		};
-		expect(f).to.throw('Invalid label name: "mal_formed"');
+		expect(f).to.throw('Invalid label name: "mal"formed"');
 		done();
 	});
 
