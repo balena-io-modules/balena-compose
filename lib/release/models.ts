@@ -1,5 +1,9 @@
 import type { PinejsClientRequest } from 'pinejs-client-request';
-import type { Expand, Filter, ODataOptions } from 'pinejs-client-core';
+import type {
+	Expand,
+	Filter,
+	ODataOptions,
+} from 'pinejs-client-core';
 
 import type { Composition } from '../../lib/parse';
 
