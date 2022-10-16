@@ -572,7 +572,7 @@ describe('Specifying build options', () => {
 				.that.has.property('extrahosts')
 				.that.deep.equals(['foo:8.8.8.8']);
 
-			expect(image).to.not.have.property('error');
+			expect(image, `error: ${image.error}`).to.not.have.property('error');
 		});
 	});
 
