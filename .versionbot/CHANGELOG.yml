@@ -1,0 +1,226 @@
+- commits:
+    - subject: "test/multibuild: Use 127.0.0.1 for the extra_hosts test"
+      hash: a91d59ff1dbfebf2a0c543523e94107f881ca5db
+      body: |
+        That's b/c flowzone limit network access to
+        just internal networks.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+    - subject: Output error text to aid test debugging
+      hash: 2094b3e75e13422614bbc31d34719b66dce6fa14
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+    - subject: Replace balenaCI & circleCI with flowzone
+      hash: 663683427156f8413c6ffc2679e0befd93c914fc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Pin dockerode to v3.3.3 to avoid regression
+      hash: 2883800a018d89ca748194370c9c795c8e48cd33
+      body: >
+        The problem is rework to buildImage() in v3.3.4 that hangs balena-compose
+        use of it.
+
+        See Issue: https://github.com/apocas/dockerode/issues/696
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+    - subject: Prettify fixup
+      hash: 9606f358e16e60774df6656d87612cd17e8b4b87
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+    - subject: Fix underspecified generics in release/models
+      hash: 57107eb5c89f51bd36e10cb8f9340bab63723348
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+  version: 2.1.2
+  title: ""
+  date: 2022-10-17T08:10:36.440Z
+- version: 2.1.1
+  date: 2022-08-01T16:07:19Z
+  commits:
+    - hash: 9883bdaa5a6dc4d2602ef0a5a485fe7797b1b946
+      author: Thodoris Greasidis
+      footers:
+        resolves: "#7"
+        change-type: patch
+        see: https://github.com/balena-io/balena-cli/issues/2515
+        signed-off-by: Thodoris Greasidis <thodoris@balena.io>
+      subject: Properly mark jsesc as a prod dependency
+      body: null
+- version: 2.1.0
+- date: 2022-07-07T13:03:40Z
+- commits:
+    - hash: ecfb1ade28dc9d2a8fca05c5ed0587982c7e28ce
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Add build task option to use default docker platform behavior
+- commits:
+    - body: null
+- version: 2.0.0
+- date: 2022-07-01T13:55:05Z
+- commits:
+    - hash: 106c8217b01a7a767121b044d3f59b4d1093a015
+- commits:
+    - author: dfunckt
+- commits:
+    - footers:
+        change-type: major
+- commits:
+    - subject: Another manual version bump
+- commits:
+    - body: null
+- version: 1.0.0
+- date: 2022-07-01T13:47:38Z
+- commits:
+    - hash: 5f55868228c86eaf658c951f9030b6a1bcf5e926
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: major
+- commits:
+    - subject: Manually bump version to avoid clash on npm
+- commits:
+    - body: "`’@balena/compose` has been used for POC about a year ago and had
+        releases up to v1.0.0."
+- version: 0.1.1
+- date: 2022-07-01T13:21:30Z
+- commits:
+    - hash: 2c78d63182f45898b970b6cc39743a7f6c7cba8f
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: patch
+- commits:
+    - subject: Add section for dockerfile-template in README
+- commits:
+    - body: null
+- version: 0.1.0
+- date: 2022-07-01T13:05:41Z
+- commits:
+    - hash: 53344d41b2454347bf02c4fe35a8f2fe6080667b
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Import balena-multibuild
+- commits:
+    - body: |-
+        Repo: https://github.com/balena-io-modules/balena-multibuild
+        Commit: aefcb3248ed183faa4019167bd4266e43ffa8d74
+- commits:
+    - hash: 8986ac4e356e75f83b0be8d5d73e86aa4b18e92c
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Import resin-docker-build
+- commits:
+    - body: |-
+        Repo: https://github.com/balena-io-modules/resin-docker-build
+        Commit: 703653cc0eaa57eb50ff9a52adb3de126659de8f
+- commits:
+    - hash: 972b8014c71cd6201f2bb4b18906ae3597771f20
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Import resin-bundle-resolve
+- commits:
+    - body: |-
+        Repo: https://github.com/balena-io-modules/resin-bundle-resolve
+        Commit: 7a972ce731e5ec40112869438b6586c87dd15108
+- commits:
+    - hash: e5866067d4ef7d0a16b9008d50a6a2408d0bad67
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Import balena-compose-parse
+- commits:
+    - body: |-
+        Repo: https://github.com/balena-io-modules/balena-compose-parse
+        Commit: 06a6b10d3096e133762200e3737b67d3fe980ff7
+- commits:
+    - hash: 72c512e3f2507bc4fe78c9317b1c7377456235d1
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Import balena-release
+- commits:
+    - body: |-
+        Repo: https://github.com/balena-io-modules/balena-release
+        Commit: 83155848aa4cd6daac54647913f41aaebe3c1b3a
+- commits:
+    - hash: 0f0f7b98c776bcab134b0548f94065267af15596
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Import docker-qemu-transpose
+- commits:
+    - body: |-
+        Repo: https://github.com/balena-io-modules/docker-qemu-transpose
+        Commit: 734d8397dfe33ae3af85cdd4fb27c64a6ca77a25
+- commits:
+    - hash: 25b8a4e57cb1b1b97651f0c0a9728c007af7edc8
+- commits:
+    - author: Akis Kesoglou
+- commits:
+    - footers:
+        change-type: minor
+- commits:
+    - subject: Import dockerfile-template
+- commits:
+    - body: |-
+        Repo: https://github.com/balena-io-modules/dockerfile-template
+        Commit: 3ae77d4ec75be1cb35b9abdab5ac54fc08443aa4
