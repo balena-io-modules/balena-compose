@@ -11,7 +11,7 @@
       "build": {
         "context": "./extra_hosts",
         "extra_hosts": {
-          "foo": "8.8.8.8"
+          "foo": "127.0.0.1"
         }
       }
     },

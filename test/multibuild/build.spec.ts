@@ -570,9 +570,9 @@ describe('Specifying build options', () => {
 			expect(newTask)
 				.to.have.property('dockerOpts')
 				.that.has.property('extrahosts')
-				.that.deep.equals(['foo:8.8.8.8']);
+				.that.deep.equals(['foo:127.0.0.1']);
 
-			expect(image).to.not.have.property('error');
+			expect(image, `error: ${image.error}`).to.not.have.property('error');
 		});
 	});
 

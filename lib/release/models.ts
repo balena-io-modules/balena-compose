@@ -1,5 +1,9 @@
 import type { PinejsClientRequest } from 'pinejs-client-request';
-import type { Expand, Filter, ODataOptions } from 'pinejs-client-core';
+import type {
+	Expand,
+	Filter,
+	ODataOptions,
+} from 'pinejs-client-core';
 
 import type { Composition } from '../../lib/parse';
 
@@ -95,7 +99,7 @@ export interface ReleaseImageModel extends ReleaseImageAttributesBase {
 
 // Helpers
 
-export function getOrCreate<T, U, V extends Filter>(
+export function getOrCreate<T, U extends {}, V extends Filter>(
 	api: PinejsClientRequest,
 	resource: string,
 	body: U,
@@ -114,7 +118,7 @@ export function getOrCreate<T, U, V extends Filter>(
 	}) as Promise<T>;
 }
 
-export function create<T, U>(
+export function create<T, U extends {}>(
 	api: PinejsClientRequest,
 	resource: string,
 	body: U,
@@ -122,7 +126,7 @@ export function create<T, U>(
 	return api.post({ resource, body }).catch(wrapResponseError) as Promise<T>;
 }
 
-export function update<T>(
+export function update<T extends {}>(
 	api: PinejsClientRequest,
 	resource: string,
 	id: number,
