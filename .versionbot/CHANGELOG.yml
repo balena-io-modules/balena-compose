@@ -1,4 +1,18 @@
 - commits:
+    - subject: Fixup tests to use recent debian:bullseye-slim images
+      hash: 3ed4ae940fc207866ca4b532cf7539b8e177ef1f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 2.1.3
+  title: ""
+  date: 2023-03-01T18:00:46.411Z
+- commits:
     - subject: "test/multibuild: Use 127.0.0.1 for the extra_hosts test"
       hash: a91d59ff1dbfebf2a0c543523e94107f881ca5db
       body: |
