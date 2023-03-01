@@ -1,4 +1,4 @@
-FROM debian:jessie
+FROM debian:bullseye-slim
 
 RUN touch testfile.sh
 

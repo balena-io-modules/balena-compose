@@ -122,11 +122,11 @@ describe('Directory build', () => {
 				if (
 					fromTags.length !== 1 ||
 					from.repo !== 'debian' ||
-					from.tag !== 'jessie'
+					from.tag !== 'bullseye-slim'
 				) {
 					done(
 						new Error(
-							`Expected info about FROM debian:jessie, but got ${fromTags}`,
+							`Expected info about FROM debian:bullseye-slim, but got ${fromTags}`,
 						),
 					);
 					return;

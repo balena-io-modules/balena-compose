@@ -9,7 +9,7 @@
     "module": "commonjs",
     "target": "es2019",
     "skipLibCheck": true,
-    "forceConsistentCasingInFileNames": true,
+    "forceConsistentCasingInFileNames": false,
     "outDir": "./dist",
     "noImplicitAny": true,
     "noUnusedParameters": true,

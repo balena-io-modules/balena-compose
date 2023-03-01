@@ -227,7 +227,7 @@ describe('Resolved project building', () => {
 
 	const dockerSupportsPlatform = async () =>
 		semver.satisfies(
-			semver.coerce((await docker.version()).ApiVersion),
+			semver.coerce((await docker.version()).ApiVersion) || '0.0.0',
 			'>=1.38.0',
 		);
 
@@ -358,7 +358,7 @@ describe('External images', () => {
 		const task: BuildTask = {
 			external: true,
 			resolved: false,
-			imageName: 'alpine:3.1',
+			imageName: 'alpine:3.7',
 			serviceName: 'test',
 			buildMetadata,
 		};
