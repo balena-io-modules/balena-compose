@@ -1,3 +1,3 @@
-FROM debian:jessie
+FROM debian:bullseye-slim
 
 RUN Incorrect Command
