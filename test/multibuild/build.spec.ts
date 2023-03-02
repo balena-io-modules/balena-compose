@@ -248,6 +248,7 @@ describe('Resolved project building', () => {
 			streamHook: streamPrinter,
 			buildMetadata,
 			dockerOpts: { pull: true },
+			dockerPlatform: 'linux/386',
 		};
 		return new Promise<LocalImage>((resolve, reject) => {
 			const resolveListeners = {

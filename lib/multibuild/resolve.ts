@@ -45,12 +45,6 @@ export function resolveTask(
 	additionalVars: Dictionary<string> = {},
 	dockerfilePreprocessHook?: (content: string) => string,
 ): BuildTask {
-	// set the platform / architecture for pulling multiarch images
-	const platform = resolveDockerPlatform(architecture);
-	if (platform) {
-		task.dockerPlatform = platform;
-	}
-
 	if (task.external) {
 		// No resolution needs to be performed for external images
 		return task;

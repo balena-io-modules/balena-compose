@@ -122,17 +122,10 @@ export interface BuildTask {
 
 	/**
 	 * The platform string used used by docker resolve the correct
-	 * image in manifest lists.
-	 * Populated in the resolution step by translating from the
-	 * architecture property unless `useDefaultPlatformOnly` is `true`.
+	 * image in manifest lists. To use the host docker daemon
+	 * architecture, this should unset or empty.
 	 */
 	dockerPlatform?: string;
-
-	/**
-	 * If true, then do not attempt to query base image manifests for
-	 * a matching platform. The default platform (builder arch) will be used.
-	 */
-	useDefaultPlatformForMultiarchBaseImages?: boolean;
 
 	/**
 	 * The container contract for this service

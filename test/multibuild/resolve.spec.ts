@@ -108,35 +108,4 @@ describe('Project resolution', () => {
 			newTask.buildStream.resume();
 		});
 	});
-
-	it('should correctly resolve the target platform', () => {
-		const task: BuildTask = {
-			external: false,
-			resolved: false,
-			buildStream: fs.createReadStream(
-				`${TEST_FILES_PATH}/templateProject.tar`,
-			) as any as Pack,
-			serviceName: 'test',
-			buildMetadata,
-		};
-
-		return new Promise<void>((resolve, reject) => {
-			const resolveListeners = {
-				error: [reject],
-				end: [
-					() => {
-						try {
-							expect(newTask.dockerPlatform).to.equal('linux/386');
-							expect(newTask.resolved).to.equal(true);
-							resolve();
-						} catch (error) {
-							reject(error);
-						}
-					},
-				],
-			};
-			const newTask = resolveTask(task, 'i386', 'test', resolveListeners);
-			newTask.buildStream.resume();
-		});
-	});
 });
