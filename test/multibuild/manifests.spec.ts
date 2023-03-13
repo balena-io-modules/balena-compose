@@ -19,6 +19,7 @@ import {
 	MEDIATYPE_MANIFEST_V1,
 	MEDIATYPE_MANIFEST_LIST_V2,
 	MEDIATYPE_MANIFEST_V2,
+	MEDIATYPE_OCI_IMAGE_INDEX_V1,
 	getManifest,
 	DockerImageManifest,
 	DockerImageManifestPlatform,
@@ -44,6 +45,7 @@ class Tester {
 				MEDIATYPE_MANIFEST_V1,
 				MEDIATYPE_MANIFEST_LIST_V2,
 				MEDIATYPE_MANIFEST_V2,
+				MEDIATYPE_OCI_IMAGE_INDEX_V1,
 			]);
 			expect(manifest.Descriptor.digest).to.not.be.undefined;
 			expect(manifest.Platforms).to.not.be.undefined;
@@ -76,6 +78,14 @@ describe('docker.io', () => {
 
 describe('grc.io', () => {
 	const tester = new Tester('gcr.io/google_containers/pause:latest');
+
+	describe('getManifest', () => {
+		tester.testGetManifest();
+	});
+});
+
+describe('OCI Image Index', () => {
+	const tester = new Tester('docker.io/moby/buildkit:latest');
 
 	describe('getManifest', () => {
 		tester.testGetManifest();
