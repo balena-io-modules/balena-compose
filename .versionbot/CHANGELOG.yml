@@ -1,4 +1,22 @@
 - commits:
+    - subject: OCI Image Index should allow platform opts
+      hash: 4178f93696438bc89415bbc260d3caf90a0b82bc
+      body: |
+        Similar to Manifest v2, OCI Image Index manifest types
+        support the platform arg, and if the default host
+        platform is not avilable in the manfiest they will
+        actually fail to pull.
+      footer:
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 2.2.0
+  title: ""
+  date: 2023-03-13T19:00:05.420Z
+- commits:
     - subject: Write to debug log when using platform option
       hash: 1db846fa5026105c9e78fdfbae23047e14764eb2
       body: ""
