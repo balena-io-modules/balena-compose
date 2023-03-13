@@ -126,7 +126,7 @@ export async function runBuildTask(
 	//
 	// * _ Do the images support it? _
 	//   In order to support `platform`, all images used in the Dockerfile must use the same
-	//   architecture.  Determining this is problematic.  See comments in getRecommendedPlatformHandling
+	//   architecture.  Determining this is problematic.  See comments in checkAllowDockerPlatformHandling
 
 	const usePlatformOption: boolean =
 		!!task.dockerPlatform &&
@@ -136,6 +136,12 @@ export async function runBuildTask(
 		) &&
 		(task.useDefaultPlatformForMultiarchBaseImages === true ||
 			(await checkAllowDockerPlatformHandling(task, docker)));
+
+	if (usePlatformOption) {
+		task.logger?.debug(
+			`${task.serviceName}: Using platform option for build: ${task.dockerPlatform}`,
+		);
+	}
 
 	task.dockerOpts = _.merge(
 		usePlatformOption ? { platform: task.dockerPlatform } : {},
