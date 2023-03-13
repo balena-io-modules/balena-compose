@@ -28,7 +28,11 @@ import { BuildProcessError } from './errors';
 import { pullExternal } from './external';
 import { LocalImage } from './local-image';
 import type { RegistrySecrets } from './registry-secrets';
-import { getManifest, MEDIATYPE_MANIFEST_LIST_V2 } from './manifests';
+import {
+	getManifest,
+	MEDIATYPE_MANIFEST_LIST_V2,
+	MEDIATYPE_OCI_IMAGE_INDEX_V1,
+} from './manifests';
 
 function taskHooks(
 	task: BuildTask,
@@ -264,7 +268,10 @@ async function checkAllowDockerPlatformHandling(
 	const checkHasPlatformInfo = async (repository: string) => {
 		try {
 			const manifest = await getManifest(docker.modem, repository);
-			return manifest.Descriptor.mediaType === MEDIATYPE_MANIFEST_LIST_V2;
+			return [
+				MEDIATYPE_MANIFEST_LIST_V2,
+				MEDIATYPE_OCI_IMAGE_INDEX_V1,
+			].includes(manifest.Descriptor.mediaType);
 		} catch {
 			// eat the exception... yummy!
 		}
