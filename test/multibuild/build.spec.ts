@@ -270,12 +270,76 @@ describe('Resolved project building', () => {
 			});
 	});
 
+	it('should build using "platform" flag (v2 manifest) for multi-stage builds', async () => {
+		if (!(await dockerSupportsPlatform())) {
+			console.log("skipped... Docker does not support 'platform'");
+			return;
+		}
+
+		// NOTE:  This test also covers the case of building for a different platform
+		const task: BuildTask = {
+			external: false,
+			resolved: false,
+			buildStream: fileToTarPack(
+				`${TEST_FILES_PATH}/platformProjectWithMultiStageV2.tar`,
+			),
+			serviceName: 'test',
+			streamHook: streamPrinter,
+			buildMetadata,
+			dockerOpts: { pull: true },
+		};
+		return new Promise<LocalImage>((resolve, reject) => {
+			const resolveListeners = {
+				error: [reject],
+			};
+			const newTask = resolveTask(task, 'i386', 'qemux86', resolveListeners);
+
+			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
+		})
+			.then((image) => {
+				expect(image).to.have.property('successful').that.equals(true);
+				return checkExists(image.name!);
+			})
+			.then((inspect: any) => {
+				expect(inspect).to.have.property('Architecture').that.equals('386');
+			});
+	});
+
 	it('should build without "platform" flag (v1 manifest)', async () => {
 		const task: BuildTask = {
 			external: false,
 			resolved: false,
 			buildStream: fileToTarPack(
 				`${TEST_FILES_PATH}/platformProjectWithV1.tar`,
+			),
+			serviceName: 'test',
+			streamHook: streamPrinter,
+			buildMetadata,
+			dockerOpts: { pull: true },
+		};
+		return new Promise<LocalImage>((resolve, reject) => {
+			const resolveListeners = {
+				error: [reject],
+			};
+			const newTask = resolveTask(task, 'amd64', 'intel-nuc', resolveListeners);
+
+			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
+		})
+			.then((image) => {
+				expect(image).to.have.property('successful').that.equals(true);
+				return checkExists(image.name!);
+			})
+			.then((inspect: any) => {
+				expect(inspect).to.have.property('Architecture').that.equals('amd64');
+			});
+	});
+
+	it('should build without "platform" flag (v1 manifest) for multi-stage builds', async () => {
+		const task: BuildTask = {
+			external: false,
+			resolved: false,
+			buildStream: fileToTarPack(
+				`${TEST_FILES_PATH}/platformProjectWithMultiStageV1.tar`,
 			),
 			serviceName: 'test',
 			streamHook: streamPrinter,

@@ -265,24 +265,6 @@ async function checkAllowDockerPlatformHandling(
 	const debug = task.logger ? task.logger.debug : () => undefined;
 	const warn = task.logger ? task.logger.warn : () => undefined;
 
-	const checkHasPlatformInfo = async (repository: string) => {
-		try {
-			const manifest = await getManifest(docker.modem, repository);
-			return [
-				MEDIATYPE_MANIFEST_LIST_V2,
-				MEDIATYPE_OCI_IMAGE_INDEX_V1,
-			].includes(manifest.Descriptor.mediaType);
-		} catch {
-			// eat the exception... yummy!
-		}
-
-		debug(
-			`${task.serviceName}: Image manifest data unavailable for ${repository}`,
-		);
-		// at this time, treat any errors as false (no platform support)
-		return false;
-	};
-
 	if (task.imageName) {
 		imageReferences.push(task.imageName);
 	} else {
@@ -320,19 +302,30 @@ async function checkAllowDockerPlatformHandling(
 
 	await Promise.all(
 		imageReferences.map(async (r) => {
-			const hasPlatformSupport = await checkHasPlatformInfo(r);
-			if (hasPlatformSupport) {
-				imagesWithPlatformSupport.push(r);
-			} else {
-				imagesWithoutPlatformSupport.push(r);
+			try {
+				const manifest = await getManifest(docker.modem, r);
+				const hasPlatformSupport = [
+					MEDIATYPE_MANIFEST_LIST_V2,
+					MEDIATYPE_OCI_IMAGE_INDEX_V1,
+				].includes(manifest.Descriptor.mediaType);
+				if (hasPlatformSupport) {
+					imagesWithPlatformSupport.push(r);
+				} else {
+					imagesWithoutPlatformSupport.push(r);
+				}
+			} catch {
+				// do not tally references to previous build stages
+				debug(`${task.serviceName}: Image manifest data unavailable for ${r}`);
 			}
 		}),
 	);
 
-	if (imagesWithoutPlatformSupport.length === 0) {
-		// All images specify platform, let Docker receive `--platform`
-		return true;
-	} else if (imagesWithPlatformSupport.length > 0) {
+	if (imagesWithPlatformSupport.length > 0) {
+		if (imagesWithoutPlatformSupport.length === 0) {
+			// All images specify platform, let Docker receive `--platform`
+			return true;
+		}
+
 		// Here we know that the service references at least 2 images
 		// (at least 1 with platform support and at least 1 without platform
 		// support). Therefore the service is not an "external image service"
