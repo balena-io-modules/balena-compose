@@ -231,7 +231,7 @@ describe('Resolved project building', () => {
 			'>=1.38.0',
 		);
 
-	it('should build using "platform" flag (v2 manifest) on Dockerhub', async () => {
+	it('should cross-build with base image reference using manifest v2', async () => {
 		if (!(await dockerSupportsPlatform())) {
 			console.log("skipped... Docker does not support 'platform'");
 			return;
@@ -255,10 +255,6 @@ describe('Resolved project building', () => {
 			};
 			const newTask = resolveTask(task, 'i386', 'qemux86', resolveListeners);
 
-			// also test that a `platform: undefined` value in `task.dockerOpts`
-			// does not override a valid value in `task.dockerPlatform`
-			task.dockerOpts.platform = undefined;
-
 			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
 		})
 			.then((image) => {
@@ -270,7 +266,7 @@ describe('Resolved project building', () => {
 			});
 	});
 
-	it('should build using "platform" flag (v2 manifest) for multi-stage builds', async () => {
+	it('should cross-build multi-stage with base image reference using manifest v2', async () => {
 		if (!(await dockerSupportsPlatform())) {
 			console.log("skipped... Docker does not support 'platform'");
 			return;
@@ -305,7 +301,7 @@ describe('Resolved project building', () => {
 			});
 	});
 
-	it('should build without "platform" flag (v1 manifest)', async () => {
+	it('should build with base image reference using manifest v1', async () => {
 		const task: BuildTask = {
 			external: false,
 			resolved: false,
@@ -334,7 +330,7 @@ describe('Resolved project building', () => {
 			});
 	});
 
-	it('should build without "platform" flag (v1 manifest) for multi-stage builds', async () => {
+	it('should build multi-stage with base image reference using manifest v1', async () => {
 		const task: BuildTask = {
 			external: false,
 			resolved: false,
@@ -363,7 +359,7 @@ describe('Resolved project building', () => {
 			});
 	});
 
-	it('should build using "platform" flag (v2 manifest) on third party registry', async () => {
+	it('should build with base image reference using gcr.io manifest v2', async () => {
 		if (!(await dockerSupportsPlatform())) {
 			console.log("skipped... Docker does not support 'platform'");
 			return;
