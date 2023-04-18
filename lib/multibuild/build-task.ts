@@ -130,9 +130,9 @@ export interface BuildTask {
 
 	/**
 	 * If true, then do not attempt to query base image manifests for
-	 * a matching platform. The default platform (builder arch) will be used.
+	 * for platform compatibility. Always provide the target platform.
 	 */
-	useDefaultPlatformForMultiarchBaseImages?: boolean;
+	forcePlatformArg?: boolean;
 
 	/**
 	 * The container contract for this service
