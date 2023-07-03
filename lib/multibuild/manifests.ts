@@ -17,6 +17,7 @@
  */
 
 import type * as Dockermodem from 'docker-modem';
+import { getAuthConfigObj } from './registry-secrets';
 
 export const MEDIATYPE_MANIFEST_V1 =
 	'application/vnd.docker.distribution.manifest.v1+prettyjws';
@@ -47,7 +48,17 @@ export type DockerImageManifest = {
 export function getManifest(
 	modem: Dockermodem,
 	repository: string,
+	dockerOpts: { [key: string]: any } = {},
 ): Promise<DockerImageManifest> {
+	let options = {};
+
+	if (dockerOpts?.authconfig && Object.keys(dockerOpts.authconfig).length > 0) {
+		options = { authconfig: dockerOpts.authconfig };
+	} else if (dockerOpts?.registryconfig) {
+		const authconfig = getAuthConfigObj(repository, dockerOpts.registryconfig);
+		options = authconfig ? { authconfig } : {};
+	}
+
 	const optsf = {
 		path: `/distribution/${repository}/json?`,
 		method: 'GET',
@@ -56,6 +67,7 @@ export function getManifest(
 			403: 'not found or not authorized',
 			500: 'server error',
 		},
+		...options,
 	};
 
 	return new Promise<DockerImageManifest>((resolve, reject) => {
