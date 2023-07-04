@@ -10,7 +10,7 @@
     "README.md"
   ],
   "engines": {
-    "node": ">=12.0.0"
+    "node": ">=16.13.0"
   },
   "scripts": {
     "clean": "rimraf dist",
