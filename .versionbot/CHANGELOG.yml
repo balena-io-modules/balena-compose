@@ -1,4 +1,20 @@
 - commits:
+    - subject: Use registry credentials to query image manifest
+      hash: 9489eb4f7fb04c0abff676f5c397a8c6a2ac4e26
+      body: |
+        DockerHub rate limits for unauthenticated users are much smaller than
+        even for free authenticated users. This can cause false negatives when
+        querying the manifest if the host is being rate limited. Using the
+        docker registry credentials when querying the manifest solves this.
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+      nested: []
+  version: 2.3.0
+  title: ""
+  date: 2023-07-04T19:26:46.387Z
+- commits:
     - subject: Allow PR checks for external contributions
       hash: 63bbdcb10cf216b46d7d5e97f96c93ef9eb2bc54
       body: ""
@@ -106,8 +122,8 @@
     - subject: Pin dockerode to v3.3.3 to avoid regression
       hash: 2883800a018d89ca748194370c9c795c8e48cd33
       body: >
-        The problem is rework to buildImage() in v3.3.4 that hangs balena-compose
-        use of it.
+        The problem is rework to buildImage() in v3.3.4 that hangs
+        balena-compose use of it.
 
         See Issue: https://github.com/apocas/dockerode/issues/696
       footer:
