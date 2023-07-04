@@ -50,12 +50,12 @@ function getDockerfileFromTarStream(
 				next: () => void,
 			) => {
 				if (path.normalize(header.name) === 'Dockerfile') {
+					foundDockerfile = true;
 					let contents = '';
 					inputStream.on('data', (data: string) => {
 						contents += data;
 					});
 					inputStream.on('end', () => {
-						foundDockerfile = true;
 						resolve(contents);
 					});
 				}
@@ -65,7 +65,7 @@ function getDockerfileFromTarStream(
 
 		extract.on('finish', () => {
 			if (!foundDockerfile) {
-				reject('Could not find a dockerfile in returned archive');
+				reject(new Error('Could not find a dockerfile in returned archive'));
 			}
 		});
 		stream.pipe(extract);

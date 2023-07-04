@@ -134,8 +134,12 @@ export async function fromImageDescriptors(
 						next();
 						return null;
 					})
-					.catch(ContractError, reject)
-					.catch((e) => reject(new TarError(e)));
+					.catch((e) => {
+						if (e instanceof ContractError) {
+							return reject(e);
+						}
+						reject(new TarError(e));
+					});
 			} else {
 				TarUtils.drainStream(stream)
 					.then(() => {
