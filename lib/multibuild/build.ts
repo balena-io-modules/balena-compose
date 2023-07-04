@@ -303,7 +303,7 @@ async function checkAllowDockerPlatformHandling(
 	await Promise.all(
 		imageReferences.map(async (r) => {
 			try {
-				const manifest = await getManifest(docker.modem, r);
+				const manifest = await getManifest(docker.modem, r, task.dockerOpts);
 				const hasPlatformSupport = [
 					MEDIATYPE_MANIFEST_LIST_V2,
 					MEDIATYPE_OCI_IMAGE_INDEX_V1,

@@ -54,13 +54,13 @@ export function pullExternal(
 	}
 
 	const opts = task.dockerOpts || {};
-	let authConfigPromise: Promise<RegistrySecret | {}> | {} = {};
+	let authConfigObj: RegistrySecret | {} = {};
 	if (opts.registryconfig) {
-		authConfigPromise = getAuthConfigObj(imageName, opts.registryconfig);
+		authConfigObj = getAuthConfigObj(imageName, opts.registryconfig);
 	}
 
 	const startTime = Date.now();
-	return Bluebird.resolve(authConfigPromise)
+	return Bluebird.resolve(authConfigObj)
 		.then((authConfig: RegistrySecret | {}) => {
 			if (authConfig && Object.keys(authConfig).length > 0) {
 				opts.authconfig = authConfig;
