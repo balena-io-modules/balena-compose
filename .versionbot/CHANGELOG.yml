@@ -1,4 +1,32 @@
 - commits:
+    - subject: Switch to returning native promises, not bluebird promises
+      hash: 0598a8ec1900690b415fb109179a0dc1d1f2285e
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Update minimum nodejs version to 16.13.0
+      hash: 6574cdd9a2cfb9b16112dac90f54de07373e833c
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+    - subject: Update tar-stream and tar-utils to 3.x
+      hash: ac46b737494a528a5e0608523b03b7683ffa4cff
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Pagan Gazzard
+      nested: []
+  version: 3.0.0
+  title: ""
+  date: 2023-07-05T16:05:29.580Z
+- commits:
     - subject: Use registry credentials to query image manifest
       hash: 9489eb4f7fb04c0abff676f5c397a8c6a2ac4e26
       body: |
