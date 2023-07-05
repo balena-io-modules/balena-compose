@@ -54,12 +54,12 @@ function getDockerfileFromTarStream(
 				next: () => void,
 			) => {
 				if (TarUtils.normalizeTarEntry(header.name) === name) {
+					foundDockerfile = true;
 					let contents = '';
 					entryStream.on('data', (data: string) => {
 						contents += data;
 					});
 					entryStream.on('end', () => {
-						foundDockerfile = true;
 						resolve(contents);
 					});
 				} else {

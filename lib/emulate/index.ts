@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'bluebird';
 import * as parser from 'docker-file-parser';
 import * as jsesc from 'jsesc';
 import * as _ from 'lodash';

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Bluebird from 'bluebird';
 import { DockerProgress } from 'docker-progress';
 import type * as Dockerode from 'dockerode';
 import * as _ from 'lodash';
@@ -34,10 +33,10 @@ interface RegistrySecret {
 	password: string;
 }
 
-export function pullExternal(
+export async function pullExternal(
 	task: BuildTask,
 	docker: Dockerode,
-): Bluebird<LocalImage> {
+): Promise<LocalImage> {
 	const dockerProgress = new DockerProgress({ docker });
 
 	const progressHook = _.isFunction(task.progressHook)
@@ -54,38 +53,34 @@ export function pullExternal(
 	}
 
 	const opts = task.dockerOpts || {};
-	let authConfigObj: RegistrySecret | {} = {};
+	let authConfig: RegistrySecret | {} = {};
 	if (opts.registryconfig) {
-		authConfigObj = getAuthConfigObj(imageName, opts.registryconfig);
+		authConfig = getAuthConfigObj(imageName, opts.registryconfig);
 	}
 
 	const startTime = Date.now();
-	return Bluebird.resolve(authConfigObj)
-		.then((authConfig: RegistrySecret | {}) => {
-			if (authConfig && Object.keys(authConfig).length > 0) {
-				opts.authconfig = authConfig;
-			}
-			return dockerProgress.pull(imageName, progressHook, opts);
-		})
-		.then(() => {
-			const image = new LocalImage(docker, imageName, task.serviceName, {
-				external: true,
-				successful: true,
-			});
-			image.startTime = startTime;
-			image.endTime = Date.now();
-			image.projectType = 'external service';
-			return image;
-		})
-		.catch((e) => {
-			const image = new LocalImage(docker, null, task.serviceName, {
-				external: true,
-				successful: false,
-			});
-			image.error = e;
-			image.startTime = startTime;
-			image.endTime = Date.now();
-			image.projectType = 'external service';
-			return image;
+	try {
+		if (authConfig && Object.keys(authConfig).length > 0) {
+			opts.authconfig = authConfig;
+		}
+		await dockerProgress.pull(imageName, progressHook, opts);
+		const image = new LocalImage(docker, imageName, task.serviceName, {
+			external: true,
+			successful: true,
 		});
+		image.startTime = startTime;
+		image.endTime = Date.now();
+		image.projectType = 'external service';
+		return image;
+	} catch (e) {
+		const image = new LocalImage(docker, null, task.serviceName, {
+			external: true,
+			successful: false,
+		});
+		image.error = e;
+		image.startTime = startTime;
+		image.endTime = Date.now();
+		image.projectType = 'external service';
+		return image;
+	}
 }

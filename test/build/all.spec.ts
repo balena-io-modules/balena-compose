@@ -16,7 +16,6 @@
  */
 import 'mocha';
 
-import * as Bluebird from 'bluebird';
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -48,12 +47,10 @@ if (process.env.CIRCLECI != null) {
 		ca,
 		cert,
 		key,
-		Promise: Bluebird as any,
 	};
 } else {
 	dockerOpts = {
 		socketPath: process.env.DOCKER_HOST || '/var/run/docker.sock',
-		Promise: Bluebird as any,
 	};
 }
 const docker = new Dockerode(dockerOpts);
@@ -278,7 +275,7 @@ describe('Tar stream build', () => {
 
 	it('should return successful layers upon failure', function () {
 		this.timeout(60000);
-		return new Bluebird((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			const tarStream = fs.createReadStream(
 				`${TEST_FILE_PATH}/archives/failure-layers.tar`,
 			);
@@ -322,7 +319,7 @@ describe('Tar stream build', () => {
 		const builderMod = proxyquire('../../lib/build/builder', {
 			'./utils': mockUtils,
 		});
-		return new Bluebird((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			const tarStream = fs.createReadStream(
 				`${TEST_FILE_PATH}/archives/success.tar`,
 			);
@@ -362,7 +359,7 @@ describe('Error handler', () => {
 	it('should catch a synchronous error from a hook', function () {
 		this.timeout(30000);
 
-		return new Bluebird((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
 					reject(new Error('Incorrect success report on handler error'));
@@ -393,7 +390,7 @@ describe('Error handler', () => {
 	it('should catch an asynchronous error from a hook', function () {
 		this.timeout(30000);
 
-		return new Bluebird((resolve, reject) => {
+		return new Promise<void>((resolve, reject) => {
 			const hooks: BuildHooks = {
 				buildSuccess: () => {
 					reject(new Error('Incorrect success report on handler error'));
