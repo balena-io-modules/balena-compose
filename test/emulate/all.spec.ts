@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Promise from 'bluebird';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import { stripIndents } from 'common-tags';

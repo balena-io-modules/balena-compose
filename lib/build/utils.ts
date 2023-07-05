@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Bluebird from 'bluebird';
 import * as klaw from 'klaw';
 
 import * as Plugin from './plugin';
@@ -54,8 +53,8 @@ const extractArrowMessage = (message: string): string | undefined => {
  * Go through an entire directory, splitting the entries out
  * into a list of paths to work through.
  */
-export const directoryToFiles = (dirPath: string): Bluebird<string[]> => {
-	return new Bluebird<string[]>((resolve, reject) => {
+export const directoryToFiles = (dirPath: string): Promise<string[]> => {
+	return new Promise<string[]>((resolve, reject) => {
 		const files: string[] = [];
 
 		// Walk the directory

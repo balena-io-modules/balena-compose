@@ -108,7 +108,7 @@ export class NodeResolver implements Resolver {
 		return this.packageJsonContent != null;
 	}
 
-	public resolve(
+	public async resolve(
 		bundle: Bundle,
 		_specifiedDockerfilePath?: string,
 	): Promise<FileInfo> {
@@ -116,46 +116,42 @@ export class NodeResolver implements Resolver {
 		// Use latest node base image. Don't use the slim image just in case
 		// TODO: Find out which apt-get packages are installed mostly with node
 		// base images.
-		return Promise.resolve(
-			Bluebird.try(() => JSON.parse(this.packageJsonContent!.toString()))
-				.catch((e: Error) => {
-					throw new Error(`package.json: ${e.message}`);
-				})
-				.then((packageJson) => {
-					if (typeof packageJson !== 'object') {
-						throw new Error('package.json: must be a JSON object');
-					}
+		let packageJson;
+		try {
+			packageJson = JSON.parse(this.packageJsonContent!.toString());
+		} catch (e) {
+			throw new Error(`package.json: ${e.message}`);
+		}
 
-					this.hasScripts =
-						this.hasScripts ||
-						_(packageJson.scripts)
-							.pick('preinstall', 'install', 'postinstall')
-							.size() > 0;
+		if (typeof packageJson !== 'object') {
+			throw new Error('package.json: must be a JSON object');
+		}
 
-					const nodeEngine: string | unknown = _.get(
-						packageJson,
-						'engines.node',
-					);
-					if (nodeEngine == null) {
-						throw new Error('package.json: engines.node must be specified');
-					}
-					if (!_.isString(nodeEngine)) {
-						throw new Error(
-							'package.json: engines.node must be a string if present',
-						);
-					}
-					const range: string = nodeEngine;
+		this.hasScripts =
+			this.hasScripts ||
+			_(packageJson.scripts)
+				.pick('preinstall', 'install', 'postinstall')
+				.size() > 0;
 
-					return versionCache.get(bundle.deviceType).then((versions) => {
-						const nodeVersion = semver.maxSatisfying(versions, range);
+		const nodeEngine: string | unknown = _.get(packageJson, 'engines.node');
+		if (nodeEngine == null) {
+			throw new Error('package.json: engines.node must be specified');
+		}
+		if (!_.isString(nodeEngine)) {
+			throw new Error('package.json: engines.node must be a string if present');
+		}
+		const range: string = nodeEngine;
 
-						if (nodeVersion == null) {
-							throw new Error(`Couldn't satisfy node version ${range}`);
-						}
+		const versions = await versionCache.get(bundle.deviceType);
+		const nodeVersion = semver.maxSatisfying(versions, range);
 
-						let dockerfile: string;
-						if (this.hasScripts) {
-							dockerfile = `
+		if (nodeVersion == null) {
+			throw new Error(`Couldn't satisfy node version ${range}`);
+		}
+
+		let dockerfile: string;
+		if (this.hasScripts) {
+			dockerfile = `
 						FROM resin/${bundle.deviceType}-node:${nodeVersion}
 						RUN mkdir -p /usr/src/app && ln -s /usr/src/app /app
 						WORKDIR /usr/src/app
@@ -163,21 +159,18 @@ export class NodeResolver implements Resolver {
 						RUN DEBIAN_FRONTEND=noninteractive JOBS=MAX npm install --unsafe-perm
 						CMD [ "npm", "start" ]
 						`;
-						} else {
-							dockerfile = `
+		} else {
+			dockerfile = `
 						FROM resin/${bundle.deviceType}-node:${nodeVersion}-onbuild
 						RUN ln -s /usr/src/app /app
 					`;
-						}
-						this.dockerfileContents = dockerfile;
-						return {
-							name: 'Dockerfile',
-							size: dockerfile.length,
-							contents: Buffer.from(dockerfile),
-						};
-					});
-				}),
-		);
+		}
+		this.dockerfileContents = dockerfile;
+		return {
+			name: 'Dockerfile',
+			size: dockerfile.length,
+			contents: Buffer.from(dockerfile),
+		};
 	}
 
 	public getCanonicalName(_specifiedPath: string): string {

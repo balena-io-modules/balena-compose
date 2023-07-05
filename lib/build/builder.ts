@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Bluebird from 'bluebird';
 import * as Dockerode from 'dockerode';
 import * as duplexify from 'duplexify';
 import * as es from 'event-stream';
@@ -52,9 +51,7 @@ export default class Builder {
 	}
 
 	public static fromDockerOpts(dockerOpts: Dockerode.DockerOptions) {
-		return new Builder(
-			new Dockerode(_.merge(dockerOpts, { Promise: Bluebird })),
-		);
+		return new Builder(new Dockerode(dockerOpts));
 	}
 
 	/**
@@ -99,10 +96,10 @@ export default class Builder {
 		inputStream.on('error', failBuild);
 		dup.on('error', failBuild);
 
-		const buildPromise = Bluebird.try(() =>
-			this.docker.buildImage(inputStream, buildOpts),
-		).then((daemonStream) => {
-			return new Bluebird((resolve, reject) => {
+		const buildPromise = (async () => {
+			const daemonStream = await this.docker.buildImage(inputStream, buildOpts)
+
+			await new Promise<void>((resolve, reject) => {
 				const outputStream = getDockerDaemonBuildOutputParserStream(
 					daemonStream,
 					layers,
@@ -121,14 +118,14 @@ export default class Builder {
 				// Connect the output of the docker daemon to the duplex stream
 				dup.setReadable(outputStream);
 			});
-		}); // no .catch() here, but rejection is captured by Bluebird.all() below
+		})(); // no .catch() here, but rejection is captured by Promise.all() below
 
 		// It is helpful for the following promises to run in parallel because
 		// buildPromise may reject sooner than the buildStream hook completes
 		// (in which case the stream is unpipe'd and destroy'ed), and yet the
 		// buildStream hook must be called in order for buildPromise to ever
 		// resolve (as the hook call consumes the `dup` stream).
-		Bluebird.all([
+		Promise.all([
 			buildPromise,
 			// Call the buildStream handler with the docker daemon stream
 			this.callHook(hooks, 'buildStream', handler, dup),
@@ -161,39 +158,45 @@ export default class Builder {
 	 *
 	 * @returns Promise of a stream connected to the docker daemon
 	 */
-	public buildDir(
+	public async buildDir(
 		dirPath: string,
 		buildOpts: { [key: string]: any },
 		hooks: Plugin.BuildHooks,
 		handler: ErrorHandler = emptyHandler,
-	): Bluebird<NodeJS.ReadableStream> {
+	): Promise<NodeJS.ReadableStream> {
 		const pack = tar.pack();
 
-		return Utils.directoryToFiles(dirPath)
-			.map((file: string) => {
+		const files = await Utils.directoryToFiles(dirPath);
+		const fileInfos = await Promise.all(
+			files.map(async (file: string) => {
 				// Work out the relative path
 				const relPath = path.relative(path.resolve(dirPath), file);
-				return Bluebird.all([relPath, fs.stat(file), fs.readFile(file)]);
-			})
-			.map((fileInfo: [string, fs.Stats, Buffer]) => {
-				return Bluebird.fromCallback((callback) =>
-					pack.entry(
-						{ name: fileInfo[0], size: fileInfo[1].size },
-						fileInfo[2],
-						callback,
-					),
-				);
-			})
-			.then(() => {
-				// Tell the tar stream we're done
-				pack.finalize();
-				// Create a build stream to send the data to
-				const stream = this.createBuildStream(buildOpts, hooks, handler);
-				// Write the tar archive to the stream
-				pack.pipe(stream);
-				// ...and return it for reading
-				return stream;
-			});
+				return await Promise.all([relPath, fs.stat(file), fs.readFile(file)]);
+			}),
+		);
+		await fileInfos.map(async (fileInfo: [string, fs.Stats, Buffer]) => {
+			await new Promise<void>((resolve, reject) =>
+				pack.entry(
+					{ name: fileInfo[0], size: fileInfo[1].size },
+					fileInfo[2],
+					(err) => {
+						if (err) {
+							reject(err);
+						} else {
+							resolve();
+						}
+					},
+				),
+			);
+		});
+		// Tell the tar stream we're done
+		pack.finalize();
+		// Create a build stream to send the data to
+		const stream = this.createBuildStream(buildOpts, hooks, handler);
+		// Write the tar archive to the stream
+		pack.pipe(stream);
+		// ...and return it for reading
+		return stream;
 	}
 
 	/**
@@ -205,23 +208,24 @@ export default class Builder {
 	 * @returns Promise that resolves to the return value of the hook function,
 	 * or to undefined if the a hook function is not provided.
 	 */
-	private callHook(
+	private async callHook(
 		hooks: Plugin.BuildHooks,
 		hook: Plugin.ValidHook,
 		handler: ErrorHandler,
 		...args: any[]
-	): Bluebird<any> {
-		return Bluebird.try(() => {
+	): Promise<any> {
+		try {
 			const fn = hooks[hook];
 			if (_.isFunction(fn)) {
 				// Spread the arguments onto the callback function
-				return fn.apply(null, args);
+				return await fn.apply(null, args);
 			}
-		}).tapCatch((error: Error) => {
+		} catch (err) {
 			if (_.isFunction(handler)) {
-				handler(error);
+				handler(err);
 			}
-		});
+			throw err;
+		}
 	}
 }
 

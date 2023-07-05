@@ -51,8 +51,6 @@ function. The fields for these functions are `streamHook` and `progressHook`.
 ### Example (pseudocode)
 
 ```typescript
-import * as Promise from 'bluebird';
-
 import { multibuild, parse } from '@balena/compose';
 
 const { Composition, normalize } = parse;
@@ -70,21 +68,23 @@ splitBuildStream(comp, stream)
 .then((tasks) => {
 	return performResolution(tasks, 'armv7hf', 'raspberrypi3');
 })
-.map((task) => {
-	if (task.external) {
-		task.progressHook = (progress) => {
-			console.log(task.serviceName + ': ' + progress);
-		};
-	} else {
-		task.streamHook = (stream) => {
-			stream.on('data', (data) => {
-				console.log(task.serviceName + ': ', data.toString());
-			});
-		};
-	}
-	return task;
-})
 .then((tasks) => {
+	tasks.forEach((task) => {
+		if (task.external) {
+			task.progressHook = (progress) => {
+				console.log(task.serviceName + ': ' + progress);
+			};
+		} else {
+			task.streamHook = (stream) => {
+				stream.on('data', (data) => {
+					console.log(task.serviceName + ': ', data.toString());
+				});
+			};
+		}
+		return task;
+	}
+})
+.then(() => {
 	return performBuilds(builds, docker);
 })
 .then((images) => {
@@ -210,7 +210,7 @@ the same architecture as the qemu provided in options (detailed below).
 
 Given a tar archive stream, this function will extract the Dockerfile (or
 file named with the given `dockerfileName` parameter) and transpose it. It then
-creates a new tar stream, and returns it wrapped in a bluebird Promise.
+creates a new tar stream, and returns it wrapped in a Promise.
 
 * `getBuildThroughStream(options: TransposeOptions): ReadWriteStream`
 

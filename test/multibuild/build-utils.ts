@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Bluebird from 'bluebird';
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
 import * as _ from 'lodash';
@@ -58,7 +57,6 @@ function getDockerOpts(extraOpts?: any): Dockerode.DockerOptions {
 			ca,
 			cert,
 			key,
-			Promise: Bluebird as any,
 		};
 	} else {
 		dockerOpts = {
@@ -66,7 +64,6 @@ function getDockerOpts(extraOpts?: any): Dockerode.DockerOptions {
 				process.platform === 'win32'
 					? '//./pipe/docker_engine'
 					: '/var/run/docker.sock',
-			Promise: Bluebird as any,
 		};
 	}
 	_.assign(dockerOpts, extraOpts);

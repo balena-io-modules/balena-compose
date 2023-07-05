@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Bluebird from 'bluebird';
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs';
@@ -35,12 +34,12 @@ const expect = chai.expect;
 const checkIsInStream = (
 	tarStream: Stream.Readable,
 	filenames: string | string[],
-): Bluebird<boolean> => {
+): Promise<boolean> => {
 	if (!_.isArray(filenames)) {
 		filenames = [filenames as string];
 	}
 
-	return new Bluebird((resolve, reject) => {
+	return new Promise((resolve, reject) => {
 		const extract = tar.extract();
 
 		extract.on('entry', (header, stream, next) => {
@@ -68,11 +67,15 @@ describe('Stream splitting', () => {
 
 		return splitBuildStream(comp, stream).then((tasks) => {
 			expect(tasks).to.have.length(2);
-			return Bluebird.map(tasks, (task) => {
-				return checkIsInStream(task.buildStream, 'Dockerfile').then((found) => {
-					expect(found).to.equal(true);
-				});
-			});
+			return Promise.all(
+				tasks.map((task) => {
+					return checkIsInStream(task.buildStream, 'Dockerfile').then(
+						(found) => {
+							expect(found).to.equal(true);
+						},
+					);
+				}),
+			);
 		});
 	});
 
@@ -84,11 +87,15 @@ describe('Stream splitting', () => {
 
 		return splitBuildStream(comp, stream).then((tasks) => {
 			expect(tasks).to.have.length(2);
-			return Bluebird.map(tasks, (task) => {
-				return checkIsInStream(task.buildStream, 'Dockerfile').then((found) => {
-					expect(found).to.equal(true);
-				});
-			});
+			return Promise.all(
+				tasks.map((task) => {
+					return checkIsInStream(task.buildStream, 'Dockerfile').then(
+						(found) => {
+							expect(found).to.equal(true);
+						},
+					);
+				}),
+			);
 		});
 	});
 
@@ -103,18 +110,20 @@ describe('Stream splitting', () => {
 		return splitBuildStream(comp, stream).then((tasks) => {
 			expect(tasks).to.have.length(2);
 
-			return Bluebird.map(tasks, (task) => {
-				if (task.context === './') {
-					return checkIsInStream(task.buildStream, [
-						'Dockerfile',
-						'test1/Dockerfile',
-					]).then((found) => expect(found).to.equal(true));
-				} else {
-					return checkIsInStream(task.buildStream, 'Dockerfile').then((found) =>
-						expect(found).to.equal(true),
-					);
-				}
-			});
+			return Promise.all(
+				tasks.map((task) => {
+					if (task.context === './') {
+						return checkIsInStream(task.buildStream, [
+							'Dockerfile',
+							'test1/Dockerfile',
+						]).then((found) => expect(found).to.equal(true));
+					} else {
+						return checkIsInStream(task.buildStream, 'Dockerfile').then(
+							(found) => expect(found).to.equal(true),
+						);
+					}
+				}),
+			);
 		});
 	});
 

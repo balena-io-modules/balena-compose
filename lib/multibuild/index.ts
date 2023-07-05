@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as Bluebird from 'bluebird';
 import type * as Dockerode from 'dockerode';
 import * as _ from 'lodash';
 import * as path from 'path';
@@ -144,8 +143,6 @@ export async function fromImageDescriptors(
 				TarUtils.drainStream(stream)
 					.then(() => {
 						next();
-						// return null here to keep bluebird happy
-						return null;
 					})
 					.catch((e) => reject(new TarError(e)));
 			}
@@ -273,15 +270,17 @@ export async function performBuilds(
 		architecture,
 	} = await initializeBuildMetadata(tasks, docker, tmpDir);
 
-	const images = await Bluebird.map(tasks, (task: BuildTask) => {
-		return performSingleBuild(
-			task,
-			docker,
-			registrySecrets,
-			secretMap,
-			buildMetadata.getBuildVarsForService(task.serviceName),
-		);
-	});
+	const images = await Promise.all(
+		tasks.map(async (task: BuildTask) => {
+			return await performSingleBuild(
+				task,
+				docker,
+				registrySecrets,
+				secretMap,
+				buildMetadata.getBuildVarsForService(task.serviceName),
+			);
+		}),
+	);
 
 	if (!_.isEmpty(secretMap)) {
 		try {
