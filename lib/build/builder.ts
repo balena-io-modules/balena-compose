@@ -216,12 +216,12 @@ export default class Builder {
 	): Promise<any> {
 		try {
 			const fn = hooks[hook];
-			if (_.isFunction(fn)) {
+			if (typeof fn === 'function') {
 				// Spread the arguments onto the callback function
 				return await fn.apply(null, args);
 			}
 		} catch (err) {
-			if (_.isFunction(handler)) {
+			if (typeof handler === 'function') {
 				handler(err);
 			}
 			throw err;

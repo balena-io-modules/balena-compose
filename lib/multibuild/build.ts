@@ -81,7 +81,7 @@ function taskHooks(
 		},
 		buildStream: (stream: Stream.Duplex) => {
 			startTime = Date.now();
-			if (_.isFunction(task.streamHook)) {
+			if (typeof task.streamHook === 'function') {
 				task.streamHook(stream);
 			}
 

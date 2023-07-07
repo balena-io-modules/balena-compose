@@ -39,7 +39,7 @@ export async function pullExternal(
 ): Promise<LocalImage> {
 	const dockerProgress = new DockerProgress({ docker });
 
-	const progressHook = _.isFunction(task.progressHook)
+	const progressHook = typeof task.progressHook === 'function'
 		? task.progressHook
 		: _.noop;
 
