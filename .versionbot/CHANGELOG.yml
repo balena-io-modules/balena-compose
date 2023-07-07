@@ -1,4 +1,96 @@
 - commits:
+    - subject: Use native map where possible
+      hash: cc549117b6a454a5b5893410a7a0352201b65377
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native filter
+      hash: 07efd60812d14cc292681075599741bcc90c0a36
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native endsWith
+      hash: e44d0422c0ecee74ef54dc625a1de100a3412e39
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native includes
+      hash: 4811cf5c866a328f40d05188fbcde9286ab195e9
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native Object.assign
+      hash: fb78835ae54d4bf17cffab434c348c9e20caf75b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Use native Object.keys
+      hash: 66f9fcb8a3c9f02a02bf33396a2803655da01b6a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch to native null check
+      hash: e3951a18e6ad7d100dd1980f2eda1b41b6065aaf
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch to native object check
+      hash: 08022172be9674f9136ed21032d20d81aadafa59
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch to native string check
+      hash: 7327160129dec334e175343c41dcdf4e760f6f09
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch to native function check
+      hash: 097980082eb7174df75f3956028f3f0fc5307eb2
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch to native Array.isArray
+      hash: c100f3564e8b86a282f4d31a8da425d95fd7696b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 3.0.1
+  title: ""
+  date: 2023-07-07T16:25:41.160Z
+- commits:
     - subject: Switch to returning native promises, not bluebird promises
       hash: 0598a8ec1900690b415fb109179a0dc1d1f2285e
       body: ""
