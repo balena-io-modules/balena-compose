@@ -229,7 +229,7 @@ function normalizeService(
 	}
 
 	if (service.depends_on) {
-		if (!_.isArray(service.depends_on)) {
+		if (!Array.isArray(service.depends_on)) {
 			// Try to convert long-form into list-of-strings
 			service.depends_on = _.map(service.depends_on, (dep, serviceName) => {
 				if (_.includes(['service_started', 'service-started'], dep.condition)) {
@@ -259,7 +259,7 @@ function normalizeService(
 	}
 
 	if (service.extra_hosts) {
-		if (!_.isArray(service.extra_hosts)) {
+		if (!Array.isArray(service.extra_hosts)) {
 			// At this point we know that the extra_hosts entry is an object, so cast to
 			// keep TS happy
 			service.extra_hosts = normalizeExtraHostObject(
@@ -323,7 +323,7 @@ function normalizeServiceBuild(
 		serviceBuild.labels = normalizeKeyValuePairs(serviceBuild.labels);
 		validateLabels(serviceBuild.labels);
 	}
-	if (serviceBuild.extra_hosts && !_.isArray(serviceBuild.extra_hosts)) {
+	if (serviceBuild.extra_hosts && !Array.isArray(serviceBuild.extra_hosts)) {
 		serviceBuild.extra_hosts = normalizeExtraHostObject(
 			serviceBuild.extra_hosts as any,
 		);
@@ -561,7 +561,7 @@ function normalizeKeyValuePairs(
 	if (!obj) {
 		return {};
 	}
-	if (!_.isArray(obj)) {
+	if (!Array.isArray(obj)) {
 		return _(obj)
 			.toPairs()
 			.map(([key, value]) => {

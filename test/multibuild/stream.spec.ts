@@ -35,7 +35,7 @@ const checkIsInStream = (
 	tarStream: Stream.Readable,
 	filenames: string | string[],
 ): Promise<boolean> => {
-	if (!_.isArray(filenames)) {
+	if (!Array.isArray(filenames)) {
 		filenames = [filenames as string];
 	}
 
