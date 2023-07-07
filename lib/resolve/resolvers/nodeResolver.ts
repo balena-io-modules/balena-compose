@@ -76,7 +76,7 @@ export class NodeResolver implements Resolver {
 	public entry(file: FileInfo): void {
 		if (file.name === 'package.json') {
 			this.packageJsonContent = file.contents;
-		} else if (file.name === 'wscript' || _.endsWith(file.name, '.gyp')) {
+		} else if (file.name === 'wscript' || file.name.endsWith('.gyp')) {
 			this.hasScripts = true;
 		}
 	}
