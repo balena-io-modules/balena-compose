@@ -176,10 +176,11 @@ async function resolveTarStreamOnFinish(
 	additionalTemplateVars?: Dictionary<string>,
 ): Promise<void> {
 	// Detect if any of the resolvers have been satisfied
-	const satisfied = _(resolvers)
-		.filter((r) => r.isSatisfied(bundle))
-		.orderBy('priority', 'desc')
-		.value();
+	const satisfied = _.orderBy(
+		resolvers.filter((r) => r.isSatisfied(bundle)),
+		'priority',
+		'desc',
+	);
 
 	if (satisfied.length === 0) {
 		pack.emit(

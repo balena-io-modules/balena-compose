@@ -115,7 +115,10 @@ export function normalize(
 function normalizeObjectToComposition(
 	inputCompositionObject: any,
 ): Composition {
-	if (inputCompositionObject == null && typeof inputCompositionObject !== 'object') {
+	if (
+		inputCompositionObject == null &&
+		typeof inputCompositionObject !== 'object'
+	) {
 		throw new ValidationError('Invalid composition format');
 	}
 

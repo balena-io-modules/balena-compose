@@ -97,7 +97,7 @@ export default class Builder {
 		dup.on('error', failBuild);
 
 		const buildPromise = (async () => {
-			const daemonStream = await this.docker.buildImage(inputStream, buildOpts)
+			const daemonStream = await this.docker.buildImage(inputStream, buildOpts);
 
 			await new Promise<void>((resolve, reject) => {
 				const outputStream = getDockerDaemonBuildOutputParserStream(
