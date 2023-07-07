@@ -39,9 +39,8 @@ export async function pullExternal(
 ): Promise<LocalImage> {
 	const dockerProgress = new DockerProgress({ docker });
 
-	const progressHook = _.isFunction(task.progressHook)
-		? task.progressHook
-		: _.noop;
+	const progressHook =
+		typeof task.progressHook === 'function' ? task.progressHook : _.noop;
 
 	if (task.imageName == null) {
 		throw new BuildProcessError('No image name given for an external image');

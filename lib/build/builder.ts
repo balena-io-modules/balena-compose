@@ -97,7 +97,7 @@ export default class Builder {
 		dup.on('error', failBuild);
 
 		const buildPromise = (async () => {
-			const daemonStream = await this.docker.buildImage(inputStream, buildOpts)
+			const daemonStream = await this.docker.buildImage(inputStream, buildOpts);
 
 			await new Promise<void>((resolve, reject) => {
 				const outputStream = getDockerDaemonBuildOutputParserStream(
@@ -216,12 +216,12 @@ export default class Builder {
 	): Promise<any> {
 		try {
 			const fn = hooks[hook];
-			if (_.isFunction(fn)) {
+			if (typeof fn === 'function') {
 				// Spread the arguments onto the callback function
 				return await fn.apply(null, args);
 			}
 		} catch (err) {
-			if (_.isFunction(handler)) {
+			if (typeof handler === 'function') {
 				handler(err);
 			}
 			throw err;

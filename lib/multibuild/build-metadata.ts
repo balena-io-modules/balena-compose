@@ -164,11 +164,11 @@ export class BuildMetadata {
 	public getBuildVarsForService(serviceName: string): Dictionary<string> {
 		const vars: Dictionary<string> = {};
 		if (this.balenaYml.buildVariables.global != null) {
-			_.assign(vars, this.balenaYml.buildVariables.global);
+			Object.assign(vars, this.balenaYml.buildVariables.global);
 		}
 		const services = this.balenaYml.buildVariables.services;
 		if (services != null && serviceName in services) {
-			_.assign(vars, services[serviceName]);
+			Object.assign(vars, services[serviceName]);
 		}
 
 		return vars;

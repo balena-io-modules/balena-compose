@@ -100,7 +100,7 @@ export async function fromImageDescriptors(
 			next: () => void,
 		): void => {
 			// Find the build context that this file should belong to
-			const matchingTasks = _.filter(tasks, (task) => {
+			const matchingTasks = tasks.filter((task) => {
 				if (task.external) {
 					return false;
 				}
@@ -317,7 +317,7 @@ export async function initializeBuildMetadata(
 	const registrySecrets = buildMetadata.registrySecrets;
 
 	const secretMap = generateSecretPopulationMap(
-		_.map(tasks, 'serviceName'),
+		tasks.map((t) => t.serviceName),
 		buildMetadata,
 		tmpDir,
 	);

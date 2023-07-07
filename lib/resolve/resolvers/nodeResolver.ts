@@ -42,10 +42,9 @@ const versionCache: {
 					.get('body')
 					.then((res: { results: Array<{ name: string }>; next?: string }) => {
 						// explicit casting here, as typescript interprets the following statement as {}[]
-						const curr: string[] = _(res.results)
-							.map('name')
-							.filter(versionTest)
-							.value() as string[];
+						const curr: string[] = res.results
+							.map(({ name }) => name)
+							.filter(versionTest);
 						const tags = prev.concat(curr);
 
 						if (res.next != null) {
@@ -76,7 +75,7 @@ export class NodeResolver implements Resolver {
 	public entry(file: FileInfo): void {
 		if (file.name === 'package.json') {
 			this.packageJsonContent = file.contents;
-		} else if (file.name === 'wscript' || _.endsWith(file.name, '.gyp')) {
+		} else if (file.name === 'wscript' || file.name.endsWith('.gyp')) {
 			this.hasScripts = true;
 		}
 	}
@@ -137,7 +136,7 @@ export class NodeResolver implements Resolver {
 		if (nodeEngine == null) {
 			throw new Error('package.json: engines.node must be specified');
 		}
-		if (!_.isString(nodeEngine)) {
+		if (typeof nodeEngine !== 'string') {
 			throw new Error('package.json: engines.node must be a string if present');
 		}
 		const range: string = nodeEngine;

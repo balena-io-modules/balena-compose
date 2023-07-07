@@ -86,7 +86,7 @@ const transposeStringRun = (
 };
 
 const transposeRun = (options: TransposeOptions, command: Command): Command => {
-	if (_.isArray(command.args)) {
+	if (Array.isArray(command.args)) {
 		return transposeArrayRun(options, command);
 	}
 	return transposeStringRun(options, command);
@@ -109,7 +109,7 @@ const argsToString = (
 	args: string | { [key: string]: string } | string[],
 	commandName: string,
 ): string => {
-	if (_.isArray(args)) {
+	if (Array.isArray(args)) {
 		let ret = '';
 		// Handle command meta-arguments (like --from=stage)
 		if (args[0] != null && args[0].startsWith('--')) {
@@ -120,7 +120,7 @@ const argsToString = (
 			return ret + args.join(' ');
 		}
 		return ret + '["' + (args as string[]).join('","') + '"]';
-	} else if (_.isObject(args)) {
+	} else if (args != null && typeof args === 'object') {
 		return _.map(args, (value: string, key: string) => {
 			const escapedValue = JSON.stringify(value);
 			return `${key}=${escapedValue}`;

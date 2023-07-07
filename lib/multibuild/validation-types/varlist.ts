@@ -27,11 +27,11 @@ export interface VarList {
 const stringRegex = /([^\s=]+?)=(.+)/;
 
 const validate = (value: unknown): value is VarList => {
-	if (_.isArray(value)) {
+	if (Array.isArray(value)) {
 		return validateStringArray(value);
-	} else if (_.isObject(value)) {
+	} else if (value != null && typeof value === 'object') {
 		return _.every(value as Dictionary<unknown>, (v, k) => {
-			return _.isString(v) && _.isString(k);
+			return typeof v === 'string' && typeof k === 'string';
 		});
 	}
 	return false;
@@ -41,7 +41,7 @@ const convert = (value: unknown): VarList | undefined => {
 	if (!validate(value)) {
 		return;
 	}
-	if (_.isArray(value)) {
+	if (Array.isArray(value)) {
 		const varList: VarList = {};
 		_.each(value as string[], (str) => {
 			const match = str.match(stringRegex);
@@ -72,7 +72,7 @@ export const PermissiveVarList = new t.Type<VarList, AcceptedVarList, unknown>(
 );
 
 function validateStringArray(arr: unknown[]): boolean {
-	if (!_.every(arr, (a) => _.isString(a))) {
+	if (!_.every(arr, (a) => typeof a === 'string')) {
 		return false;
 	}
 

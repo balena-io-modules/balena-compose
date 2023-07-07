@@ -115,7 +115,10 @@ export function normalize(
 function normalizeObjectToComposition(
 	inputCompositionObject: any,
 ): Composition {
-	if (!_.isObject(inputCompositionObject)) {
+	if (
+		inputCompositionObject == null &&
+		typeof inputCompositionObject !== 'object'
+	) {
 		throw new ValidationError('Invalid composition format');
 	}
 
@@ -125,10 +128,10 @@ function normalizeObjectToComposition(
 		[key: string]: any;
 	};
 
-	if (_.isUndefined(c.version)) {
+	if (c.version == null) {
 		version = SchemaVersion.v1;
 	} else {
-		if (!_.isString(c.version)) {
+		if (typeof c.version !== 'string') {
 			c.version = `${c.version}`;
 		}
 		switch (c.version) {
@@ -173,9 +176,9 @@ function normalizeObjectToComposition(
 
 			// Normalise services
 			const services: Dict<any> = c.services || {};
-			const serviceNames = _.keys(services);
-			const volumeNames = _.keys(c.volumes);
-			const networkNames = _.keys(c.networks);
+			const serviceNames = Object.keys(services ?? {});
+			const volumeNames = Object.keys(c.volumes ?? {});
+			const networkNames = Object.keys(c.networks ?? {});
 
 			c.services = _(services)
 				.map((service, serviceName) => {
@@ -204,12 +207,12 @@ function normalizeObjectToComposition(
 
 function preflight(_version: SchemaVersion, data: any) {
 	// Convert `null` networks to empty objects
-	if (_.isObject(data.networks)) {
+	if (data.networks != null && typeof data.networks === 'object') {
 		data.networks = _.mapValues(data.networks, (n) => n || {});
 	}
 
 	// Convert `null` volumes to empty objects
-	if (_.isObject(data.volumes)) {
+	if (data.volumes != null && typeof data.volumes === 'object') {
 		data.volumes = _.mapValues(data.volumes, (v) => v || {});
 	}
 }
@@ -229,10 +232,10 @@ function normalizeService(
 	}
 
 	if (service.depends_on) {
-		if (!_.isArray(service.depends_on)) {
+		if (!Array.isArray(service.depends_on)) {
 			// Try to convert long-form into list-of-strings
 			service.depends_on = _.map(service.depends_on, (dep, serviceName) => {
-				if (_.includes(['service_started', 'service-started'], dep.condition)) {
+				if (['service_started', 'service-started'].includes(dep.condition)) {
 					return serviceName;
 				}
 				throw new ValidationError(
@@ -244,7 +247,7 @@ function normalizeService(
 			throw new ValidationError('Service dependencies must be unique');
 		}
 		_.forEach(service.depends_on, (dep) => {
-			if (!_.includes(serviceNames, dep)) {
+			if (!serviceNames.includes(dep)) {
 				throw new ValidationError(`Unknown service dependency: ${dep}`);
 			}
 		});
@@ -259,7 +262,7 @@ function normalizeService(
 	}
 
 	if (service.extra_hosts) {
-		if (!_.isArray(service.extra_hosts)) {
+		if (!Array.isArray(service.extra_hosts)) {
 			// At this point we know that the extra_hosts entry is an object, so cast to
 			// keep TS happy
 			service.extra_hosts = normalizeExtraHostObject(
@@ -306,7 +309,7 @@ function normalizeService(
 }
 
 function normalizeArrayOfStrings(value: any[]): string[] {
-	return _.map(value, String);
+	return value.map(String);
 }
 
 function normalizeServiceBuild(
@@ -323,7 +326,7 @@ function normalizeServiceBuild(
 		serviceBuild.labels = normalizeKeyValuePairs(serviceBuild.labels);
 		validateLabels(serviceBuild.labels);
 	}
-	if (serviceBuild.extra_hosts && !_.isArray(serviceBuild.extra_hosts)) {
+	if (serviceBuild.extra_hosts && !Array.isArray(serviceBuild.extra_hosts)) {
 		serviceBuild.extra_hosts = normalizeExtraHostObject(
 			serviceBuild.extra_hosts as any,
 		);
@@ -485,7 +488,7 @@ function validateServiceVolume(
 }
 
 function validateLabels(labels: Dict<string>) {
-	_.keys(labels).forEach((name) => {
+	Object.keys(labels ?? {}).forEach((name) => {
 		if (!/^[a-zA-Z0-9.-]+$/.test(name)) {
 			throw new ValidationError(
 				`Invalid label name: "${name}". ` +
@@ -561,7 +564,7 @@ function normalizeKeyValuePairs(
 	if (!obj) {
 		return {};
 	}
-	if (!_.isArray(obj)) {
+	if (!Array.isArray(obj)) {
 		return _(obj)
 			.toPairs()
 			.map(([key, value]) => {
