@@ -232,7 +232,7 @@ function normalizeService(
 		if (!Array.isArray(service.depends_on)) {
 			// Try to convert long-form into list-of-strings
 			service.depends_on = _.map(service.depends_on, (dep, serviceName) => {
-				if (_.includes(['service_started', 'service-started'], dep.condition)) {
+				if (['service_started', 'service-started'].includes(dep.condition)) {
 					return serviceName;
 				}
 				throw new ValidationError(
@@ -244,7 +244,7 @@ function normalizeService(
 			throw new ValidationError('Service dependencies must be unique');
 		}
 		_.forEach(service.depends_on, (dep) => {
-			if (!_.includes(serviceNames, dep)) {
+			if (!serviceNames.includes(dep)) {
 				throw new ValidationError(`Unknown service dependency: ${dep}`);
 			}
 		});
