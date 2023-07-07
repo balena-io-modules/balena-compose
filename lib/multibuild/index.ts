@@ -317,7 +317,7 @@ export async function initializeBuildMetadata(
 	const registrySecrets = buildMetadata.registrySecrets;
 
 	const secretMap = generateSecretPopulationMap(
-		_.map(tasks, 'serviceName'),
+		tasks.map((t) => t.serviceName),
 		buildMetadata,
 		tmpDir,
 	);

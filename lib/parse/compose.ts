@@ -309,7 +309,7 @@ function normalizeService(
 }
 
 function normalizeArrayOfStrings(value: any[]): string[] {
-	return _.map(value, String);
+	return value.map(String);
 }
 
 function normalizeServiceBuild(
