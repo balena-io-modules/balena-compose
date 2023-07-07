@@ -81,7 +81,7 @@ describe('createBuildStream', function () {
 	this.timeout(5000);
 
 	const mockUtils = {};
-	_.assign(mockUtils, Utils, {
+	Object.assign(mockUtils, Utils, {
 		extractLayer: () => undefined,
 	});
 	const builderMod = proxyquire('../../lib/build/builder', {

@@ -120,7 +120,7 @@ describe('RegistrySecretValidator.addCanonicalDockerHubEntry', () => {
 
 		for (const [entries, expectedLength, expectedValue] of testCases) {
 			const registrySecrets: RegistrySecrets = {};
-			_.assign(registrySecrets, ...entries);
+			Object.assign(registrySecrets, ...entries);
 			addCanonicalDockerHubEntry(registrySecrets);
 			expect(Object.keys(registrySecrets)).to.have.lengthOf(expectedLength);
 			expect(registrySecrets[canonicalEntry]).to.equal(expectedValue);

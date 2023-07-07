@@ -311,7 +311,7 @@ describe('Tar stream build', () => {
 	it('should fail to build if Utils.extractLayer throws an error', async function () {
 		this.timeout(30000);
 		const mockUtils = {};
-		_.assign(mockUtils, Utils, {
+		Object.assign(mockUtils, Utils, {
 			extractLayer: () => {
 				throw new Error('spanner');
 			},

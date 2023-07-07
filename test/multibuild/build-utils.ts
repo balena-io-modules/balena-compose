@@ -66,7 +66,7 @@ function getDockerOpts(extraOpts?: any): Dockerode.DockerOptions {
 					: '/var/run/docker.sock',
 		};
 	}
-	_.assign(dockerOpts, extraOpts);
+	Object.assign(dockerOpts, extraOpts);
 	// extraOpts.host takes precedence over default dockerOpts.socketPath
 	if (extraOpts && extraOpts.host && !extraOpts.socketPath) {
 		delete dockerOpts.socketPath;
