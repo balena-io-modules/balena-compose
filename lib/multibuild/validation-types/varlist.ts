@@ -29,7 +29,7 @@ const stringRegex = /([^\s=]+?)=(.+)/;
 const validate = (value: unknown): value is VarList => {
 	if (Array.isArray(value)) {
 		return validateStringArray(value);
-	} else if (_.isObject(value)) {
+	} else if (value != null && typeof value === 'object') {
 		return _.every(value as Dictionary<unknown>, (v, k) => {
 			return typeof v === 'string' && typeof k === 'string';
 		});

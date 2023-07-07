@@ -120,7 +120,7 @@ const argsToString = (
 			return ret + args.join(' ');
 		}
 		return ret + '["' + (args as string[]).join('","') + '"]';
-	} else if (_.isObject(args)) {
+	} else if (args != null && typeof args === 'object') {
 		return _.map(args, (value: string, key: string) => {
 			const escapedValue = JSON.stringify(value);
 			return `${key}=${escapedValue}`;

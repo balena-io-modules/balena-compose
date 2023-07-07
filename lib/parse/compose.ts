@@ -115,7 +115,7 @@ export function normalize(
 function normalizeObjectToComposition(
 	inputCompositionObject: any,
 ): Composition {
-	if (!_.isObject(inputCompositionObject)) {
+	if (inputCompositionObject == null && typeof inputCompositionObject !== 'object') {
 		throw new ValidationError('Invalid composition format');
 	}
 
@@ -204,12 +204,12 @@ function normalizeObjectToComposition(
 
 function preflight(_version: SchemaVersion, data: any) {
 	// Convert `null` networks to empty objects
-	if (_.isObject(data.networks)) {
+	if (data.networks != null && typeof data.networks === 'object') {
 		data.networks = _.mapValues(data.networks, (n) => n || {});
 	}
 
 	// Convert `null` volumes to empty objects
-	if (_.isObject(data.volumes)) {
+	if (data.volumes != null && typeof data.volumes === 'object') {
 		data.volumes = _.mapValues(data.volumes, (v) => v || {});
 	}
 }
