@@ -173,9 +173,9 @@ function normalizeObjectToComposition(
 
 			// Normalise services
 			const services: Dict<any> = c.services || {};
-			const serviceNames = _.keys(services);
-			const volumeNames = _.keys(c.volumes);
-			const networkNames = _.keys(c.networks);
+			const serviceNames = Object.keys(services ?? {});
+			const volumeNames = Object.keys(c.volumes ?? {});
+			const networkNames = Object.keys(c.networks ?? {});
 
 			c.services = _(services)
 				.map((service, serviceName) => {
@@ -485,7 +485,7 @@ function validateServiceVolume(
 }
 
 function validateLabels(labels: Dict<string>) {
-	_.keys(labels).forEach((name) => {
+	Object.keys(labels ?? {}).forEach((name) => {
 		if (!/^[a-zA-Z0-9.-]+$/.test(name)) {
 			throw new ValidationError(
 				`Invalid label name: "${name}". ` +
