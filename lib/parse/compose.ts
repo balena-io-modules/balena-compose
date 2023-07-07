@@ -128,7 +128,7 @@ function normalizeObjectToComposition(
 	if (_.isUndefined(c.version)) {
 		version = SchemaVersion.v1;
 	} else {
-		if (!_.isString(c.version)) {
+		if (typeof c.version !== 'string') {
 			c.version = `${c.version}`;
 		}
 		switch (c.version) {

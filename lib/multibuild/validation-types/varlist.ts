@@ -31,7 +31,7 @@ const validate = (value: unknown): value is VarList => {
 		return validateStringArray(value);
 	} else if (_.isObject(value)) {
 		return _.every(value as Dictionary<unknown>, (v, k) => {
-			return _.isString(v) && _.isString(k);
+			return typeof v === 'string' && typeof k === 'string';
 		});
 	}
 	return false;
@@ -72,7 +72,7 @@ export const PermissiveVarList = new t.Type<VarList, AcceptedVarList, unknown>(
 );
 
 function validateStringArray(arr: unknown[]): boolean {
-	if (!_.every(arr, (a) => _.isString(a))) {
+	if (!_.every(arr, (a) => typeof a === 'string')) {
 		return false;
 	}
 

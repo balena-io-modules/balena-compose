@@ -137,7 +137,7 @@ export class NodeResolver implements Resolver {
 		if (nodeEngine == null) {
 			throw new Error('package.json: engines.node must be specified');
 		}
-		if (!_.isString(nodeEngine)) {
+		if (typeof nodeEngine !== 'string') {
 			throw new Error('package.json: engines.node must be a string if present');
 		}
 		const range: string = nodeEngine;

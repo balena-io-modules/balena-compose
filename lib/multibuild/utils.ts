@@ -34,7 +34,7 @@ export function generateBuildTasks(
 	buildMetadata: BuildMetadata,
 ): BuildTask[] {
 	return _.map(images, (img) => {
-		if (_.isString(img.image)) {
+		if (typeof img.image === 'string') {
 			return {
 				external: true,
 				imageName: img.image,
