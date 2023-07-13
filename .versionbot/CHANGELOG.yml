@@ -1,4 +1,45 @@
 - commits:
+    - subject: Remove `cachefrom` from pull options
+      hash: babd4101761b10964e01cf4a922e75219d3debca
+      body: >
+        This option is not used by the [Docker
+
+        API](https://docs.docker.com/engine/api/v1.43/#tag/Image/operation/ImageCreate).
+
+
+        As the cache can get really big, depending on how the cache list is
+
+        obtained, this may mean sending a huge query string over the local
+
+        network. There is good evidence to suggest that this could be the cause of
+
+        balena-io/balena-cli#2165, which would cause the query string to over
+
+        the 1MB limit set by [Golang's net/http server](https://pkg.go.dev/net/http#Server).
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+    - subject: Skip manifest query for intermediate build stages
+      hash: d5ad39b82ad698c850dadf049449ad3ef8627d5e
+      body: |
+        This removes unnecessary queries to the registry for intermediate
+        stage images in the dockerfile. Querying the registry for these images
+        would fail in the best case or could cause false positives in the worst
+        case.
+
+        This commit adds an additional filter during parsing of the dockerfile
+        to remove any intermediate stages from the query list.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+  version: 3.0.2
+  title: ""
+  date: 2023-07-13T23:23:47.164Z
+- commits:
     - subject: Use native map where possible
       hash: cc549117b6a454a5b5893410a7a0352201b65377
       body: ""
