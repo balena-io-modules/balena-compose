@@ -286,12 +286,33 @@ async function checkAllowDockerPlatformHandling(
 			debug(`${task.serviceName}: Dockerfile does not reference any images`);
 			return false;
 		}
+
+		const potentialRefs: string[] = [];
+		const intermediateRefs: string[] = [];
 		for (const inst of fromInstructions) {
-			for (const arg of inst.getArguments()) {
+			const args = inst.getArguments();
+			while (args.length > 0) {
+				const arg = args.shift()!;
 				const val = arg.getValue();
-				if (!val.startsWith('--')) {
-					imageReferences.push(val);
-					break;
+				if (val.startsWith('--')) {
+					continue;
+				}
+
+				if (val.toLowerCase() === 'as') {
+					const nextArg = args.shift();
+					if (nextArg) {
+						intermediateRefs.push(nextArg.getValue());
+					}
+				} else {
+					potentialRefs.push(val);
+				}
+			}
+
+			// We don't want to check the plaform flag for
+			// intermediate images
+			for (const ref of potentialRefs) {
+				if (!intermediateRefs.includes(ref)) {
+					imageReferences.push(ref);
 				}
 			}
 		}

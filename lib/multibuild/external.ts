@@ -62,7 +62,10 @@ export async function pullExternal(
 		if (authConfig && Object.keys(authConfig).length > 0) {
 			opts.authconfig = authConfig;
 		}
-		await dockerProgress.pull(imageName, progressHook, opts);
+
+		// Remove cachefrom from pull options as it is not needed
+		const { cachefrom, ...pullOpts } = opts;
+		await dockerProgress.pull(imageName, progressHook, pullOpts);
 		const image = new LocalImage(docker, imageName, task.serviceName, {
 			external: true,
 			successful: true,
