@@ -5,5 +5,10 @@
     "noUnusedLocals": false,
     "noUnusedParameters": false,
     "strictNullChecks": false,
-  }
+  },
+  "include": [
+    "lib/**/*.ts",
+    "typings/**/*.d.ts",
+    "test/**/*.ts"
+  ],
 }
