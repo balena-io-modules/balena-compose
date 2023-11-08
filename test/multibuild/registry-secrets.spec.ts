@@ -20,7 +20,6 @@
  */
 import { expect } from 'chai';
 import * as fs from 'fs';
-import * as _ from 'lodash';
 
 import { normalize } from '../../lib/parse';
 

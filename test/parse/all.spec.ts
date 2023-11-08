@@ -3,6 +3,7 @@ import * as yml from 'js-yaml';
 import { describe } from 'mocha';
 import * as fs from 'fs';
 import * as path from 'path';
+import { Readable } from 'stream';
 
 import * as compose from '../../lib/parse';
 
@@ -375,7 +376,7 @@ describe('validation', () => {
 
 	it('should support extension fields', async () => {
 		const f = () => {
-			const c = compose.normalize({
+			compose.normalize({
 				version: '2.4',
 				services: {
 					main: {
@@ -390,7 +391,7 @@ describe('validation', () => {
 
 	it('should throw when long syntax depends_on does not specify service_started condition', async () => {
 		const f = () => {
-			const c = compose.normalize({
+			compose.normalize({
 				version: '2.4',
 				services: {
 					main: {
@@ -413,7 +414,7 @@ describe('validation', () => {
 
 	it('should throw when long syntax tmpfs mounts specify options', async () => {
 		const f = () => {
-			const c = compose.normalize({
+			compose.normalize({
 				version: '2.4',
 				services: {
 					main: {
@@ -430,7 +431,7 @@ describe('validation', () => {
 
 	it(`should throw when long syntax volume mounts specify options`, async () => {
 		const f = () => {
-			const c = compose.normalize({
+			compose.normalize({
 				version: '2.4',
 				services: {
 					main: {
@@ -455,8 +456,6 @@ describe('validation', () => {
 });
 
 describe('env_file support', () => {
-	const { Readable } = require('stream');
-
 	const createEnvVarFileContent = (
 		envVars: Array<{ var: string; val: string }>,
 	) =>

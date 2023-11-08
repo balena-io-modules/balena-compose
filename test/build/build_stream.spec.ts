@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import * as _ from 'lodash';
 import { Readable, Stream, Writable } from 'stream';
 
 import * as proxyquire from 'proxyquire';

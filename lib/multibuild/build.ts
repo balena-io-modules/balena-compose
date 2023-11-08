@@ -165,6 +165,8 @@ export async function runBuildTask(
 	const taskResolved = task.resolvedPromise || Promise.resolve();
 
 	return new Promise((resolve, reject) => {
+		// TODO: narrow the new Promise and properly await this in a follow-up.
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises
 		taskResolved.then(() => {
 			if (task.buildStream == null) {
 				reject(

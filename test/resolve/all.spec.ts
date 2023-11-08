@@ -17,7 +17,6 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs';
-import isString = require('lodash/isString');
 import { Readable } from 'stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
@@ -27,14 +26,6 @@ import * as Utils from '../../lib/resolve/utils';
 
 use(chaiAsPromised);
 
-// The following indices are mapped to the order of resolvers returned
-// by Resolve.getDefaultResolvers()
-// If the order that they are returned changes, then so should these indices
-// but that will be obvious because the tests will fail
-const dockerfileResolverIdx = 0;
-const dockerfileTemplateResolverIdx = 1;
-const archDockerfileResolverIdx = 2;
-const nodeResolverIdx = 3;
 const defaultResolvers: () => Resolve.Resolver[] = () =>
 	Resolve.getDefaultResolvers();
 
@@ -163,9 +154,8 @@ async function testResolveInput({
 		true,
 		true,
 	);
-	let outputStream;
 
-	outputStream = Resolve.resolveInput(
+	const outputStream = Resolve.resolveInput(
 		bundle,
 		defaultResolvers(),
 		listeners,
@@ -290,7 +280,7 @@ describe('Resolvers', () => {
 					throw new Error('No error thrown for incorrect template variables');
 				},
 				error: (err) => {
-					expect(isString(err) ? err : err.message).to.equal(
+					expect(typeof err === 'string' ? err : err.message).to.equal(
 						'RESIN_DEVICE_TYPE is not defined',
 					);
 				},

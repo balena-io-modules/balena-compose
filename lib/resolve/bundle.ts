@@ -1,4 +1,4 @@
-const emptyHook = (_contents: string): Promise<void> => {
+const emptyHook = (): Promise<void> => {
 	return Promise.resolve();
 };
 

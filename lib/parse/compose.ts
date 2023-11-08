@@ -163,7 +163,8 @@ function normalizeObjectToComposition(
 		case SchemaVersion.v1:
 			// FIXME: perform attribute migration
 			c = { version: DEFAULT_SCHEMA_VERSION, services: c };
-		case DEFAULT_SCHEMA_VERSION:
+		// eslint-disable-next-line no-fallthrough
+		case DEFAULT_SCHEMA_VERSION: {
 			// Normalise volumes
 			if (c.volumes) {
 				c.volumes = _.mapValues(c.volumes, normalizeVolume);
@@ -199,6 +200,7 @@ function normalizeObjectToComposition(
 				})
 				.fromPairs()
 				.value();
+		}
 	}
 
 	c.version = DEFAULT_SCHEMA_VERSION;
@@ -680,7 +682,9 @@ async function readAndNormalizeExpandEnvFile(
 	envFile: string,
 	fileResolverCb: (path: string) => Promise<Readable>,
 ): Promise<Dict<string>> {
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const readline = require('readline');
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const { once } = require('events');
 	const intermediateEnv: Dict<string> = {};
 	let readableError;

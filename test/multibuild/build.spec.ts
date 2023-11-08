@@ -494,7 +494,9 @@ describe('External images', () => {
 
 describe('Specifying a dockerfile', () => {
 	it('should allow specifying a dockerfile', async () => {
-		const composeObj = require('./test-files/stream/docker-compose-specified-dockerfile.json');
+		const composeObj = await import(
+			'./test-files/stream/docker-compose-specified-dockerfile.json'
+		);
 		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
@@ -527,7 +529,9 @@ describe('Specifying a dockerfile', () => {
 	});
 
 	it('should allow specifying a dockerfile.template', async () => {
-		const composeObj = require('./test-files/stream/docker-compose-specified-dockerfile-template.json');
+		const composeObj = await import(
+			'./test-files/stream/docker-compose-specified-dockerfile-template.json'
+		);
 		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
@@ -562,7 +566,9 @@ describe('Specifying a dockerfile', () => {
 
 describe('Specifying a dockerfile hook', () => {
 	it('should allow preprocessing of dockerfile', async () => {
-		const composeObj = require('./test-files/stream/docker-compose-specified-dockerfile.json');
+		const composeObj = await import(
+			'./test-files/stream/docker-compose-specified-dockerfile.json'
+		);
 		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
@@ -607,9 +613,14 @@ describe('Specifying a dockerfile hook', () => {
 	});
 });
 
-describe('Specifying build options', () => {
-	const composeObj = require('./test-files/stream/docker-compose-build-options.json');
-	const comp = Compose.normalize(composeObj);
+describe('Specifying build options', async () => {
+	let comp: Compose.Composition;
+	before(async function () {
+		const composeObj = await import(
+			'./test-files/stream/docker-compose-build-options.json'
+		);
+		comp = Compose.normalize(composeObj);
+	});
 
 	it('should correctly apply "extra_hosts" configuration', async () => {
 		const stream = fs.createReadStream(

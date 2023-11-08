@@ -176,6 +176,7 @@ const getTarEntryHandler = (
 	dockerfileName: string,
 	opts: TransposeOptions,
 ) => {
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const streamToPromise = require('stream-to-promise');
 	return (
 		header: tar.Headers,
@@ -239,6 +240,7 @@ export function transposeTarStream(
 export function getBuildThroughStream(
 	opts: TransposeOptions,
 ): NodeJS.ReadWriteStream {
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const es = require('event-stream');
 	// Regex to match against 'Step 1/5:', 'Step 1/5 :' 'Step 1:' 'Step 1 :'
 	// and all lower case versions.
