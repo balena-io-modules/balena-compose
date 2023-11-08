@@ -52,7 +52,7 @@ export async function pullExternal(
 	}
 
 	const opts = task.dockerOpts || {};
-	let authConfig: RegistrySecret | {} = {};
+	let authConfig: RegistrySecret | object = {};
 	if (opts.registryconfig) {
 		authConfig = getAuthConfigObj(imageName, opts.registryconfig);
 	}
