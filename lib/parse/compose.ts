@@ -631,7 +631,7 @@ async function readEnvFilesFromComposition(
 	const envFileVariables: Dict<Dict<string>> = {};
 	for (const service of Object.values(composition.services)) {
 		let envFilePaths = service.env_file;
-		if (!!envFilePaths) {
+		if (envFilePaths) {
 			if (!Array.isArray(envFilePaths)) {
 				envFilePaths = [envFilePaths];
 			}
@@ -655,7 +655,7 @@ function assignExpandedEnvFilesToComposition(
 	// Apply all read env_files content to the services referncing the env_files
 	for (const service of Object.values(composition.services)) {
 		let envFilePaths = service.env_file;
-		if (!!envFilePaths) {
+		if (envFilePaths) {
 			service.environment = service.environment ?? {};
 			if (!Array.isArray(envFilePaths)) {
 				envFilePaths = [envFilePaths];

@@ -43,7 +43,7 @@ export interface TransposeOptions {
 	qemuFileMode?: number;
 }
 
-interface Command extends Pick<parser.CommandEntry, 'name' | 'args'> {}
+type Command = Pick<parser.CommandEntry, 'name' | 'args'>;
 
 type CommandTransposer = (
 	options: TransposeOptions,
