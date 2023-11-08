@@ -521,7 +521,7 @@ describe('Specifying a dockerfile', () => {
 				.to.have.property('error')
 				.that.has.property('message')
 				.that.matches(
-					/Dockerfile parse error line 1: unknown instruction: CORRECT/i,
+					/Dockerfile parse error (on )?line 1: unknown instruction: CORRECT/i,
 				);
 		});
 	});
@@ -554,7 +554,7 @@ describe('Specifying a dockerfile', () => {
 				.to.have.property('error')
 				.that.has.property('message')
 				.that.matches(
-					/Dockerfile parse error line 1: unknown instruction: CORRECT/i,
+					/Dockerfile parse error (on )?line 1: unknown instruction: CORRECT/i,
 				);
 		});
 	});
@@ -601,7 +601,7 @@ describe('Specifying a dockerfile hook', () => {
 				.to.have.property('error')
 				.that.has.property('message')
 				.that.matches(
-					/Dockerfile parse error line 1: unknown instruction: CORRECT/i,
+					/Dockerfile parse error (on )?line 1: unknown instruction: CORRECT/i,
 				);
 		});
 	});
