@@ -1,4 +1,25 @@
 - commits:
+    - subject: '.mocharc: Use "exit: true" to workaround hanging on completion on
+        node20'
+      hash: db962acc46aab246a42579ddd873f24ea5f9c3ec
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: "tests: Fix the expected error message for Dockerfile syntax errors"
+      hash: a675b7419876a34d35d6c8b6078e2d9bd54d41dc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 3.0.3
+  title: ""
+  date: 2023-11-09T16:03:42.407Z
+- commits:
     - subject: Remove `cachefrom` from pull options
       hash: babd4101761b10964e01cf4a922e75219d3debca
       body: >
