@@ -1,3 +1,4 @@
+import pMap = require('p-map');
 import { PinejsClientRequest } from 'pinejs-client-request';
 import * as models from './models';
 import { Dict } from './types';
@@ -133,36 +134,35 @@ export async function create(req: Request): Promise<Response> {
 	const res = { release, serviceImages: {} } as Response;
 
 	// Create services and associated image, labels and env vars
-	await Promise.all(
-		Object.entries(req.composition.services).map(
-			async ([serviceName, serviceDescription]) => {
-				const service = await getOrCreateService(api, {
-					application: application.id,
-					service_name: serviceName,
-				});
+	await pMap(
+		Object.entries(req.composition.services),
+		async ([serviceName, serviceDescription]) => {
+			const service = await getOrCreateService(api, {
+				application: application.id,
+				service_name: serviceName,
+			});
 
-				// Create images and attach labels and env vars
-				const img = await createImage(
-					api,
-					res.release.id,
-					serviceDescription.labels,
-					serviceDescription.environment,
-					{
-						is_a_build_of__service: service.id,
-						status: 'running',
-						start_timestamp: new Date(),
-					},
-				);
+			// Create images and attach labels and env vars
+			const img = await createImage(
+				api,
+				res.release.id,
+				serviceDescription.labels,
+				serviceDescription.environment,
+				{
+					is_a_build_of__service: service.id,
+					status: 'running',
+					start_timestamp: new Date(),
+				},
+			);
 
-				// Amend response with image details for the service
-				res.serviceImages[serviceName] = img;
+			// Amend response with image details for the service
+			res.serviceImages[serviceName] = img;
 
-				return service;
-			},
-			{
-				concurrency: MAX_CONCURRENT_REQUESTS,
-			},
-		),
+			return service;
+		},
+		{
+			concurrency: MAX_CONCURRENT_REQUESTS,
+		},
 	);
 
 	return res;
@@ -239,36 +239,34 @@ async function createImage(
 	});
 
 	if (labels) {
-		await Promise.all(
-			Object.entries(labels).map(
-				([name, value]) => {
-					return models.create(api, 'image_label', {
-						release_image: releaseImage.id,
-						label_name: name,
-						value: (value || '').toString(),
-					});
-				},
-				{
-					concurrency: MAX_CONCURRENT_REQUESTS,
-				},
-			),
+		await pMap(
+			Object.entries(labels),
+			([name, value]) => {
+				return models.create(api, 'image_label', {
+					release_image: releaseImage.id,
+					label_name: name,
+					value: (value || '').toString(),
+				});
+			},
+			{
+				concurrency: MAX_CONCURRENT_REQUESTS,
+			},
 		);
 	}
 
 	if (envvars) {
-		await Promise.all(
-			Object.entries(envvars).map(
-				([name, value]) => {
-					return models.create(api, 'image_environment_variable', {
-						release_image: releaseImage.id,
-						name,
-						value: (value || '').toString(),
-					});
-				},
-				{
-					concurrency: MAX_CONCURRENT_REQUESTS,
-				},
-			),
+		await pMap(
+			Object.entries(envvars),
+			([name, value]) => {
+				return models.create(api, 'image_environment_variable', {
+					release_image: releaseImage.id,
+					name,
+					value: (value || '').toString(),
+				});
+			},
+			{
+				concurrency: MAX_CONCURRENT_REQUESTS,
+			},
 		);
 	}
 
