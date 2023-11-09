@@ -174,21 +174,23 @@ export default class Builder {
 				return await Promise.all([relPath, fs.stat(file), fs.readFile(file)]);
 			}),
 		);
-		await fileInfos.map(async (fileInfo: [string, fs.Stats, Buffer]) => {
-			await new Promise<void>((resolve, reject) =>
-				pack.entry(
-					{ name: fileInfo[0], size: fileInfo[1].size },
-					fileInfo[2],
-					(err) => {
-						if (err) {
-							reject(err);
-						} else {
-							resolve();
-						}
-					},
-				),
-			);
-		});
+		await Promise.all(
+			fileInfos.map(async (fileInfo) => {
+				await new Promise<void>((resolve, reject) =>
+					pack.entry(
+						{ name: fileInfo[0], size: fileInfo[1].size },
+						fileInfo[2],
+						(err) => {
+							if (err) {
+								reject(err);
+							} else {
+								resolve();
+							}
+						},
+					),
+				);
+			}),
+		);
 		// Tell the tar stream we're done
 		pack.finalize();
 		// Create a build stream to send the data to
