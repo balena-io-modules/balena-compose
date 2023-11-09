@@ -24,6 +24,7 @@ import * as fs from 'mz/fs';
 import * as path from 'path';
 import { Duplex } from 'stream';
 import * as tar from 'tar-stream';
+import type * as http from 'http';
 
 // Import hook definitions
 import * as Plugin from './plugin';
@@ -83,6 +84,7 @@ export default class Builder {
 		const failBuild = _.once((err: Error) => {
 			streamError = err;
 			dup.destroy(err);
+			cleanupDaemonStream?.();
 			return this.callHook(
 				hooks,
 				'buildFailure',
@@ -96,6 +98,8 @@ export default class Builder {
 		inputStream.on('error', failBuild);
 		dup.on('error', failBuild);
 
+		let cleanupDaemonStream: (() => void) | undefined;
+
 		const buildPromise = (async () => {
 			const daemonStream = await this.docker.buildImage(inputStream, buildOpts);
 
@@ -104,7 +108,25 @@ export default class Builder {
 					daemonStream,
 					layers,
 					fromTags,
-					reject,
+					(err) => {
+						cleanupDaemonStream = () => {
+							if (
+								'req' in daemonStream! &&
+								daemonStream.req != null &&
+								typeof daemonStream.req === 'object' &&
+								'destroy' in daemonStream.req &&
+								typeof daemonStream.req.destroy === 'function'
+							) {
+								const req = daemonStream.req as http.ClientRequest;
+								if (!req.destroyed) {
+									req.destroy();
+								}
+							}
+							daemonStream.unpipe();
+							cleanupDaemonStream = undefined;
+						};
+						reject(err);
+					},
 				);
 				outputStream.on('error', (error: Error) => {
 					daemonStream.unpipe();
@@ -275,7 +297,6 @@ function getDockerDaemonBuildOutputParserStream(
 							this.emit('data', data.stream);
 						}
 					} catch (error) {
-						daemonStream.unpipe();
 						onError(error);
 					}
 				}),
