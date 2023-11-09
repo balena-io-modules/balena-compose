@@ -1,4 +1,16 @@
 - commits:
+    - subject: "api: Restore the accidentally removed concurrency limits"
+      hash: ae349e6c4487ad293766b077faddaacbb2e10007
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 3.0.4
+  title: ""
+  date: 2023-11-09T16:23:23.111Z
+- commits:
     - subject: '.mocharc: Use "exit: true" to workaround hanging on completion on
         node20'
       hash: db962acc46aab246a42579ddd873f24ea5f9c3ec
