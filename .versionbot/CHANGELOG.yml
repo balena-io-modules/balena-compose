@@ -1,4 +1,40 @@
 - commits:
+    - subject: Fix the remaining linting errors
+      hash: 51b7893bc6156d0fa7a7821cc583032694ccda98
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Remove unnecessary regex escaping
+      hash: 96b76abbcf78abd05157d49a5672a2621124bfe5
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Replace the {} type with object
+      hash: dcf907ff124a638f591ae8e3fd80157eae1d1837
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Update TypeScript to 5.2.2 and @blaena/lint to v7.2.1
+      hash: b583dd7ce8e964bef47f73dee53e08b7c1286532
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 3.0.6
+  title: ""
+  date: 2023-11-10T14:08:35.300Z
+- commits:
     - subject: "builder: Fix unawaited buildDir pack() promise"
       hash: 76a9cecc44a5c252c9052d1613a8b37ed9cb2dbc
       body: ""
