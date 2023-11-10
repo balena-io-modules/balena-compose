@@ -1,4 +1,24 @@
 - commits:
+    - subject: "NodeResolver: Refactor the recursion to an async-await loop"
+      hash: bde40f4430bc26a058598a64eeeedbb5ab35eb57
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Drop bluebird & bluebird-lru-cache in favor of memoizee
+      hash: 82f90b210d73ff866f5d0546e73d8779db85a504
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 3.0.7
+  title: ""
+  date: 2023-11-10T16:10:01.859Z
+- commits:
     - subject: Fix the remaining linting errors
       hash: 51b7893bc6156d0fa7a7821cc583032694ccda98
       body: ""
