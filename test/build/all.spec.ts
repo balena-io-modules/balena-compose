@@ -18,7 +18,6 @@ import 'mocha';
 
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
-import * as _ from 'lodash';
 import * as path from 'path';
 import * as url from 'url';
 
@@ -61,7 +60,7 @@ const docker = new Dockerode(dockerOpts);
 // sucessHooks: for when we want the buildSuccess hook to be called
 const getSuccessHooks = (done: (error?: Error) => void): BuildHooks => {
 	const hooks: BuildHooks = {
-		buildSuccess: (id, layers) => {
+		buildSuccess: () => {
 			done();
 		},
 		buildFailure: (err) => {
@@ -76,7 +75,7 @@ const getSuccessHooks = (done: (error?: Error) => void): BuildHooks => {
 // failureHooks: for when we want the failure hook to be called
 const getFailureHooks = (done: (error?: Error) => void): BuildHooks => {
 	const hooks: BuildHooks = {
-		buildSuccess: (id, layers) => {
+		buildSuccess: () => {
 			done(new Error('Expected error, got success'));
 		},
 		buildFailure: (err) => {
@@ -97,6 +96,7 @@ describe('Directory build', () => {
 		const builder = Builder.fromDockerode(docker);
 		const hooks = getSuccessHooks(done);
 
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
 		builder
 			.buildDir(`${TEST_FILE_PATH}/directory-successful-build`, {}, hooks)
 			.then((stream) => {
@@ -139,6 +139,7 @@ describe('Directory build', () => {
 		};
 
 		const builder = Builder.fromDockerode(docker);
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
 		builder
 			.buildDir(`${TEST_FILE_PATH}/directory-successful-build`, {}, hooks)
 			.then((stream) => {
@@ -154,6 +155,7 @@ describe('Directory build', () => {
 		const builder = Builder.fromDockerode(docker);
 		const hooks = getFailureHooks(done);
 
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
 		builder
 			.buildDir(`${TEST_FILE_PATH}/directory-no-dockerfile`, {}, hooks)
 			.then((stream) => {
@@ -169,6 +171,7 @@ describe('Directory build', () => {
 		const builder = Builder.fromDockerode(docker);
 		const hooks = getFailureHooks(done);
 
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
 		builder
 			.buildDir(`${TEST_FILE_PATH}/directory-invalid-dockerfile`, {}, hooks)
 			.then((stream) => {
@@ -191,6 +194,7 @@ describe('Directory build', () => {
 		};
 
 		const builder = Builder.fromDockerode(docker);
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
 		builder.buildDir(`${TEST_FILE_PATH}/directory-successful-build`, {}, hooks);
 	});
 
@@ -206,6 +210,7 @@ describe('Directory build', () => {
 		};
 
 		const builder = Builder.fromDockerode(docker);
+		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
 		builder.buildDir(
 			`${TEST_FILE_PATH}/directory-invalid-dockerfile`,
 			{},
@@ -229,7 +234,7 @@ describe('Tar stream build', () => {
 					stream.pipe(process.stdout);
 				}
 			},
-			buildSuccess: (id, layers) => {
+			buildSuccess: () => {
 				done();
 			},
 			buildFailure: (err) => {
@@ -258,7 +263,7 @@ describe('Tar stream build', () => {
 					stream.pipe(process.stdout);
 				}
 			},
-			buildSuccess: (id, layers) => {
+			buildSuccess: () => {
 				done(new Error('Expected build failure, got success hook'));
 			},
 			buildFailure: (err) => {
@@ -270,6 +275,7 @@ describe('Tar stream build', () => {
 		};
 
 		const builder = Builder.fromDockerode(docker);
+
 		builder.createBuildStream({}, hooks);
 	});
 
@@ -284,7 +290,7 @@ describe('Tar stream build', () => {
 				buildSuccess: () => {
 					reject(new Error('Success failed on failing build'));
 				},
-				buildFailure: (error, layers) => {
+				buildFailure: (_error, layers) => {
 					const expected = 2;
 					if (layers.length !== expected) {
 						reject(
@@ -328,7 +334,7 @@ describe('Tar stream build', () => {
 				buildSuccess: () => {
 					reject(new Error('Incorrect success report on failing build'));
 				},
-				buildFailure: (error, layers) => {
+				buildFailure: (_error, layers) => {
 					const expected = 0;
 					if (layers.length !== expected) {
 						reject(
@@ -364,7 +370,7 @@ describe('Error handler', () => {
 				buildSuccess: () => {
 					reject(new Error('Incorrect success report on handler error'));
 				},
-				buildFailure: (error, layers) => {
+				buildFailure: (_error, layers) => {
 					const expected = 0;
 					if (layers.length !== expected) {
 						reject(
@@ -376,7 +382,7 @@ describe('Error handler', () => {
 						resolve();
 					}
 				},
-				buildStream: (stream) => {
+				buildStream: () => {
 					throw new Error(
 						'Synchronous buildStream error should have been caught',
 					);
@@ -395,7 +401,7 @@ describe('Error handler', () => {
 				buildSuccess: () => {
 					reject(new Error('Incorrect success report on handler error'));
 				},
-				buildFailure: (error, layers) => {
+				buildFailure: (_error, layers) => {
 					const expected = 0;
 					if (layers.length !== expected) {
 						reject(
@@ -407,7 +413,7 @@ describe('Error handler', () => {
 						resolve();
 					}
 				},
-				buildStream: (stream) => {
+				buildStream: () => {
 					return Promise.reject(
 						new Error('Asynchronous buildStream error should have been caught'),
 					);

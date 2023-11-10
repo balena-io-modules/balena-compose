@@ -103,14 +103,11 @@ export class NodeResolver implements Resolver {
 		);
 	}
 
-	public isSatisfied(_bundle: Bundle): boolean {
+	public isSatisfied(): boolean {
 		return this.packageJsonContent != null;
 	}
 
-	public async resolve(
-		bundle: Bundle,
-		_specifiedDockerfilePath?: string,
-	): Promise<FileInfo> {
+	public async resolve(bundle: Bundle): Promise<FileInfo> {
 		// Generate a dockerfile which will run the file
 		// Use latest node base image. Don't use the slim image just in case
 		// TODO: Find out which apt-get packages are installed mostly with node
@@ -172,7 +169,7 @@ export class NodeResolver implements Resolver {
 		};
 	}
 
-	public getCanonicalName(_specifiedPath: string): string {
+	public getCanonicalName(): string {
 		throw new Error('getCanonicalName called on unsupported resolver NodeJS');
 	}
 }

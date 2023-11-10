@@ -14,15 +14,13 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "lint": "npm run lint:lib && npm run lint:tests && tsc --noEmit",
-    "lint:lib": "balena-lint --typescript lib/ typings/",
-    "lint:tests": "balena-lint --typescript --tests test/",
+    "lint": "balena-lint lib/ typings/ test/ && tsc --noEmit",
     "copy": "npm run copy:secrets && npm run copy:schemas",
     "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
     "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
-    "prettify": "balena-lint --typescript --fix lib/ test/",
+    "prettify": "balena-lint --project ./tsconfig.test.json --fix lib/ typings/ test/",
     "prepack": "npm run build"
   },
   "repository": {
@@ -36,7 +34,7 @@
   },
   "homepage": "https://github.com/balena-io-modules/balena-compose#readme",
   "devDependencies": {
-    "@balena/lint": "^6.1.1",
+    "@balena/lint": "^7.2.1",
     "@types/bluebird": "^3.5.32",
     "@types/chai-as-promised": "^7.1.3",
     "@types/docker-modem": "^3.0.1",
@@ -62,7 +60,7 @@
     "proxyquire": "^2.1.3",
     "rimraf": "^5.0.1",
     "ts-mocha": "^10.0.0",
-    "typescript": "~5.1.6"
+    "typescript": "^5.2.2"
   },
   "dependencies": {
     "ajv": "^6.12.3",

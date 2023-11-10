@@ -21,7 +21,7 @@ interface ReleaseAttributesBase {
 	contract?: string;
 }
 
-// tslint:disable-next-line no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface
 interface ReleaseImageAttributesBase {
 	// empty
 }
@@ -95,7 +95,7 @@ export interface ReleaseImageModel extends ReleaseImageAttributesBase {
 
 // Helpers
 
-export function getOrCreate<T, U extends {}, V extends Filter>(
+export function getOrCreate<T, U extends object, V extends Filter>(
 	api: PinejsClientRequest,
 	resource: string,
 	body: U,
@@ -114,7 +114,7 @@ export function getOrCreate<T, U extends {}, V extends Filter>(
 	}) as Promise<T>;
 }
 
-export function create<T, U extends {}>(
+export function create<T, U extends object>(
 	api: PinejsClientRequest,
 	resource: string,
 	body: U,
@@ -122,7 +122,7 @@ export function create<T, U extends {}>(
 	return api.post({ resource, body }).catch(wrapResponseError) as Promise<T>;
 }
 
-export function update<T extends {}>(
+export function update<T extends object>(
 	api: PinejsClientRequest,
 	resource: string,
 	id: number,

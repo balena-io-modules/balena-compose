@@ -163,7 +163,8 @@ function normalizeObjectToComposition(
 		case SchemaVersion.v1:
 			// FIXME: perform attribute migration
 			c = { version: DEFAULT_SCHEMA_VERSION, services: c };
-		case DEFAULT_SCHEMA_VERSION:
+		// eslint-disable-next-line no-fallthrough
+		case DEFAULT_SCHEMA_VERSION: {
 			// Normalise volumes
 			if (c.volumes) {
 				c.volumes = _.mapValues(c.volumes, normalizeVolume);
@@ -199,6 +200,7 @@ function normalizeObjectToComposition(
 				})
 				.fromPairs()
 				.value();
+		}
 	}
 
 	c.version = DEFAULT_SCHEMA_VERSION;
@@ -631,7 +633,7 @@ async function readEnvFilesFromComposition(
 	const envFileVariables: Dict<Dict<string>> = {};
 	for (const service of Object.values(composition.services)) {
 		let envFilePaths = service.env_file;
-		if (!!envFilePaths) {
+		if (envFilePaths) {
 			if (!Array.isArray(envFilePaths)) {
 				envFilePaths = [envFilePaths];
 			}
@@ -655,7 +657,7 @@ function assignExpandedEnvFilesToComposition(
 	// Apply all read env_files content to the services referncing the env_files
 	for (const service of Object.values(composition.services)) {
 		let envFilePaths = service.env_file;
-		if (!!envFilePaths) {
+		if (envFilePaths) {
 			service.environment = service.environment ?? {};
 			if (!Array.isArray(envFilePaths)) {
 				envFilePaths = [envFilePaths];
@@ -680,7 +682,9 @@ async function readAndNormalizeExpandEnvFile(
 	envFile: string,
 	fileResolverCb: (path: string) => Promise<Readable>,
 ): Promise<Dict<string>> {
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const readline = require('readline');
+	// eslint-disable-next-line @typescript-eslint/no-var-requires
 	const { once } = require('events');
 	const intermediateEnv: Dict<string> = {};
 	let readableError;

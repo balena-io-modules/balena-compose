@@ -56,7 +56,7 @@ function validatePorts(value: string): boolean {
 }
 
 function validateExpose(value: string | number): boolean {
-	return /^\d+(\-\d+)?(\/[a-zA-Z]+)?$/.test(`${value}`);
+	return /^\d+(-\d+)?(\/[a-zA-Z]+)?$/.test(`${value}`);
 }
 
 function validateDuration(value: string | number): boolean {

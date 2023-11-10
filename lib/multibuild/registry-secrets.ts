@@ -158,7 +158,7 @@ export function addCanonicalDockerHubEntry(registryconfig: RegistrySecrets) {
 export function getAuthConfigObj(
 	imageName: string,
 	registryconfig: RegistrySecrets,
-): RegistrySecrets | {} {
+): RegistrySecrets | object {
 	const { registry } = getRegistryAndName(imageName);
 	// If the imageName was prefixed by a domain name or IP address,
 	// use it to query the registryconfig and return.

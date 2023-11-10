@@ -7,7 +7,10 @@ export class BadRequestError extends TypedError {}
 export class ServerError extends TypedError {}
 
 export class HttpResponseError extends TypedError {
-	constructor(message: string | Error, public statusCode: number) {
+	constructor(
+		message: string | Error,
+		public statusCode: number,
+	) {
 		super(message);
 	}
 }

@@ -220,6 +220,7 @@ export default class Builder {
 			const fn = hooks[hook];
 			if (typeof fn === 'function') {
 				// Spread the arguments onto the callback function
+				// eslint-disable-next-line prefer-spread -- TS complains fn's signature not supporting rest params
 				return await fn.apply(null, args);
 			}
 		} catch (err) {

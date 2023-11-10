@@ -17,7 +17,6 @@
 
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
-import * as _ from 'lodash';
 import * as Path from 'path';
 import * as Stream from 'stream';
 import * as tar from 'tar-stream';
@@ -41,14 +40,10 @@ export function getDocker(extraOpts?: any): Dockerode {
 function getDockerOpts(extraOpts?: any): Dockerode.DockerOptions {
 	let dockerOpts: Dockerode.DockerOptions = {};
 	if (process.env.CIRCLECI != null) {
-		let ca: string;
-		let cert: string;
-		let key: string;
-
 		const certs = ['ca.pem', 'cert.pem', 'key.pem'].map((f) =>
 			Path.join(process.env.DOCKER_CERT_PATH!, f),
 		);
-		[ca, cert, key] = certs.map((c) => fs.readFileSync(c, 'utf-8'));
+		const [ca, cert, key] = certs.map((c) => fs.readFileSync(c, 'utf-8'));
 		const parsed = Url.parse(process.env.DOCKER_HOST!);
 
 		dockerOpts = {
