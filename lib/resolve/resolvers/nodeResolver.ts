@@ -14,54 +14,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as Bluebird from 'bluebird';
+import * as memoize from 'memoizee';
 
 import * as _ from 'lodash';
 import * as request from 'request';
 import * as semver from 'semver';
+import { promisify } from 'util';
 
-const getAsync = Bluebird.promisify(request.get);
-
-import * as BluebirdLRU from 'bluebird-lru-cache';
+const getAsync = promisify(request.get);
 
 import { Bundle, FileInfo, Resolver } from '../resolver';
 import { ParsedPathPlus } from '../utils';
 
 const versionTest = RegExp.prototype.test.bind(/^[0-9]+\.[0-9]+\.[0-9]+$/);
-const versionCache: {
-	get: (deviceType: string) => Promise<string[]>;
-} = new BluebirdLRU({
-	maxAge: 3600 * 1000, // 1 hour
-	fetchFn: (deviceType: string) => {
-		const get = (prev: string[], url: string): Promise<string[]> => {
-			return Promise.resolve(
-				getAsync({
-					url,
-					json: true,
-				})
-					.get('body')
-					.then((res: { results: Array<{ name: string }>; next?: string }) => {
-						// explicit casting here, as typescript interprets the following statement as {}[]
-						const curr: string[] = res.results
-							.map(({ name }) => name)
-							.filter(versionTest);
-						const tags = prev.concat(curr);
+const getDeviceTypeVersions = memoize((deviceType: string) => {
+	const get = async (prev: string[], url: string): Promise<string[]> => {
+		const res = (await getAsync({
+			url,
+			json: true,
+		})).body as { results: Array<{ name: string }>; next?: string };
+		// explicit casting here, as typescript interprets the following statement as {}[]
+		const curr: string[] = res.results
+			.map(({ name }) => name)
+			.filter(versionTest);
+		const tags = prev.concat(curr);
 
-						if (res.next != null) {
-							return get(tags, res.next);
-						} else {
-							return tags;
-						}
-					}),
-			);
-		};
+		if (res.next != null) {
+			return get(tags, res.next);
+		} else {
+			return tags;
+		}
+	};
 
-		// 100 is the max page size
-		return get(
-			[],
-			`https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`,
-		);
-	},
+	// 100 is the max page size
+	return get(
+		[],
+		`https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`,
+	);
+}, {
+		promise: true,
+		primitive: true,
+		maxAge: 3600 * 1000, // 1 hour
 });
 
 export class NodeResolver implements Resolver {
@@ -138,7 +131,7 @@ export class NodeResolver implements Resolver {
 		}
 		const range: string = nodeEngine;
 
-		const versions = await versionCache.get(bundle.deviceType);
+		const versions = await getDeviceTypeVersions(bundle.deviceType);
 		const nodeVersion = semver.maxSatisfying(versions, range);
 
 		if (nodeVersion == null) {
