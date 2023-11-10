@@ -27,35 +27,37 @@ import { Bundle, FileInfo, Resolver } from '../resolver';
 import { ParsedPathPlus } from '../utils';
 
 const versionTest = RegExp.prototype.test.bind(/^[0-9]+\.[0-9]+\.[0-9]+$/);
-const getDeviceTypeVersions = memoize((deviceType: string) => {
-	const get = async (prev: string[], url: string): Promise<string[]> => {
-		const res = (await getAsync({
-			url,
-			json: true,
-		})).body as { results: Array<{ name: string }>; next?: string };
-		// explicit casting here, as typescript interprets the following statement as {}[]
-		const curr: string[] = res.results
-			.map(({ name }) => name)
-			.filter(versionTest);
-		const tags = prev.concat(curr);
+const getDeviceTypeVersions = memoize(
+	async (deviceType: string): Promise<string[]> => {
+		const tags: string[] = [];
+		// 100 is the max page size
+		let nextUrl:
+			| string
+			| undefined = `https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`;
+		while (nextUrl != null) {
+			const res = (
+				await getAsync({
+					url: nextUrl,
+					json: true,
+				})
+			).body as { results: Array<{ name: string }>; next?: string };
 
-		if (res.next != null) {
-			return get(tags, res.next);
-		} else {
-			return tags;
+			const curr: string[] = res.results
+				.map(({ name }) => name)
+				.filter(versionTest);
+
+			tags.push(...curr);
+			nextUrl = res.next;
 		}
-	};
 
-	// 100 is the max page size
-	return get(
-		[],
-		`https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`,
-	);
-}, {
+		return tags;
+	},
+	{
 		promise: true,
 		primitive: true,
 		maxAge: 3600 * 1000, // 1 hour
-});
+	},
+);
 
 export class NodeResolver implements Resolver {
 	public priority = 0;
