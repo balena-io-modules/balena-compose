@@ -1,4 +1,5 @@
 import pMap = require('p-map');
+import type { PinejsClientCore } from 'pinejs-client-core';
 import { PinejsClientRequest } from 'pinejs-client-request';
 import * as models from './models';
 import { Dict } from './types';
@@ -54,7 +55,7 @@ export interface Request {
 	 * You can use the `createClient` convenience function of this module to create
 	 * a client that can reused across requests.
 	 */
-	client: PinejsClientRequest;
+	client: PinejsClientCore<unknown>;
 
 	/**
 	 * The ID of the user the release should belong to. The user authenticated via `client`
@@ -169,7 +170,7 @@ export async function create(req: Request): Promise<Response> {
 }
 
 export async function updateRelease(
-	api: PinejsClientRequest,
+	api: PinejsClientCore<unknown>,
 	id: number,
 	body: Partial<models.ReleaseAttributes>,
 ): Promise<void> {
@@ -177,7 +178,7 @@ export async function updateRelease(
 }
 
 export async function updateImage(
-	api: PinejsClientRequest,
+	api: PinejsClientCore<unknown>,
 	id: number,
 	body: Partial<models.ImageAttributes>,
 ): Promise<void> {
@@ -187,21 +188,21 @@ export async function updateImage(
 // Helpers
 
 async function getUser(
-	api: PinejsClientRequest,
+	api: PinejsClientCore<unknown>,
 	id: number,
 ): Promise<models.UserModel> {
 	return models.get(api, 'user', id);
 }
 
 async function getApplication(
-	api: PinejsClientRequest,
+	api: PinejsClientCore<unknown>,
 	id: number,
 ): Promise<models.ApplicationModel> {
 	return models.get(api, 'application', id);
 }
 
 async function getOrCreateService(
-	api: PinejsClientRequest,
+	api: PinejsClientCore<unknown>,
 	body: models.ServiceAttributes,
 ): Promise<models.ServiceModel> {
 	return models.getOrCreate(api, 'service', body, {
@@ -211,14 +212,14 @@ async function getOrCreateService(
 }
 
 async function createRelease(
-	api: PinejsClientRequest,
+	api: PinejsClientCore<unknown>,
 	body: models.ReleaseAttributes,
 ): Promise<models.ReleaseModel> {
 	return models.create(api, 'release', body);
 }
 
 async function createImage(
-	api: PinejsClientRequest,
+	api: PinejsClientCore<unknown>,
 	release: number,
 	labels: Dict<string> | undefined,
 	envvars: Dict<string> | undefined,
