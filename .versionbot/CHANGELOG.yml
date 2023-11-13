@@ -1,4 +1,16 @@
 - commits:
+    - subject: Allow injecting any PinejsClientCore compatible API client
+      hash: e0ab3ef95f8bc51d2e9055a1f822b8d340f0c587
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested: []
+  version: 3.1.0
+  title: ""
+  date: 2023-11-13T16:27:44.317Z
+- commits:
     - subject: "NodeResolver: Refactor the recursion to an async-await loop"
       hash: bde40f4430bc26a058598a64eeeedbb5ab35eb57
       body: ""
