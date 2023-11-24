@@ -18,6 +18,7 @@
 import * as parser from 'docker-file-parser';
 import * as jsesc from 'jsesc';
 import * as _ from 'lodash';
+import { pipeline } from 'node:stream';
 import * as tar from 'tar-stream';
 import { normalizeTarEntry } from 'tar-utils';
 
@@ -225,7 +226,7 @@ export function transposeTarStream(
 			resolve(pack);
 		});
 
-		tarStream.pipe(extract);
+		pipeline(tarStream, extract, _.noop);
 	});
 }
 
@@ -272,7 +273,7 @@ export function getBuildThroughStream(
 		return data.replace(replaceRegex, '');
 	};
 
-	return es.pipe(
+	return pipeline(
 		es.mapSync(function (data: string | Buffer) {
 			data = data.toString();
 
@@ -282,5 +283,6 @@ export function getBuildThroughStream(
 			return data;
 		}),
 		es.join('\n'),
+		_.noop,
 	);
 }

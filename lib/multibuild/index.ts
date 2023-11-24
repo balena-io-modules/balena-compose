@@ -18,7 +18,7 @@
 import type * as Dockerode from 'dockerode';
 import * as _ from 'lodash';
 import * as path from 'path';
-import type * as Stream from 'stream';
+import * as stream from 'node:stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 
@@ -73,7 +73,7 @@ export { CANONICAL_HUB_URL } from './constants';
  */
 export function splitBuildStream(
 	composition: Compose.Composition,
-	buildStream: Stream.Readable,
+	buildStream: stream.Readable,
 ): Promise<BuildTask[]> {
 	const images = Compose.parse(composition);
 	return fromImageDescriptors(images, buildStream);
@@ -81,7 +81,7 @@ export function splitBuildStream(
 
 export async function fromImageDescriptors(
 	images: Compose.ImageDescriptor[],
-	buildStream: Stream.Readable,
+	buildStream: stream.Readable,
 	metadataDirectories = ['.balena/', '.resin/'],
 ): Promise<BuildTask[]> {
 	const buildMetadata = new BuildMetadata(metadataDirectories);
@@ -96,7 +96,7 @@ export async function fromImageDescriptors(
 
 		const entryFn = (
 			header: tar.Headers,
-			stream: Stream.Readable,
+			entryStream: stream.Readable,
 			next: () => void,
 		): void => {
 			// Find the build context that this file should belong to
@@ -109,7 +109,7 @@ export async function fromImageDescriptors(
 
 			if (matchingTasks.length > 0) {
 				// Add the file to every matching context
-				TarUtils.streamToBuffer(stream)
+				TarUtils.streamToBuffer(entryStream)
 					.then((buf) => {
 						matchingTasks.forEach((task) => {
 							const relative = path.posix.relative(task.context!, header.name);
@@ -140,7 +140,7 @@ export async function fromImageDescriptors(
 						reject(new TarError(e));
 					});
 			} else {
-				TarUtils.drainStream(stream)
+				TarUtils.drainStream(entryStream)
 					.then(() => {
 						next();
 					})
@@ -161,7 +161,7 @@ export async function fromImageDescriptors(
 			reject(new TarError(e));
 		});
 
-		newStream.pipe(extract);
+		stream.pipeline(newStream, extract, _.noop);
 	}).then((tasks) => {
 		contracts.checkContractNamesUnique(tasks);
 		return tasks;

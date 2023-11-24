@@ -22,7 +22,7 @@ import * as JSONStream from 'JSONStream';
 import * as _ from 'lodash';
 import * as fs from 'mz/fs';
 import * as path from 'path';
-import { Duplex } from 'stream';
+import * as stream from 'node:stream';
 import * as tar from 'tar-stream';
 
 // Import hook definitions
@@ -71,7 +71,7 @@ export default class Builder {
 		const fromTags: Utils.FromTagInfo[] = [];
 
 		// Create a stream to be passed into the docker daemon
-		const inputStream = es.through<Duplex>();
+		const inputStream = es.through<stream.Duplex>();
 
 		// Create a bi-directional stream
 		const dup = duplexify();
@@ -194,11 +194,9 @@ export default class Builder {
 		// Tell the tar stream we're done
 		pack.finalize();
 		// Create a build stream to send the data to
-		const stream = this.createBuildStream(buildOpts, hooks, handler);
-		// Write the tar archive to the stream
-		pack.pipe(stream);
-		// ...and return it for reading
-		return stream;
+		const buildStream = this.createBuildStream(buildOpts, hooks, handler);
+		// Write the tar archive to the stream and return it for reading
+		return stream.pipeline(pack, buildStream, _.noop);
 	}
 
 	/**
@@ -244,44 +242,46 @@ function getDockerDaemonBuildOutputParserStream(
 	layers: string[],
 	fromImageTags: Utils.FromTagInfo[],
 	onError: (error: Error) => void,
-): Duplex {
+): stream.Duplex {
 	const fromAliases = new Set();
-	return (
-		daemonStream
-			// parse the docker daemon's output json objects
-			.pipe(JSONStream.parse())
-			// Don't use fat-arrow syntax here, to capture 'this' from es
-			.pipe(
-				es.through<Duplex>(function (data: { stream: string; error: string }) {
-					if (data == null) {
-						return;
+	return stream.pipeline(
+		daemonStream,
+		// parse the docker daemon's output json objects
+		JSONStream.parse(),
+		// Don't use fat-arrow syntax here, to capture 'this' from es
+		es.through<stream.Duplex>(function (data: {
+			stream: string;
+			error: string;
+		}) {
+			if (data == null) {
+				return;
+			}
+			try {
+				if (data.error) {
+					throw new Error(data.error);
+				} else {
+					// Store image layers, so that they can be
+					// deleted by the caller if necessary
+					const sha = Utils.extractLayer(data.stream);
+					if (sha !== undefined) {
+						layers.push(sha);
 					}
-					try {
-						if (data.error) {
-							throw new Error(data.error);
-						} else {
-							// Store image layers, so that they can be
-							// deleted by the caller if necessary
-							const sha = Utils.extractLayer(data.stream);
-							if (sha !== undefined) {
-								layers.push(sha);
-							}
-							const fromTag = Utils.extractFromTag(data.stream);
-							if (fromTag !== undefined) {
-								if (!fromAliases.has(fromTag.repo)) {
-									fromImageTags.push(fromTag);
-								}
-								if (fromTag.alias) {
-									fromAliases.add(fromTag.alias);
-								}
-							}
-							this.emit('data', data.stream);
+					const fromTag = Utils.extractFromTag(data.stream);
+					if (fromTag !== undefined) {
+						if (!fromAliases.has(fromTag.repo)) {
+							fromImageTags.push(fromTag);
 						}
-					} catch (error) {
-						daemonStream.unpipe();
-						onError(error);
+						if (fromTag.alias) {
+							fromAliases.add(fromTag.alias);
+						}
 					}
-				}),
-			)
+					this.emit('data', data.stream);
+				}
+			} catch (error) {
+				daemonStream.unpipe();
+				onError(error);
+			}
+		}),
+		_.noop,
 	);
 }

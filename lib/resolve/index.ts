@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import { Readable } from 'stream';
+import { Readable, pipeline } from 'stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 
@@ -124,7 +124,7 @@ export function resolveInput(
 		}
 	});
 
-	bundle.tarStream.pipe(extract);
+	pipeline(bundle.tarStream, extract, _.noop);
 	return pack;
 }
 
