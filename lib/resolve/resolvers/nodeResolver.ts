@@ -31,9 +31,8 @@ const getDeviceTypeVersions = memoize(
 	async (deviceType: string): Promise<string[]> => {
 		const tags: string[] = [];
 		// 100 is the max page size
-		let nextUrl:
-			| string
-			| undefined = `https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`;
+		let nextUrl: string | undefined =
+			`https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`;
 		while (nextUrl != null) {
 			const res = (
 				await getAsync({

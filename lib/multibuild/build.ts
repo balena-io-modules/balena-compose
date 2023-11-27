@@ -18,7 +18,7 @@
 import type * as Dockerode from 'dockerode';
 import * as _ from 'lodash';
 import * as semver from 'semver';
-import type * as Stream from 'stream';
+import * as stream from 'stream';
 
 import { Builder, BuildHooks, FromTagInfo } from '../build';
 
@@ -79,13 +79,13 @@ function taskHooks(
 			image.error = error;
 			resolve(image);
 		},
-		buildStream: (stream: Stream.Duplex) => {
+		buildStream: (buildStream: stream.Duplex) => {
 			startTime = Date.now();
 			if (typeof task.streamHook === 'function') {
-				task.streamHook(stream);
+				task.streamHook(buildStream);
 			}
 
-			task.buildStream!.pipe(stream);
+			stream.pipeline(task.buildStream!, buildStream, _.noop);
 		},
 	};
 }

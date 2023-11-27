@@ -28,6 +28,7 @@ import * as dockerfileTemplate from '../../dockerfile';
 import type BuildMetadata from '../build-metadata';
 import { BuildSecretMissingError, SecretPopulationError } from '../errors';
 import { PermissiveVarList, VarList } from '../validation-types/varlist';
+import { pipeline } from 'stream';
 
 export const secretType = t.interface({
 	source: t.string,
@@ -155,7 +156,7 @@ export async function populateSecrets(
 		await new Promise((resolve, reject) => {
 			builder.createBuildStream(dockerOpts, {
 				buildStream: (stream) => {
-					pack.pipe(stream);
+					pipeline(pack, stream, _.noop);
 				},
 				buildSuccess: resolve,
 				buildFailure: reject,
@@ -215,7 +216,7 @@ export async function removeSecrets(
 		await new Promise((resolve, reject) => {
 			builder.createBuildStream(dockerOpts, {
 				buildStream: (stream) => {
-					pack.pipe(stream);
+					pipeline(pack, stream, _.noop);
 				},
 				buildSuccess: resolve,
 				buildFailure: reject,
