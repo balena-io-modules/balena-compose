@@ -107,7 +107,6 @@ export default class Builder {
 					reject,
 				);
 				outputStream.on('error', (error: Error) => {
-					daemonStream.unpipe();
 					reject(error);
 				});
 				outputStream.on('end', () =>
@@ -122,7 +121,7 @@ export default class Builder {
 
 		// It is helpful for the following promises to run in parallel because
 		// buildPromise may reject sooner than the buildStream hook completes
-		// (in which case the stream is unpipe'd and destroy'ed), and yet the
+		// (in which case the stream is destroy'ed), and yet the
 		// buildStream hook must be called in order for buildPromise to ever
 		// resolve (as the hook call consumes the `dup` stream).
 		Promise.all([
@@ -278,7 +277,6 @@ function getDockerDaemonBuildOutputParserStream(
 					this.emit('data', data.stream);
 				}
 			} catch (error) {
-				daemonStream.unpipe();
 				onError(error);
 			}
 		}),
