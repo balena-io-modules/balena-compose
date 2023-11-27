@@ -1,4 +1,16 @@
 - commits:
+    - subject: Make use of `pipeline` for piping streams together
+      hash: 1d98cd535a20fa67869da242b0ec7ddd713a4c7b
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 3.1.1
+  title: ""
+  date: 2023-11-27T12:43:23.880Z
+- commits:
     - subject: Allow injecting any PinejsClientCore compatible API client
       hash: e0ab3ef95f8bc51d2e9055a1f822b8d340f0c587
       body: ""
