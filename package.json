@@ -42,7 +42,7 @@
     "@types/event-stream": "^4.0.0",
     "@types/js-yaml": "^4.0.1",
     "@types/jsesc": "^3.0.1",
-    "@types/jsonstream": "^0.8.30",
+    "@types/JSONStream": "npm:@types/jsonstream@^0.8.33",
     "@types/klaw": "^3.0.3",
     "@types/lodash": "^4.14.181",
     "@types/memoizee": "^0.4.11",

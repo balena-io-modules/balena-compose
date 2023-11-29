@@ -247,7 +247,7 @@ function getDockerDaemonBuildOutputParserStream(
 	return stream.pipeline(
 		daemonStream,
 		// parse the docker daemon's output json objects
-		JSONStream.parse(),
+		JSONStream.parse(undefined),
 		// Don't use fat-arrow syntax here, to capture 'this' from es
 		es.through<stream.Duplex>(function (data: {
 			stream: string;
