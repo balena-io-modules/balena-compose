@@ -1,4 +1,16 @@
 - commits:
+    - subject: Use the JSONStream typings from @types/jsonstream
+      hash: 155fdcc8e4e7df67d41152b494e1a80493bb0439
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 3.1.2
+  title: ""
+  date: 2023-11-29T13:33:49.557Z
+- commits:
     - subject: Make use of `pipeline` for piping streams together
       hash: 1d98cd535a20fa67869da242b0ec7ddd713a4c7b
       body: ""
