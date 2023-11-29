@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update dockerode to 3.3.5
+      hash: f5fc932f3203df4df66d38363974e62788e468ff
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 3.1.3
+  title: ""
+  date: 2023-11-29T14:49:55.816Z
+- commits:
     - subject: Use the JSONStream typings from @types/jsonstream
       hash: 155fdcc8e4e7df67d41152b494e1a80493bb0439
       body: ""
