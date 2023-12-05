@@ -1,4 +1,16 @@
 - commits:
+    - subject: 'release/createClient: Allow specifying the "retry" options'
+      hash: b89b42a838ed2c3a7a8319cbd1b2a7c66a8210ef
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Thodoris Greasidis
+      nested: []
+  version: 3.2.0
+  title: ""
+  date: 2023-12-05T15:26:57.394Z
+- commits:
     - subject: Update dockerode to 3.3.5
       hash: f5fc932f3203df4df66d38363974e62788e468ff
       body: ""
