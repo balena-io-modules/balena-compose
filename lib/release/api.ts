@@ -1,5 +1,5 @@
 import pMap = require('p-map');
-import type { PinejsClientCore } from 'pinejs-client-core';
+import type { PinejsClientCore, RetryParameters } from 'pinejs-client-core';
 import { PinejsClientRequest } from 'pinejs-client-request';
 import * as models from './models';
 import { Dict } from './types';
@@ -21,6 +21,8 @@ export interface ClientConfig {
 	 * `Bearer <authtoken>`.
 	 */
 	auth: string;
+
+	retry?: RetryParameters;
 }
 
 export function createClient(config: ClientConfig): PinejsClientRequest {
@@ -31,6 +33,7 @@ export function createClient(config: ClientConfig): PinejsClientRequest {
 				Authorization: config.auth,
 			},
 		},
+		retry: config.retry,
 	});
 }
 
