@@ -18,7 +18,7 @@ import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs';
 import * as _ from 'lodash';
-import * as Stream from 'stream';
+import type * as Stream from 'stream';
 import * as tar from 'tar-stream';
 
 import * as Compose from '../../lib/parse';

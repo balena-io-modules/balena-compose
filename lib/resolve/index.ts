@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import { Readable, pipeline } from 'stream';
+import type { Readable } from 'stream';
+import { pipeline } from 'stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 

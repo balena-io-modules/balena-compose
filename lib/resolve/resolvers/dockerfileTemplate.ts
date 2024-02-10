@@ -17,8 +17,9 @@
 import { TypedError } from 'typed-error';
 
 import * as DockerfileTemplate from '../../dockerfile';
-import { Bundle, FileInfo, Resolver } from '../resolver';
-import { ParsedPathPlus, removeExtension } from '../utils';
+import type { Bundle, FileInfo, Resolver } from '../resolver';
+import type { ParsedPathPlus } from '../utils';
+import { removeExtension } from '../utils';
 
 export class DockerfileTemplateVariableError extends TypedError {}
 

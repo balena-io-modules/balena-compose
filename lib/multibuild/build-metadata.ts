@@ -15,17 +15,19 @@
  * limitations under the License.
  */
 
-import { Either, isLeft } from 'fp-ts/lib/Either';
-import * as t from 'io-ts';
+import type { Either } from 'fp-ts/lib/Either';
+import { isLeft } from 'fp-ts/lib/Either';
+import type * as t from 'io-ts';
 import { reporter } from 'io-ts-reporters';
 import * as jsYaml from 'js-yaml';
 import * as _ from 'lodash';
 import * as Path from 'path';
 import type * as Stream from 'stream';
-import * as tar from 'tar-stream';
+import type * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 
-import { BalenaYml, parsedBalenaYml, ParsedBalenaYml } from './build-secrets';
+import type { BalenaYml, ParsedBalenaYml } from './build-secrets';
+import { parsedBalenaYml } from './build-secrets';
 import {
 	BalenaYMLValidationError,
 	MultipleBalenaConfigFilesError,
@@ -33,9 +35,9 @@ import {
 	RegistrySecretValidationError,
 } from './errors';
 import * as PathUtils from './path-utils';
+import type { RegistrySecrets } from './registry-secrets';
 import {
 	addCanonicalDockerHubEntry,
-	RegistrySecrets,
 	RegistrySecretValidator,
 } from './registry-secrets';
 

@@ -30,12 +30,8 @@ import {
 
 import * as Compose from '../../lib/parse';
 
-import {
-	splitBuildStream,
-	BuildTask,
-	BuildProcessError,
-	LocalImage,
-} from '../../lib/multibuild';
+import type { BuildTask, LocalImage } from '../../lib/multibuild';
+import { splitBuildStream, BuildProcessError } from '../../lib/multibuild';
 import { runBuildTask } from '../../lib/multibuild/build';
 import { resolveTask } from '../../lib/multibuild/resolve';
 
