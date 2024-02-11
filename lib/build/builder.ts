@@ -26,7 +26,7 @@ import * as stream from 'node:stream';
 import * as tar from 'tar-stream';
 
 // Import hook definitions
-import * as Plugin from './plugin';
+import type * as Plugin from './plugin';
 import * as Utils from './utils';
 
 export type ErrorHandler = (error: Error) => void;

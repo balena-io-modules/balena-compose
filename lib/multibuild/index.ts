@@ -26,13 +26,13 @@ import * as Compose from '../parse';
 
 import { runBuildTask } from './build';
 import BuildMetadata from './build-metadata';
+import type { SecretsPopulationMap } from './build-secrets';
 import {
 	BalenaYml,
 	generateSecretPopulationMap,
 	ParsedBalenaYml,
 	populateSecrets,
 	removeSecrets,
-	SecretsPopulationMap,
 } from './build-secrets';
 import type { BuildTask } from './build-task';
 import * as contracts from './contracts';

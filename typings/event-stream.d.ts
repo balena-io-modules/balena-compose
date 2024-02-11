@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { Stream } from 'stream';
+import type { Stream } from 'stream';
 
 /**
  * Additional typing information that is merged with that available in the npm

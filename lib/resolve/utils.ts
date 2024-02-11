@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 
-import { ParsedPath, posix } from 'path';
+import type { ParsedPath } from 'path';
+import { posix } from 'path';
 
 export interface ParsedPathPlus extends ParsedPath {
 	minusExt: string;

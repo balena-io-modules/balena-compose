@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Bundle } from '../resolver';
+import type { Bundle } from '../resolver';
 
-import { FileInfo, Resolver } from '../resolver';
-import { ParsedPathPlus } from '../utils';
+import type { FileInfo, Resolver } from '../resolver';
+import type { ParsedPathPlus } from '../utils';
 
 export class DockerfileResolver implements Resolver {
 	public priority = 0;

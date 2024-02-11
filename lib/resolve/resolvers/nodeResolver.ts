@@ -23,8 +23,8 @@ import { promisify } from 'util';
 
 const getAsync = promisify(request.get);
 
-import { Bundle, FileInfo, Resolver } from '../resolver';
-import { ParsedPathPlus } from '../utils';
+import type { Bundle, FileInfo, Resolver } from '../resolver';
+import type { ParsedPathPlus } from '../utils';
 
 const versionTest = RegExp.prototype.test.bind(/^[0-9]+\.[0-9]+\.[0-9]+$/);
 const getDeviceTypeVersions = memoize(
