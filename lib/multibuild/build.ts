@@ -20,7 +20,8 @@ import * as _ from 'lodash';
 import * as semver from 'semver';
 import * as stream from 'stream';
 
-import { Builder, BuildHooks, FromTagInfo } from '../build';
+import type { BuildHooks, FromTagInfo } from '../build';
+import { Builder } from '../build';
 
 import type { SecretsPopulationMap } from './build-secrets';
 import type { BuildTask } from './build-task';

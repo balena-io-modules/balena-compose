@@ -18,8 +18,9 @@ import { posix } from 'path';
 
 import * as DockerfileTemplate from '../../dockerfile';
 
-import { Bundle, FileInfo, Resolver } from '../resolver';
-import { ParsedPathPlus, removeExtension } from '../utils';
+import type { Bundle, FileInfo, Resolver } from '../resolver';
+import type { ParsedPathPlus } from '../utils';
+import { removeExtension } from '../utils';
 import { DockerfileTemplateVariableError } from './dockerfileTemplate';
 
 // Internal tuple to pass files and their extensions around

@@ -23,9 +23,9 @@ import * as fs from 'fs';
 
 import { normalize } from '../../lib/parse';
 
+import type { RegistrySecrets } from '../../lib/multibuild';
 import {
 	addCanonicalDockerHubEntry,
-	RegistrySecrets,
 	RegistrySecretValidator,
 	RegistrySecretValidationError,
 	splitBuildStream,

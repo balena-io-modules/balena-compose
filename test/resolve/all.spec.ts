@@ -17,7 +17,7 @@
 import { expect, use } from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs';
-import { Readable } from 'stream';
+import type { Readable } from 'stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 

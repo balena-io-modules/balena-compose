@@ -18,7 +18,7 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs';
-import * as Stream from 'stream';
+import type * as Stream from 'stream';
 
 import {
 	checkExists,
@@ -27,7 +27,8 @@ import {
 	TEST_FILES_PATH,
 } from './build-utils';
 
-import { performBuilds, BuildTask, LocalImage } from '../../lib/multibuild';
+import type { BuildTask, LocalImage } from '../../lib/multibuild';
+import { performBuilds } from '../../lib/multibuild';
 import BuildMetadata from '../../lib/multibuild/build-metadata';
 
 chai.use(chaiAsPromised);

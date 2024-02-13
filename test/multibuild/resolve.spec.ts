@@ -1,10 +1,10 @@
 import * as chai from 'chai';
 import * as chaiAsPromised from 'chai-as-promised';
 import * as fs from 'fs';
-import { Pack } from 'tar-stream';
+import type { Pack } from 'tar-stream';
 
 import BuildMetadata from '../../lib/multibuild/build-metadata';
-import { BuildTask } from '../../lib/multibuild';
+import type { BuildTask } from '../../lib/multibuild';
 import { resolveTask } from '../../lib/multibuild/resolve';
 
 import { TEST_FILES_PATH } from './build-utils';

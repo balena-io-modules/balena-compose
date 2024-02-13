@@ -23,7 +23,8 @@ import * as url from 'url';
 
 import * as proxyquire from 'proxyquire';
 
-import { Builder, BuildHooks } from '../../lib/build';
+import type { BuildHooks } from '../../lib/build';
+import { Builder } from '../../lib/build';
 import * as Utils from '../../lib/build/utils';
 
 const TEST_FILE_PATH = 'test/build/test-files';

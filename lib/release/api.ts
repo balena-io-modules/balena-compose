@@ -2,9 +2,9 @@ import pMap = require('p-map');
 import type { PinejsClientCore, RetryParameters } from 'pinejs-client-core';
 import { PinejsClientRequest } from 'pinejs-client-request';
 import * as models from './models';
-import { Dict } from './types';
+import type { Dict } from './types';
 
-import { Composition } from '../../lib/parse';
+import type { Composition } from '../../lib/parse';
 
 const MAX_CONCURRENT_REQUESTS = 5;
 

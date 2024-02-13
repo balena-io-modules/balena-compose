@@ -33,7 +33,7 @@ export function process(
 			return line[0] !== '#'
 				? lodash.template(line, { interpolate: /%%([A-Z][A-Z_]+)%%/ })(
 						variables,
-				  )
+					)
 				: line;
 		})
 		.join('\n');

@@ -18,12 +18,12 @@
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
 import * as Path from 'path';
-import * as Stream from 'stream';
-import * as tar from 'tar-stream';
+import type * as Stream from 'stream';
+import type * as tar from 'tar-stream';
 import * as Url from 'url';
 
 import BuildMetadata from '../../lib/multibuild/build-metadata';
-import { BalenaYml } from '../../lib/multibuild/build-secrets';
+import type { BalenaYml } from '../../lib/multibuild/build-secrets';
 
 export const TEST_FILES_PATH = 'test/multibuild/test-files';
 

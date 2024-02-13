@@ -1,4 +1,4 @@
-import { Readable } from 'stream';
+import type { Readable } from 'stream';
 import * as _ from 'lodash';
 import * as path from 'path';
 
@@ -13,7 +13,7 @@ import {
 	SchemaVersion,
 	validate,
 } from './schemas';
-import {
+import type {
 	BuildConfig,
 	Composition,
 	Dict,

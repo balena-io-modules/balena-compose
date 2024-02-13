@@ -1,6 +1,6 @@
 import Bundle from './bundle';
 import { FileInfo } from './fileInfo';
-import { ParsedPathPlus } from './utils';
+import type { ParsedPathPlus } from './utils';
 
 // Make the external types available to implementers
 export { Bundle, FileInfo };

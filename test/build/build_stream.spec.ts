@@ -15,7 +15,8 @@
  * limitations under the License.
  */
 import { assert } from 'chai';
-import { Readable, Stream, Writable } from 'stream';
+import type { Readable, Writable } from 'stream';
+import { Stream } from 'stream';
 
 import * as proxyquire from 'proxyquire';
 

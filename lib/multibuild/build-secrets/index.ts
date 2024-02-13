@@ -27,7 +27,8 @@ import * as dockerfileTemplate from '../../dockerfile';
 
 import type BuildMetadata from '../build-metadata';
 import { BuildSecretMissingError, SecretPopulationError } from '../errors';
-import { PermissiveVarList, VarList } from '../validation-types/varlist';
+import type { VarList } from '../validation-types/varlist';
+import { PermissiveVarList } from '../validation-types/varlist';
 import { pipeline } from 'stream';
 
 export const secretType = t.interface({

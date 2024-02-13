@@ -15,14 +15,16 @@
  * limitations under the License.
  */
 
+import type {
+	DockerImageManifest,
+	DockerImageManifestPlatform,
+} from '../../lib/multibuild/manifests';
 import {
 	MEDIATYPE_MANIFEST_V1,
 	MEDIATYPE_MANIFEST_LIST_V2,
 	MEDIATYPE_MANIFEST_V2,
 	MEDIATYPE_OCI_IMAGE_INDEX_V1,
 	getManifest,
-	DockerImageManifest,
-	DockerImageManifestPlatform,
 } from '../../lib/multibuild/manifests';
 import { expect } from 'chai';
 import * as Dockermodem from 'docker-modem';

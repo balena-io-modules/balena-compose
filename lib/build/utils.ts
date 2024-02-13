@@ -16,7 +16,7 @@
  */
 import * as klaw from 'klaw';
 
-import * as Plugin from './plugin';
+import type * as Plugin from './plugin';
 
 /**
  * Given a docker 'arrow message' containing a sha representing
