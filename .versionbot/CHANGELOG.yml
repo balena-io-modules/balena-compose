@@ -1,4 +1,38 @@
 - commits:
+    - subject: Upgrade dockerode and docker-modem dependencies
+      hash: 16f40b9d58e52501acabf4f17aeb7c7fef4b9990
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+    - subject: Prettify fix for consistent-type-imports
+      hash: 4a944831e980423955ea7da46e12dafeeaf2b863
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+    - subject: Prettify fix for whitespace
+      hash: a674e842d93bb89adbc32e4d21d63db318525287
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Ken Bannister <kb2ma@runbox.com>
+        signed-off-by: Ken Bannister <kb2ma@runbox.com>
+      author: Ken Bannister
+      nested: []
+  version: 3.2.1
+  title: ""
+  date: 2024-02-13T13:27:27.418Z
+- commits:
     - subject: 'release/createClient: Allow specifying the "retry" options'
       hash: b89b42a838ed2c3a7a8319cbd1b2a7c66a8210ef
       body: ""
