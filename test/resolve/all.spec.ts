@@ -309,13 +309,14 @@ describe('Resolvers', () => {
 		);
 	});
 
-	it.skip('should resolve a nodeJS project', function () {
-		this.timeout(3600000);
+	it('should resolve a nodeJS project', function () {
+		// test often takes around 40 sec to complete
+		this.timeout(180000);
 		const deviceType = 'raspberrypi3';
 		return testResolveInput({
 			deviceType,
 			dockerfileContentMatcher: (contents) =>
-				contents.startsWith(`FROM resin/${deviceType}-node:10.0.0-onbuild`),
+				contents.startsWith(`FROM resin/${deviceType}-node:18.0.0-onbuild`),
 			expectedResolvedDockerfilePath: undefined,
 			expectedResolverName: 'NodeJS',
 			specifiedDockerfilePath: undefined,

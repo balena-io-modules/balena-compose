@@ -32,7 +32,7 @@ const getDeviceTypeVersions = memoize(
 		const tags: string[] = [];
 		// 100 is the max page size
 		let nextUrl: string | undefined =
-			`https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`;
+			`https://hub.docker.com/v2/repositories/balenalib/${deviceType}-node/tags/?page_size=100`;
 		while (nextUrl != null) {
 			const res = (
 				await getAsync({
@@ -41,11 +41,14 @@ const getDeviceTypeVersions = memoize(
 				})
 			).body as { results: Array<{ name: string }>; next?: string };
 
-			const curr: string[] = res.results
-				.map(({ name }) => name)
-				.filter(versionTest);
+			// sometimes the last result is undefined
+			if (res.results !== undefined) {
+				const curr: string[] = res.results
+					.map(({ name }) => name)
+					.filter(versionTest);
+				tags.push(...curr);
+			}
 
-			tags.push(...curr);
 			nextUrl = res.next;
 		}
 
