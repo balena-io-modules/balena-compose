@@ -1,6 +1,6 @@
 import pMap = require('p-map');
 import type { PinejsClientCore, RetryParameters } from 'pinejs-client-core';
-import { PinejsClientRequest } from 'pinejs-client-request';
+import PinejsClientFetch from 'pinejs-client-fetch';
 import * as models from './models';
 import type { Dict } from './types';
 
@@ -25,16 +25,19 @@ export interface ClientConfig {
 	retry?: RetryParameters;
 }
 
-export function createClient(config: ClientConfig): PinejsClientRequest {
-	return new PinejsClientRequest({
-		apiPrefix: `${config.apiEndpoint}/v6/`,
-		passthrough: {
-			headers: {
-				Authorization: config.auth,
+export function createClient(config: ClientConfig): PinejsClientFetch {
+	return new PinejsClientFetch(
+		{
+			apiPrefix: `${config.apiEndpoint}/v6/`,
+			passthrough: {
+				headers: {
+					Authorization: config.auth,
+				},
 			},
+			retry: config.retry,
 		},
-		retry: config.retry,
-	});
+		{ fetch },
+	);
 }
 
 export interface Request {
@@ -44,7 +47,7 @@ export interface Request {
 	 * configure `apiPrefix` appropriately.
 	 *
 	 * ```
-	 * import Pine = require('pinejs-client-request');
+	 * import Pine = require('pinejs-client-fetch');
 	 * const client = new Pine({
 	 *   apiPrefix: 'https://api.balena-cloud.com/v5',
 	 *   passthrough: {
