@@ -84,7 +84,6 @@
     "mz": "^2.7.0",
     "p-map": "^4.0.0",
     "pinejs-client-core": "^6.13.0",
-    "pinejs-client-request": "^7.3.5",
     "request": "^2.88.2",
     "semver": "^7.3.5",
     "stream-to-promise": "^3.0.0",

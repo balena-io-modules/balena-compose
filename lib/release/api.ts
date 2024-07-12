@@ -1,6 +1,5 @@
 import pMap = require('p-map');
-import type { PinejsClientCore, RetryParameters } from 'pinejs-client-core';
-import { PinejsClientRequest } from 'pinejs-client-request';
+import type { PinejsClientCore } from 'pinejs-client-core';
 import * as models from './models';
 import type { Dict } from './types';
 
@@ -8,45 +7,16 @@ import type { Composition } from '../../lib/parse';
 
 const MAX_CONCURRENT_REQUESTS = 5;
 
-export interface ClientConfig {
-	/**
-	 * The host address of the API server to use, complete with the protocol,
-	 * eg. `https://api.balena-cloud.com`. This module will issue requests to v4 of
-	 * the API.
-	 */
-	apiEndpoint: string;
-
-	/**
-	 * The complete string to forward as Authorization HTTP header, eg.
-	 * `Bearer <authtoken>`.
-	 */
-	auth: string;
-
-	retry?: RetryParameters;
-}
-
-export function createClient(config: ClientConfig): PinejsClientRequest {
-	return new PinejsClientRequest({
-		apiPrefix: `${config.apiEndpoint}/v6/`,
-		passthrough: {
-			headers: {
-				Authorization: config.auth,
-			},
-		},
-		retry: config.retry,
-	});
-}
-
 export interface Request {
 	/**
 	 * An instance of PineJS, appropriately authenticated and configured for the
-	 * API server to use. The only compatible API version is v5, so make sure to
+	 * API server to use. The compatible API versions are v5 and v6, so make sure to
 	 * configure `apiPrefix` appropriately.
 	 *
 	 * ```
-	 * import Pine = require('pinejs-client-request');
+	 * import Pine from 'pinejs-client-fetch';
 	 * const client = new Pine({
-	 *   apiPrefix: 'https://api.balena-cloud.com/v5',
+	 *   apiPrefix: 'https://api.balena-cloud.com/v6',
 	 *   passthrough: {
 	 *     headers: {
 	 *       Authorization: `Bearer ${authToken}`,
@@ -54,9 +24,6 @@ export interface Request {
 	 *   },
 	 * });
 	 * ```
-	 *
-	 * You can use the `createClient` convenience function of this module to create
-	 * a client that can reused across requests.
 	 */
 	client: PinejsClientCore<unknown>;
 
