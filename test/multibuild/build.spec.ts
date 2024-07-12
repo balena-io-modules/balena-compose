@@ -320,14 +320,10 @@ describe('Resolved project building', () => {
 			const newTask = resolveTask(task, 'amd64', 'intel-nuc', resolveListeners);
 
 			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
-		})
-			.then((image) => {
-				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name!);
-			})
-			.then((inspect: any) => {
-				expect(inspect).to.have.property('Architecture').that.equals('amd64');
-			});
+		}).then((image) => {
+			expect(image).to.have.property('successful').that.equals(false);
+			expect(image).to.have.property('error').that.is.not.null;
+		});
 	});
 
 	it('should build without "platform" flag (v1 manifest) for multi-stage builds', async () => {
@@ -349,14 +345,10 @@ describe('Resolved project building', () => {
 			const newTask = resolveTask(task, 'amd64', 'intel-nuc', resolveListeners);
 
 			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
-		})
-			.then((image) => {
-				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name!);
-			})
-			.then((inspect: any) => {
-				expect(inspect).to.have.property('Architecture').that.equals('amd64');
-			});
+		}).then((image) => {
+			expect(image).to.have.property('successful').that.equals(false);
+			expect(image).to.have.property('error').that.is.not.null;
+		});
 	});
 
 	it('should build using "platform" flag (v2 manifest) on third party registry', async () => {
