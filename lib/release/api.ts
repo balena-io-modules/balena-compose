@@ -144,7 +144,13 @@ export async function updateRelease(
 	id: number,
 	body: Partial<models.ReleaseAttributes>,
 ): Promise<void> {
-	return models.update(api, 'release', id, body);
+	await api
+		.patch({
+			resource: 'release',
+			id,
+			body,
+		} as const)
+		.catch(models.wrapResponseError);
 }
 
 export async function updateImage(
@@ -152,7 +158,13 @@ export async function updateImage(
 	id: number,
 	body: Partial<models.ImageAttributes>,
 ): Promise<void> {
-	return models.update(api, 'image', id, body);
+	await api
+		.patch({
+			resource: 'image',
+			id,
+			body,
+		} as const)
+		.catch(models.wrapResponseError);
 }
 
 // Helpers
@@ -161,31 +173,62 @@ async function getUser(
 	api: PinejsClientCore<unknown>,
 	id: number,
 ): Promise<models.UserModel> {
-	return models.get(api, 'user', id);
+	const user = await api
+		.get({
+			resource: 'user',
+			id,
+			options: { $select: 'id' },
+		} as const)
+		.catch(models.wrapResponseError);
+	if (user == null) {
+		throw new Error('Could not find user with id: ' + id);
+	}
+	return user;
 }
 
 async function getApplication(
 	api: PinejsClientCore<unknown>,
 	id: number,
 ): Promise<models.ApplicationModel> {
-	return models.get(api, 'application', id);
+	const app = await api
+		.get({
+			resource: 'application',
+			id,
+			options: { $select: 'id' },
+		} as const)
+		.catch(models.wrapResponseError);
+	if (app == null) {
+		throw new Error('Could not find application with id: ' + id);
+	}
+	return app;
 }
 
 async function getOrCreateService(
 	api: PinejsClientCore<unknown>,
 	body: models.ServiceAttributes,
 ): Promise<models.ServiceModel> {
-	return models.getOrCreate(api, 'service', body, {
-		application: body.application,
-		service_name: body.service_name,
-	});
+	return (await api
+		.getOrCreate({
+			resource: 'service',
+			id: {
+				application: body.application,
+				service_name: body.service_name,
+			},
+			body,
+		} as const)
+		.catch(models.wrapResponseError)) as models.ServiceModel;
 }
 
 async function createRelease(
 	api: PinejsClientCore<unknown>,
 	body: models.ReleaseAttributes,
 ): Promise<models.ReleaseModel> {
-	return models.create(api, 'release', body);
+	return (await api
+		.post({
+			resource: 'release',
+			body,
+		})
+		.catch(models.wrapResponseError)) as models.ReleaseModel;
 }
 
 async function createImage(
@@ -195,29 +238,37 @@ async function createImage(
 	envvars: Dict<string> | undefined,
 	body: models.ImageAttributes,
 ): Promise<models.ImageModel> {
-	const image = await models.create<models.ImageModel, models.ImageAttributes>(
-		api,
-		'image',
-		body,
-	);
+	const image = (await api
+		.post({
+			resource: 'image',
+			body,
+		} as const)
+		.catch(models.wrapResponseError)) as models.ImageModel;
 
-	const releaseImage = await models.create<
-		models.ReleaseImageModel,
-		models.ReleaseImageAttributes
-	>(api, 'image__is_part_of__release', {
-		is_part_of__release: release,
-		image: image.id,
-	});
+	const releaseImage = (await api
+		.post({
+			resource: 'image__is_part_of__release',
+			body: {
+				is_part_of__release: release,
+				image: image.id,
+			},
+		} as const)
+		.catch(models.wrapResponseError)) as models.ReleaseImageModel;
 
 	if (labels) {
 		await pMap(
 			Object.entries(labels),
-			([name, value]) => {
-				return models.create(api, 'image_label', {
-					release_image: releaseImage.id,
-					label_name: name,
-					value: (value || '').toString(),
-				});
+			async ([name, value]) => {
+				await api
+					.post({
+						resource: 'image_label',
+						body: {
+							release_image: releaseImage.id,
+							label_name: name,
+							value: (value || '').toString(),
+						},
+					} as const)
+					.catch(models.wrapResponseError);
 			},
 			{
 				concurrency: MAX_CONCURRENT_REQUESTS,
@@ -228,12 +279,17 @@ async function createImage(
 	if (envvars) {
 		await pMap(
 			Object.entries(envvars),
-			([name, value]) => {
-				return models.create(api, 'image_environment_variable', {
-					release_image: releaseImage.id,
-					name,
-					value: (value || '').toString(),
-				});
+			async ([name, value]) => {
+				await api
+					.post({
+						resource: 'image_environment_variable',
+						body: {
+							release_image: releaseImage.id,
+							name,
+							value: (value || '').toString(),
+						},
+					} as const)
+					.catch(models.wrapResponseError);
 			},
 			{
 				concurrency: MAX_CONCURRENT_REQUESTS,

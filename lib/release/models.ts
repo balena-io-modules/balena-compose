@@ -1,10 +1,3 @@
-import type {
-	Expand,
-	Filter,
-	ODataOptions,
-	PinejsClientCore,
-} from 'pinejs-client-core';
-
 import type { Composition } from '../../lib/parse';
 
 import * as errors from './errors';
@@ -99,69 +92,8 @@ export interface ReleaseImageModel extends ReleaseImageAttributesBase {
 
 // Helpers
 
-export function getOrCreate<T, U extends object, V extends Filter>(
-	api: PinejsClientCore<unknown>,
-	resource: string,
-	body: U,
-	filter: V,
-): Promise<T> {
-	return create(api, resource, body).catch((error) => {
-		if (error instanceof errors.UniqueConstraintError) {
-			return find<T>(api, resource, { $filter: filter }).then((obj) => {
-				if (obj.length > 0) {
-					return obj[0];
-				}
-				throw new errors.ObjectDoesNotExistError();
-			});
-		}
-		throw error;
-	}) as Promise<T>;
-}
-
-export function create<T, U extends object>(
-	api: PinejsClientCore<unknown>,
-	resource: string,
-	body: U,
-): Promise<T> {
-	return api.post({ resource, body }).catch(wrapResponseError) as Promise<T>;
-}
-
-export function update<T extends object>(
-	api: PinejsClientCore<unknown>,
-	resource: string,
-	id: number,
-	body: T,
-): Promise<void> {
-	return api.patch({ resource, id, body }).catch(wrapResponseError);
-}
-
-export function find<T>(
-	api: PinejsClientCore<unknown>,
-	resource: string,
-	options: ODataOptions,
-): Promise<T[]> {
-	return api.get({ resource, options }).catch(wrapResponseError) as Promise<
-		T[]
-	>;
-}
-
-export function get<T>(
-	api: PinejsClientCore<unknown>,
-	resource: string,
-	id: number,
-	expand?: Expand,
-): Promise<T> {
-	return api
-		.get({
-			resource,
-			id,
-			options: expand ? { $expand: expand } : undefined,
-		})
-		.catch(wrapResponseError) as Promise<T>;
-}
-
-function wrapResponseError<E extends Error>(e: E): void {
-	const error: { statusCode?: number; message?: unknown } = e as any;
+export function wrapResponseError(e: Error): void {
+	const error: { statusCode?: number; message?: unknown } = e;
 	if (!error.statusCode) {
 		throw e;
 	}
