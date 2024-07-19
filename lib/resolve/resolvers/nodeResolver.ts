@@ -17,11 +17,7 @@
 import * as memoize from 'memoizee';
 
 import * as _ from 'lodash';
-import * as request from 'request';
 import * as semver from 'semver';
-import { promisify } from 'util';
-
-const getAsync = promisify(request.get);
 
 import type { Bundle, FileInfo, Resolver } from '../resolver';
 import type { ParsedPathPlus } from '../utils';
@@ -34,19 +30,17 @@ const getDeviceTypeVersions = memoize(
 		let nextUrl: string | undefined =
 			`https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`;
 		while (nextUrl != null) {
-			const res = (
-				await getAsync({
-					url: nextUrl,
-					json: true,
-				})
-			).body as { results: Array<{ name: string }>; next?: string };
+			const response = (await fetch(nextUrl).then((res) => res.json())) as {
+				results: Array<{ name: string }>;
+				next?: string;
+			};
 
-			const curr: string[] = res.results
+			const curr: string[] = response.results
 				.map(({ name }) => name)
 				.filter(versionTest);
 
 			tags.push(...curr);
-			nextUrl = res.next;
+			nextUrl = response.next;
 		}
 
 		return tags;
