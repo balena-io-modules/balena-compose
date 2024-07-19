@@ -1,4 +1,60 @@
 - commits:
+    - subject: Stop actively supporting v1 docker image format
+      hash: 795b552866103353cecbc266cae3c6f883516bbc
+      body: >
+        Docker Image Format v1 and Docker Image manifest version 2, schema 1
+        support is disabled by default and will be removed in an upcoming
+        release.
+      footer:
+        Change-type: major
+        change-type: major
+      author: Otavio Jacobi
+      nested: []
+    - subject: Fix CI error of tar files created on mac
+      hash: a5ff55c22084dedaec681b399680bc4e4a79c07f
+      body: >
+        tar files created with mac computers are including a lsetxattr header
+        that
+
+        docker engine doesn't seem to be able to handle, this just recreate the
+        tar files
+
+        without such headers
+      footer:
+        See: https://eclecticlight.co/2023/03/13/ventura-has-changed-app-quarantine-with-a-new-xattr/
+        see: https://eclecticlight.co/2023/03/13/ventura-has-changed-app-quarantine-with-a-new-xattr/
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+    - subject: "resolve: Replace request with fetch"
+      hash: 5bbc9dbc99cca6af29b8aa2f90afc702bc01bf97
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Drop support for node < 20.6.0
+      hash: ba0de3f4fa6df10e2e2816f341f3938ea8c8b118
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+    - subject: Drop release.createClient
+      hash: 673c0fe2a361657b0c384ed9a061bafd5adca91a
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: Thodoris Greasidis
+      nested: []
+  version: 4.0.0
+  title: ""
+  date: 2024-07-19T10:57:30.464Z
+- commits:
     - subject: Upgrade dockerode and docker-modem dependencies
       hash: 16f40b9d58e52501acabf4f17aeb7c7fef4b9990
       body: ""
@@ -206,11 +262,13 @@
 
         obtained, this may mean sending a huge query string over the local
 
-        network. There is good evidence to suggest that this could be the cause of
+        network. There is good evidence to suggest that this could be the cause
+        of
 
         balena-io/balena-cli#2165, which would cause the query string to over
 
-        the 1MB limit set by [Golang's net/http server](https://pkg.go.dev/net/http#Server).
+        the 1MB limit set by [Golang's net/http
+        server](https://pkg.go.dev/net/http#Server).
       footer:
         Change-type: patch
         change-type: patch
