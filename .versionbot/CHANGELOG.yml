@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update pinejs-client and make use of improved typings
+      hash: 055a907517878199b7f9cc369e3db3fa6b2a9987
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 4.0.1
+  title: ""
+  date: 2024-07-19T12:33:42.285Z
+- commits:
     - subject: Stop actively supporting v1 docker image format
       hash: 795b552866103353cecbc266cae3c6f883516bbc
       body: >
