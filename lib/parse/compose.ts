@@ -237,11 +237,18 @@ function normalizeService(
 		if (!Array.isArray(service.depends_on)) {
 			// Try to convert long-form into list-of-strings
 			service.depends_on = _.map(service.depends_on, (dep, serviceName) => {
-				if (['service_started', 'service-started'].includes(dep.condition)) {
+				if (
+					[
+						'service_started',
+						'service-started',
+						'service_healthy',
+						'service-healthy',
+					].includes(dep.condition)
+				) {
 					return serviceName;
 				}
 				throw new ValidationError(
-					'Only "service_started" type of service dependency is supported',
+					'Only "service_started" and "service_healthy" type of service dependency are supported',
 				);
 			});
 		}
@@ -532,16 +539,17 @@ export function parse(c: Composition): ImageDescriptor[] {
 		throw new Error('Unsupported composition version');
 	}
 	return _.toPairs(c.services).map(([name, service]) => {
-		return createImageDescriptor(name, service);
+		return createImageDescriptor(name, service, c);
 	});
 }
 
 function createImageDescriptor(
 	serviceName: string,
 	service: Service,
+	originalComposition?: Composition,
 ): ImageDescriptor {
 	if (service.image && !service.build) {
-		return { serviceName, image: service.image };
+		return { serviceName, image: service.image, originalComposition };
 	}
 
 	if (!service.build) {
@@ -556,7 +564,7 @@ function createImageDescriptor(
 		build.tag = service.image;
 	}
 
-	return { serviceName, image: build };
+	return { serviceName, image: build, originalComposition };
 }
 
 function normalizeKeyValuePairs(
