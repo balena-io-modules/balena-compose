@@ -4,6 +4,12 @@ import * as errors from './errors';
 
 // These interfaces declare all model attributes except relations.
 
+interface AnyObject {
+	[index: string]: any;
+}
+
+export type JsonType = AnyObject;
+
 interface ServiceAttributesBase {
 	service_name: string;
 }
@@ -15,7 +21,7 @@ interface ReleaseAttributesBase {
 	source: string;
 	start_timestamp: Date;
 	end_timestamp?: Date;
-	contract?: string;
+	contract?: JsonType;
 }
 
 // eslint-disable-next-line @typescript-eslint/no-empty-interface

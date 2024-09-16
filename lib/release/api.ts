@@ -67,8 +67,8 @@ export interface Request {
 	 */
 	semver?: string;
 
-	/** 'balena.yml' contract contents (stringified JSON) */
-	contract?: string;
+	/** 'balena.yml' contract contents */
+	contract?: models.JsonType;
 }
 
 export interface Response {
@@ -79,7 +79,7 @@ export interface Response {
 /**
  * This is the entry point for deploying a docker-compose.yml to devices.
  */
-export async function create(req: Request): Promise<Response> {
+export async function create(req: Request) {
 	const api = req.client;
 
 	// Ensure that the user and app exist and the user has access to them.
@@ -222,7 +222,7 @@ async function getOrCreateService(
 async function createRelease(
 	api: PinejsClientCore<unknown>,
 	body: models.ReleaseAttributes,
-): Promise<models.ReleaseModel> {
+) {
 	return (await api
 		.post({
 			resource: 'release',
