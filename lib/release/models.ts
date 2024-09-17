@@ -33,7 +33,7 @@ interface ImageAttributesBase {
 	start_timestamp: Date;
 	end_timestamp?: Date;
 	dockerfile?: string;
-	image_size?: number;
+	image_size?: string;
 	project_type?: string;
 	error_message?: string;
 	build_log?: string;
