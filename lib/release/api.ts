@@ -10,13 +10,13 @@ const MAX_CONCURRENT_REQUESTS = 5;
 export interface Request {
 	/**
 	 * An instance of PineJS, appropriately authenticated and configured for the
-	 * API server to use. The compatible API versions are v5 and v6, so make sure to
+	 * API server to use. The only compatible API version is v7, so make sure to
 	 * configure `apiPrefix` appropriately.
 	 *
 	 * ```
 	 * import Pine from 'pinejs-client-fetch';
 	 * const client = new Pine({
-	 *   apiPrefix: 'https://api.balena-cloud.com/v6',
+	 *   apiPrefix: 'https://api.balena-cloud.com/v7',
 	 *   passthrough: {
 	 *     headers: {
 	 *       Authorization: `Bearer ${authToken}`,
@@ -67,8 +67,8 @@ export interface Request {
 	 */
 	semver?: string;
 
-	/** 'balena.yml' contract contents (stringified JSON) */
-	contract?: string;
+	/** 'balena.yml' contract contents */
+	contract?: models.JsonType;
 }
 
 export interface Response {
@@ -79,7 +79,7 @@ export interface Response {
 /**
  * This is the entry point for deploying a docker-compose.yml to devices.
  */
-export async function create(req: Request): Promise<Response> {
+export async function create(req: Request) {
 	const api = req.client;
 
 	// Ensure that the user and app exist and the user has access to them.
@@ -222,7 +222,7 @@ async function getOrCreateService(
 async function createRelease(
 	api: PinejsClientCore<unknown>,
 	body: models.ReleaseAttributes,
-): Promise<models.ReleaseModel> {
+) {
 	return (await api
 		.post({
 			resource: 'release',
