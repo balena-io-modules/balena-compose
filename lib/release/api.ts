@@ -10,13 +10,13 @@ const MAX_CONCURRENT_REQUESTS = 5;
 export interface Request {
 	/**
 	 * An instance of PineJS, appropriately authenticated and configured for the
-	 * API server to use. The compatible API versions are v5 and v6, so make sure to
+	 * API server to use. The only compatible API version is v7, so make sure to
 	 * configure `apiPrefix` appropriately.
 	 *
 	 * ```
 	 * import Pine from 'pinejs-client-fetch';
 	 * const client = new Pine({
-	 *   apiPrefix: 'https://api.balena-cloud.com/v6',
+	 *   apiPrefix: 'https://api.balena-cloud.com/v7',
 	 *   passthrough: {
 	 *     headers: {
 	 *       Authorization: `Bearer ${authToken}`,
