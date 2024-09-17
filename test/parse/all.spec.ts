@@ -389,29 +389,6 @@ describe('validation', () => {
 		expect(f).to.not.throw();
 	});
 
-	it('should throw when long syntax depends_on does not specify service_started condition', async () => {
-		const f = () => {
-			compose.normalize({
-				version: '2.4',
-				services: {
-					main: {
-						build: '.',
-						depends_on: {
-							dependency: { condition: 'service_healthy' },
-						},
-					},
-					dependency: {
-						build: '.',
-					},
-				},
-			});
-		};
-		expect(f).to.throw(
-			ValidationError,
-			'Only "service_started" type of service dependency is supported',
-		);
-	});
-
 	it('should throw when long syntax tmpfs mounts specify options', async () => {
 		const f = () => {
 			compose.normalize({

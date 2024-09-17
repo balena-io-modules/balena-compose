@@ -218,4 +218,5 @@ export interface BuildConfig {
 export interface ImageDescriptor {
 	serviceName: string;
 	image: string | BuildConfig;
+	originalComposition?: Composition;
 }
