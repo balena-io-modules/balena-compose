@@ -1,4 +1,32 @@
 - commits:
+    - subject: Adjust `Request` comment for v7
+      hash: 2985b9da11b177866ef702d96d84ad0a90d21478
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: myarmolinsky
+      nested: []
+    - subject: Update `image_size` typing for API v7
+      hash: a87bab84d8413176b36e768884942438f8413334
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: myarmolinsky
+      nested: []
+    - subject: Update `contract` types for API v7
+      hash: 010b4078ab5dc409247d93b04147d9306124e76c
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: myarmolinsky
+      nested: []
+  version: 5.0.0
+  title: ""
+  date: 2024-09-17T15:05:46.680Z
+- commits:
     - subject: Update pinejs-client and make use of improved typings
       hash: 055a907517878199b7f9cc369e3db3fa6b2a9987
       body: ""
