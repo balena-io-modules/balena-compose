@@ -18,6 +18,7 @@ import type { ProgressCallback } from 'docker-progress';
 import type * as Stream from 'stream';
 import type * as tar from 'tar-stream';
 import type BuildMetadata from './build-metadata';
+import type { Contract } from './balena-contract-features';
 
 /**
  * A structure representing a list of build tasks to be performed,
@@ -137,7 +138,7 @@ export interface BuildTask {
 	/**
 	 * The container contract for this service
 	 */
-	contract?: Dictionary<unknown>;
+	contract?: Contract;
 
 	/**
 	 * Promise to ensure that build task is resolved before

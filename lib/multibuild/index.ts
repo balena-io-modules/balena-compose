@@ -49,6 +49,7 @@ import { posixContains } from './path-utils';
 import type { RegistrySecrets } from './registry-secrets';
 import { ResolveListeners, resolveTask } from './resolve';
 import * as Utils from './utils';
+import { insertBalenaCustomContractFeatures } from './balena-contract-features';
 
 export { QEMU_BIN_NAME } from './build-metadata';
 export * from './build-task';
@@ -122,6 +123,13 @@ export async function fromImageDescriptors(
 									throw new MultipleContractsForService(task.serviceName);
 								}
 								task.contract = contracts.processContract(buf);
+							}
+
+							const image = images.find(
+								(i) => i.serviceName === task.serviceName,
+							);
+							if (image != null) {
+								insertBalenaCustomContractFeatures(task, image);
 							}
 
 							const newHeader = _.cloneDeep(header);
