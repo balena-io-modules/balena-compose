@@ -1,4 +1,16 @@
 - commits:
+    - subject: Make `pinejs-client-core` a peer dependency
+      hash: d894d49f843bf18cfd6558c4e5ff4440da836ccd
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+      author: myarmolinsky
+      nested: []
+  version: 6.0.0
+  title: ""
+  date: 2024-12-11T16:35:27.897Z
+- commits:
     - subject: Adjust `Request` comment for v7
       hash: 2985b9da11b177866ef702d96d84ad0a90d21478
       body: ""
@@ -292,23 +304,15 @@
 - commits:
     - subject: Remove `cachefrom` from pull options
       hash: babd4101761b10964e01cf4a922e75219d3debca
-      body: >
+      body: |
         This option is not used by the [Docker
-
         API](https://docs.docker.com/engine/api/v1.43/#tag/Image/operation/ImageCreate).
 
-
         As the cache can get really big, depending on how the cache list is
-
         obtained, this may mean sending a huge query string over the local
-
-        network. There is good evidence to suggest that this could be the cause
-        of
-
+        network. There is good evidence to suggest that this could be the cause of
         balena-io/balena-cli#2165, which would cause the query string to over
-
-        the 1MB limit set by [Golang's net/http
-        server](https://pkg.go.dev/net/http#Server).
+        the 1MB limit set by [Golang's net/http server](https://pkg.go.dev/net/http#Server).
       footer:
         Change-type: patch
         change-type: patch
