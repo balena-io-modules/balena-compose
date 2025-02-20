@@ -3,7 +3,7 @@ import type { PinejsClientCore } from 'pinejs-client-core';
 import * as models from './models';
 import type { Dict } from './types';
 
-import type { Composition } from '../../lib/parse';
+import type { Composition, ImageDescriptor } from '../../lib/parse';
 
 const MAX_CONCURRENT_REQUESTS = 5;
 
@@ -69,6 +69,12 @@ export interface Request {
 
 	/** 'balena.yml' contract contents */
 	contract?: models.JsonType;
+
+	/**
+	 * List of image descriptors returned
+	 * by compose.parse
+	 */
+	imgDescriptors: ImageDescriptor[];
 }
 
 export interface Response {
@@ -113,6 +119,10 @@ export async function create(req: Request) {
 				service_name: serviceName,
 			});
 
+			const imgDescriptor = req.imgDescriptors.find(
+				(d) => d.serviceName === serviceName,
+			);
+
 			// Create images and attach labels and env vars
 			const img = await createImage(
 				api,
@@ -123,6 +133,8 @@ export async function create(req: Request) {
 					is_a_build_of__service: service.id,
 					status: 'running',
 					start_timestamp: new Date(),
+					...(imgDescriptor &&
+						imgDescriptor.contract && { contract: imgDescriptor.contract }),
 				},
 			);
 
