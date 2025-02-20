@@ -24,7 +24,6 @@ import * as compose from '../../lib/parse';
 import {
 	ContractValidationError,
 	MultipleContractsForService,
-	NonUniqueContractNameError,
 	splitBuildStream,
 } from '../../lib/multibuild';
 
@@ -111,23 +110,6 @@ describe('Container contracts', () => {
 						version: '>2.0.0',
 					},
 				],
-			});
-	});
-
-	it('should throw an error when contracts have the same name', () => {
-		const tarStream = fs.createReadStream(
-			`${TEST_FILES_PATH}/multiple-contracts-same-name.tar`,
-		);
-
-		return splitBuildStream(multipleComposition, tarStream)
-			.then(() => {
-				throw new Error('No error thrown for same named contracts');
-			})
-			.catch((e) => {
-				expect(e).to.be.instanceOf(NonUniqueContractNameError);
-				expect(e.nonUniqueNames).to.deep.equal({
-					'container-contract': ['one', 'two'],
-				});
 			});
 	});
 

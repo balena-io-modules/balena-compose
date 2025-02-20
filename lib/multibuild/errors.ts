@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import * as _ from 'lodash';
 import { TypedError } from 'typed-error';
 
 /**
@@ -93,20 +92,6 @@ export class ContractError extends TypedError {}
 export class MultipleContractsForService extends ContractError {
 	public constructor(public serviceName: string) {
 		super(`Multiple contracts found for service ${serviceName}`);
-	}
-}
-
-export class NonUniqueContractNameError extends ContractError {
-	public constructor(
-		public nonUniqueNames: { [contractName: string]: string[] },
-	) {
-		super();
-		let message =
-			'Some services have the same contract name, which must be unique:\n';
-		_.each(nonUniqueNames, (serviceNames, name) => {
-			message += `  ${name}: ${serviceNames.join(', ')}`;
-		});
-		this.message = message;
 	}
 }
 
