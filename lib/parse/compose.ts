@@ -1,6 +1,7 @@
 import type { Readable } from 'stream';
 import * as _ from 'lodash';
 import * as path from 'path';
+import { validRange } from 'semver';
 
 import {
 	InternalInconsistencyError,
@@ -16,6 +17,7 @@ import {
 import type {
 	BuildConfig,
 	Composition,
+	ContractObject,
 	Dict,
 	ImageDescriptor,
 	ListOrDict,
@@ -489,14 +491,79 @@ function validateServiceVolume(
 	}
 }
 
+interface ContractParser {
+	validate(value: string, label: string): void;
+	transform(value: string): ContractObject;
+}
+
+function validateVersionRange(value: string, label: string) {
+	if (validRange(value) == null) {
+		throw new ValidationError(
+			`Invalid value for label '${label}'. ` +
+				'Expected a valid semver range; ' +
+				`got '${value}'`,
+		);
+	}
+}
+
+const contractRequirementLabelPrefix = 'io.balena.features.requires.';
+const supportedContractRequirementLabels: Dict<ContractParser> = {
+	'sw.supervisor': {
+		validate(value, label) {
+			validateVersionRange(value, label);
+		},
+		transform(value) {
+			return { type: 'sw.supervisor', version: value };
+		},
+	},
+	'sw.l4t': {
+		validate(value, label) {
+			validateVersionRange(value, label);
+		},
+		transform(value) {
+			return { type: 'sw.l4t', version: value };
+		},
+	},
+	'hw.device-type': {
+		validate() {
+			/* we might want to validate that the device type is a valid slug */
+		},
+		transform(value) {
+			return { type: 'hw.device-type', slug: value };
+		},
+	},
+	'arch.sw': {
+		validate(value, label) {
+			if (!['aarch64', 'rpi', 'amd64', 'armv7hf', 'i386'].includes(value)) {
+				throw new ValidationError(
+					`Invalid value for label '${label}'. ` +
+						'Expected a valid architecture string ' +
+						`got '${value}'`,
+				);
+			}
+			/* we might want to validate that the device type is a valid slug */
+		},
+		transform(value) {
+			return { type: 'arch.sw', slug: value };
+		},
+	},
+};
+
 function validateLabels(labels: Dict<string>) {
-	Object.keys(labels ?? {}).forEach((name) => {
+	Object.entries(labels ?? {}).forEach(([name, value]) => {
 		if (!/^[a-zA-Z0-9.-]+$/.test(name)) {
 			throw new ValidationError(
 				`Invalid label name: "${name}". ` +
 					'Label names must only contain alphanumeric ' +
 					'characters, periods "." and dashes "-".',
 			);
+		}
+
+		if (name.startsWith(contractRequirementLabelPrefix)) {
+			const ctype = name.replace(contractRequirementLabelPrefix, '');
+			if (ctype in supportedContractRequirementLabels) {
+				supportedContractRequirementLabels[ctype].validate(value, name);
+			}
 		}
 	});
 }
@@ -536,12 +603,44 @@ export function parse(c: Composition): ImageDescriptor[] {
 	});
 }
 
+function createContractFromLabels(
+	labels?: Dict<string>,
+): ContractObject | null {
+	const requires = Object.entries(labels ?? {}).flatMap(([key, value]) => {
+		if (!key.startsWith(contractRequirementLabelPrefix)) {
+			return [];
+		}
+
+		key = key.replace(contractRequirementLabelPrefix, '');
+		if (!(key in supportedContractRequirementLabels)) {
+			return [];
+		}
+
+		const parser = supportedContractRequirementLabels[key];
+		return [parser.transform(value)];
+	});
+
+	if (requires.length === 0) {
+		return null;
+	}
+
+	return {
+		type: 'sw.container',
+		requires,
+	};
+}
+
 function createImageDescriptor(
 	serviceName: string,
 	service: Service,
 ): ImageDescriptor {
+	const contract = createContractFromLabels(service.labels);
 	if (service.image && !service.build) {
-		return { serviceName, image: service.image };
+		return {
+			serviceName,
+			image: service.image,
+			...(contract && { contract }),
+		};
 	}
 
 	if (!service.build) {
@@ -556,7 +655,11 @@ function createImageDescriptor(
 		build.tag = service.image;
 	}
 
-	return { serviceName, image: build };
+	return {
+		serviceName,
+		image: build,
+		...(contract && { contract }),
+	};
 }
 
 function normalizeKeyValuePairs(
