@@ -113,6 +113,137 @@ describe('Container contracts', () => {
 			});
 	});
 
+	it('should correctly derive contracts from composition labels', async () => {
+		const tarStream = fs.createReadStream(
+			`${TEST_FILES_PATH}/standardProject.tar`,
+		);
+		const buildTasks = await splitBuildStream(
+			compose.normalize({
+				version: '2',
+				services: {
+					one: {
+						build: './',
+						labels: {
+							'io.balena.features.requires.hw.device-type': 'raspberrypi3',
+							'io.balena.features.requires.sw.l4t': '<=5',
+						},
+					},
+					two: {
+						image: 'alpine:latest',
+						labels: {
+							'io.balena.features.requires.sw.supervisor': '>=16.1.0',
+							'io.balena.features.requires.arch.sw': 'amd64',
+						},
+					},
+				},
+			}),
+			tarStream,
+		);
+		expect(buildTasks).to.have.length(2);
+		expect(buildTasks[0])
+			.to.have.property('contract')
+			.that.deep.equals({
+				type: 'sw.container',
+				requires: [
+					{
+						type: 'hw.device-type',
+						slug: 'raspberrypi3',
+					},
+					{ type: 'sw.l4t', version: '<=5' },
+				],
+			});
+		expect(buildTasks[1])
+			.to.have.property('contract')
+			.that.deep.equals({
+				type: 'sw.container',
+				requires: [
+					{
+						type: 'sw.supervisor',
+						version: '>=16.1.0',
+					},
+					{
+						type: 'arch.sw',
+						slug: 'amd64',
+					},
+				],
+			});
+	});
+
+	it('should correctly combine container contracts with label contracts', async () => {
+		const tarStream = fs.createReadStream(
+			`${TEST_FILES_PATH}/simple-contract.tar`,
+		);
+
+		const buildTasks = await splitBuildStream(
+			compose.normalize({
+				version: '2',
+				services: {
+					main: { build: './' },
+					other: {
+						image: 'alpine:latest',
+						labels: {
+							'io.balena.features.requires.hw.device-type': 'raspberrypi3',
+						},
+					},
+				},
+			}),
+			tarStream,
+		);
+		expect(buildTasks).to.have.length(2);
+		expect(buildTasks[0])
+			.to.have.property('contract')
+			.that.deep.equals({
+				type: 'sw.container',
+				name: 'container-contract',
+				slug: 'container-contract',
+				requires: [
+					{
+						type: 'sw.os',
+						version: '>2.0.0',
+					},
+				],
+			});
+		expect(buildTasks[1])
+			.to.have.property('contract')
+			.that.deep.equals({
+				type: 'sw.container',
+				requires: [
+					{
+						type: 'hw.device-type',
+						slug: 'raspberrypi3',
+					},
+				],
+			});
+	});
+
+	it('should throw if contracts are defined both as a labels and in `contract.yml`', async () => {
+		const tarStream = fs.createReadStream(
+			`${TEST_FILES_PATH}/multiple-contracts.tar`,
+		);
+
+		await splitBuildStream(
+			compose.normalize({
+				version: '2',
+				services: {
+					one: {
+						build: './one',
+						labels: {
+							'io.balena.features.requires.hw.device-type': 'raspberrypi3',
+						},
+					},
+					two: { build: './two' },
+				},
+			}),
+			tarStream,
+		)
+			.then(() => {
+				throw new Error('No error thrown for clashing contract definitions');
+			})
+			.catch((e) => {
+				expect(e).to.be.instanceOf(MultipleContractsForService);
+			});
+	});
+
 	it('should throw when a contract does not contain a name field', () => {
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/no-name-contract.tar`,

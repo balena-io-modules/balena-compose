@@ -215,7 +215,12 @@ export interface BuildConfig {
 	target?: string;
 }
 
+export type ContractObject = {
+	type: string;
+} & { [key: string]: any };
+
 export interface ImageDescriptor {
 	serviceName: string;
 	image: string | BuildConfig;
+	contract?: ContractObject;
 }
