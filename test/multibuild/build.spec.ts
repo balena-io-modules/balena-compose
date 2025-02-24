@@ -693,7 +693,7 @@ describe('Specifying build options', async () => {
 			expect(newTask)
 				.to.have.property('dockerOpts')
 				.that.has.property('cachefrom')
-				.that.deep.equals(['alpine:latest']);
+				.that.deep.equals(JSON.stringify(['alpine:latest']));
 
 			expect(image).to.not.have.property('error');
 		});
