@@ -20,6 +20,7 @@ import * as TarUtils from 'tar-utils';
 
 import type { BuildTask } from './build-task';
 import { ContractValidationError, NonUniqueContractNameError } from './errors';
+import type { Contract } from './balena-contract-features';
 
 export const CONTRACT_TYPE = 'sw.container';
 
@@ -28,14 +29,14 @@ export function isContractFile(filename: string): boolean {
 	return normalized === 'contract.yml' || normalized === 'contract.yaml';
 }
 
-export function processContract(buffer: Buffer): Dictionary<unknown> {
+export function processContract(buffer: Buffer): Contract {
 	const parsedBuffer = jsYaml.load(buffer.toString('utf8'));
 
 	if (parsedBuffer == null || typeof parsedBuffer !== 'object') {
 		throw new ContractValidationError('Container contract must be an object');
 	}
 
-	const contractObj = parsedBuffer as Dictionary<unknown>;
+	const contractObj = parsedBuffer as Dictionary<any>;
 
 	if (contractObj.name == null) {
 		throw new ContractValidationError(
@@ -59,7 +60,7 @@ export function processContract(buffer: Buffer): Dictionary<unknown> {
 		);
 	}
 
-	return contractObj;
+	return contractObj as Contract;
 }
 
 export function checkContractNamesUnique(tasks: BuildTask[]) {
