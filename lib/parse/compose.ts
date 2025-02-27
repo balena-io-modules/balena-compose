@@ -491,11 +491,11 @@ function validateServiceVolume(
 
 function validateLabels(labels: Dict<string>) {
 	Object.keys(labels ?? {}).forEach((name) => {
-		if (!/^[a-zA-Z0-9.-]+$/.test(name)) {
+		if (!/^[!#-&(-_a-~]+$/.test(name)) {
 			throw new ValidationError(
 				`Invalid label name: "${name}". ` +
-					'Label names must only contain alphanumeric ' +
-					'characters, periods "." and dashes "-".',
+					'Label names may contain printable ASCII characters' +
+					'except space, single/double quotes and backtick',
 			);
 		}
 	});
