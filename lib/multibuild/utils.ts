@@ -80,7 +80,7 @@ export function generateBuildTasks(
 					dockerOpts: {
 						// TODO: JSON serialization should no longer be necessary
 						// if https://github.com/apocas/dockerode/pull/793 is merged
-						...(cachefrom ? { cachefrom: JSON.stringify(cachefrom) } : {}),
+						...(cache_from ? { cachefrom: JSON.stringify(cache_from) } : {}),
 						...(shmsize ? { shmsize } : {}),
 						...(target ? { target } : {}),
 						...(extrahosts ? { extrahosts } : {}),
