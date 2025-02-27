@@ -1,4 +1,30 @@
 - commits:
+    - subject: Use self-hosted CI runners
+      hash: 1b9d90813e1f7e89d0331a3e9296326a8904b3a6
+      body: |
+        To take advantage of the local registry cache
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+    - subject: JSON stringify cachefrom option for builds
+      hash: 90da0a624089991df1603ae9dfabdd419b67279e
+      body: |
+        A change the way options are serialized in docker-modem causes an issue
+        with builds using the `cachefrom` option and library tests to fail.
+        This change can be reverted if apocas/dockerode#793 is merged.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Relates-to: apocas/dockerode#792
+        relates-to: apocas/dockerode#792
+      author: Felipe Lalanne
+      nested: []
+  version: 6.0.1
+  title: ""
+  date: 2025-02-27T13:46:32.616Z
+- commits:
     - subject: Make `pinejs-client-core` a peer dependency
       hash: d894d49f843bf18cfd6558c4e5ff4440da836ccd
       body: ""
