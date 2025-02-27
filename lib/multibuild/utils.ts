@@ -78,7 +78,9 @@ export function generateBuildTasks(
 				// translating to dockerode ImageBuildOptions properties
 				{
 					dockerOpts: {
-						...(cachefrom ? { cachefrom } : {}),
+						// TODO: JSON serialization should no longer be necessary
+						// if https://github.com/apocas/dockerode/pull/793 is merged
+						...(cachefrom ? { cachefrom: JSON.stringify(cachefrom) } : {}),
 						...(shmsize ? { shmsize } : {}),
 						...(target ? { target } : {}),
 						...(extrahosts ? { extrahosts } : {}),
