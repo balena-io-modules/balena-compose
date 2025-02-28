@@ -162,9 +162,6 @@ export async function fromImageDescriptors(
 		});
 
 		stream.pipeline(newStream, extract, _.noop);
-	}).then((tasks) => {
-		contracts.checkContractNamesUnique(tasks);
-		return tasks;
 	});
 }
 

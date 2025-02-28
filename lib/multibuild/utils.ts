@@ -41,6 +41,8 @@ export function generateBuildTasks(
 				serviceName: img.serviceName,
 				resolved: false,
 				buildMetadata,
+				// Add the contract if it exists
+				...(img.contract && { contract: img.contract }),
 			};
 		} else {
 			// Check that if a dockerfile is specified, that we also have a context
@@ -68,6 +70,8 @@ export function generateBuildTasks(
 					resolved: false,
 					buildMetadata,
 				},
+				// Add the contract if it exists
+				img.contract != null ? { contract: img.contract } : {},
 				// Add the dockerfile path if we have one
 				img.image.dockerfile != null
 					? { dockerfilePath: img.image.dockerfile }
