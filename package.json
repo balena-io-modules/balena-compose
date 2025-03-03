@@ -1,6 +1,6 @@
 {
   "name": "@balena/compose",
-  "version": "6.0.1",
+  "version": "7.0.0",
   "description": "Complete toolkit to build docker-compose.yml files and optionally deploy them to balenaCloud",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -93,6 +93,6 @@
     "pinejs-client-core": "^6.14.13 || ^7.0.0"
   },
   "versionist": {
-    "publishedAt": "2025-02-27T13:46:32.664Z"
+    "publishedAt": "2025-03-03T13:40:57.954Z"
   }
 }

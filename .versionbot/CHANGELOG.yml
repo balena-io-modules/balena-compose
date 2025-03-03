@@ -1,4 +1,44 @@
 - commits:
+    - subject: Create image contracts when creating release
+      hash: 6bec3bb25f7f95f8912e41dc905af846e6f30250
+      body: |
+        This will use the contracts created from the composition (if any)
+        to set the `contract` property in the release images.
+
+        This requires passing a list of ImageDescriptors returned by
+        `compose.parse` when calling release `create`. The list is required to
+        avoid users creating a release without the contracts by mistake which
+        makes this a breaking change.
+      footer:
+        Change-type: major
+        change-type: major
+      author: Felipe Lalanne
+      nested: []
+    - subject: Create task contracts from composition labels
+      hash: d76bcdc893e51f88d96ad78cec2cb7ee5bcdbad9
+      body: |
+        This adds a new interface for defining contract requirements via labels.
+        This should allow to remove `contract.yml` support in a future major
+        version
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Felipe Lalanne
+      nested: []
+    - subject: Do not validate unique container contract names
+      hash: 865863118990c2ce095fb9aa7f001dfda92aff53
+      body: |
+        The container contract name is not used anywhere. This validation is not
+        necessary.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+  version: 7.0.0
+  title: ""
+  date: 2025-03-03T13:40:57.903Z
+- commits:
     - subject: Use self-hosted CI runners
       hash: 1b9d90813e1f7e89d0331a3e9296326a8904b3a6
       body: |
