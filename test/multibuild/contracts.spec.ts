@@ -144,6 +144,7 @@ describe('Container contracts', () => {
 			.to.have.property('contract')
 			.that.deep.equals({
 				type: 'sw.container',
+				slug: 'contract-for-one',
 				requires: [
 					{
 						type: 'hw.device-type',
@@ -156,6 +157,7 @@ describe('Container contracts', () => {
 			.to.have.property('contract')
 			.that.deep.equals({
 				type: 'sw.container',
+				slug: 'contract-for-two',
 				requires: [
 					{
 						type: 'sw.supervisor',
@@ -207,6 +209,7 @@ describe('Container contracts', () => {
 			.to.have.property('contract')
 			.that.deep.equals({
 				type: 'sw.container',
+				slug: 'contract-for-other',
 				requires: [
 					{
 						type: 'hw.device-type',
