@@ -15,11 +15,9 @@
  * limitations under the License.
  */
 import * as jsYaml from 'js-yaml';
-import * as _ from 'lodash';
 import * as TarUtils from 'tar-utils';
 
-import type { BuildTask } from './build-task';
-import { ContractValidationError, NonUniqueContractNameError } from './errors';
+import { ContractValidationError } from './errors';
 
 export const CONTRACT_TYPE = 'sw.container';
 
@@ -60,26 +58,4 @@ export function processContract(buffer: Buffer): Dictionary<unknown> {
 	}
 
 	return contractObj;
-}
-
-export function checkContractNamesUnique(tasks: BuildTask[]) {
-	const foundNames: { [contractName: string]: string[] } = {};
-	let unique = true;
-	tasks.forEach((t) => {
-		if (t.contract != null) {
-			const name = t.contract.name as string;
-			if (name in foundNames) {
-				foundNames[name].push(t.serviceName);
-				unique = false;
-			} else {
-				foundNames[name] = [t.serviceName];
-			}
-		}
-	});
-
-	if (!unique) {
-		throw new NonUniqueContractNameError(
-			_.pickBy(foundNames, (names) => names.length > 1),
-		);
-	}
 }

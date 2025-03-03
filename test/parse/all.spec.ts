@@ -453,6 +453,66 @@ describe('validation', () => {
 		};
 		expect(f).to.throw(ValidationError, 'Volume options are not allowed');
 	});
+
+	it('should throw if label `io.balena.features.requires.sw.supervisor` uses a wrong version range', () => {
+		const f = () => {
+			compose.normalize({
+				version: '2.4',
+				services: {
+					main: {
+						build: '.',
+						labels: {
+							'io.balena.features.requires.sw.supervisor': 'not-valid',
+						},
+					},
+				},
+			});
+		};
+		expect(f).to.throw(
+			ValidationError,
+			"Invalid value for label 'io.balena.features.requires.sw.supervisor'. Expected a valid semver range; got 'not-valid'",
+		);
+	});
+
+	it('should throw if label `io.balena.features.requires.sw.l4t` uses a wrong version range', () => {
+		const f = () => {
+			compose.normalize({
+				version: '2.4',
+				services: {
+					main: {
+						build: '.',
+						labels: {
+							'io.balena.features.requires.sw.l4t': 'not-valid',
+						},
+					},
+				},
+			});
+		};
+		expect(f).to.throw(
+			ValidationError,
+			"Invalid value for label 'io.balena.features.requires.sw.l4t'. Expected a valid semver range; got 'not-valid'",
+		);
+	});
+
+	it('should throw if label `io.balena.features.requires.arch.sw` uses an invalid architecture', () => {
+		const f = () => {
+			compose.normalize({
+				version: '2.4',
+				services: {
+					main: {
+						build: '.',
+						labels: {
+							'io.balena.features.requires.arch.sw': 'not-valid',
+						},
+					},
+				},
+			});
+		};
+		expect(f).to.throw(
+			ValidationError,
+			"Invalid value for label 'io.balena.features.requires.arch.sw'. Expected a valid architecture string got 'not-valid'",
+		);
+	});
 });
 
 describe('env_file support', () => {
