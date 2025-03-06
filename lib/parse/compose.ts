@@ -604,6 +604,7 @@ export function parse(c: Composition): ImageDescriptor[] {
 }
 
 function createContractFromLabels(
+	serviceName: string,
 	labels?: Dict<string>,
 ): ContractObject | null {
 	const requires = Object.entries(labels ?? {}).flatMap(([key, value]) => {
@@ -626,6 +627,7 @@ function createContractFromLabels(
 
 	return {
 		type: 'sw.container',
+		slug: `contract-for-${serviceName}`,
 		requires,
 	};
 }
@@ -634,7 +636,7 @@ function createImageDescriptor(
 	serviceName: string,
 	service: Service,
 ): ImageDescriptor {
-	const contract = createContractFromLabels(service.labels);
+	const contract = createContractFromLabels(serviceName, service.labels);
 	if (service.image && !service.build) {
 		return {
 			serviceName,
