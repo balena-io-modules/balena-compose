@@ -1,4 +1,20 @@
 - commits:
+    - subject: Add slug to contracts from requirement labels
+      hash: c43606b36759505dd82739a13510aa8fe00da965
+      body: |
+        This ensures that the supervisor accepts contracts generated when using
+        the label. See
+        https://github.com/balena-os/balena-supervisor/blob/master/src/lib/contracts.ts#L194-L206
+        for the validation object.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+  version: 7.0.1
+  title: ""
+  date: 2025-03-06T15:09:44.616Z
+- commits:
     - subject: Create image contracts when creating release
       hash: 6bec3bb25f7f95f8912e41dc905af846e6f30250
       body: |
