@@ -102,7 +102,7 @@ const generateBuildArgs = (
 
 const generateLabels = (task: BuildTask): { labels?: Dictionary<string> } => {
 	return {
-		labels: task.labels,
+		labels: { ...task.labels },
 	};
 };
 
