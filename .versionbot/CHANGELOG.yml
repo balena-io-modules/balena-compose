@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update Node.js to v10.24.1
+      hash: 2ad272ca4dc506bf882b916b95c5672e64b1db99
+      body: |
+        Update node from 10.0.0 to 10.24.1
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.0.2
+  title: ""
+  date: 2025-03-19T15:52:12.090Z
+- commits:
     - subject: Add slug to contracts from requirement labels
       hash: c43606b36759505dd82739a13510aa8fe00da965
       body: |
