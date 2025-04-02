@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency @balena/lint to v8
+      hash: 5cf85b580e1230e21cafd8b6fa89bb21951b9a77
+      body: |
+        Update @balena/lint from 7.3.0 to 8.2.8
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.0.3
+  title: ""
+  date: 2025-04-02T14:14:05.563Z
+- commits:
     - subject: Update Node.js to v10.24.1
       hash: 2ad272ca4dc506bf882b916b95c5672e64b1db99
       body: |
