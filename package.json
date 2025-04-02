@@ -55,7 +55,7 @@
     "chai": "^4.3.4",
     "chai-as-promised": "^7.1.1",
     "common-tags": "^1.8.2",
-    "mocha": "^10.2.0",
+    "mocha": "^11.0.0",
     "ncp": "^2.0.0",
     "pinejs-client-core": "^7.2.0",
     "proxyquire": "^2.1.3",
