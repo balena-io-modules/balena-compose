@@ -34,7 +34,7 @@
   },
   "homepage": "https://github.com/balena-io-modules/balena-compose#readme",
   "devDependencies": {
-    "@balena/lint": "^8.0.0",
+    "@balena/lint": "^9.0.0",
     "@types/chai-as-promised": "^7.1.3",
     "@types/docker-modem": "^3.0.6",
     "@types/dockerode": "^3.3.23",
