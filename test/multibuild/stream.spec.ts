@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import * as fs from 'fs';
 import * as _ from 'lodash';
 import type * as Stream from 'stream';
@@ -27,16 +26,12 @@ import { splitBuildStream } from '../../lib/multibuild';
 
 import { TEST_FILES_PATH } from './build-utils';
 
-chai.use(chaiAsPromised);
-chai.should();
-const expect = chai.expect;
-
 const checkIsInStream = (
 	tarStream: Stream.Readable,
 	filenames: string | string[],
 ): Promise<boolean> => {
 	if (!Array.isArray(filenames)) {
-		filenames = [filenames as string];
+		filenames = [filenames];
 	}
 
 	return new Promise((resolve, reject) => {
@@ -142,7 +137,12 @@ describe('Stream splitting', () => {
 				`${TEST_FILES_PATH}/stream/specified-dockerfile.tar`,
 			);
 
-			await Promise.resolve(splitBuildStream(comp, stream)).should.be.rejected;
+			try {
+				await splitBuildStream(comp, stream);
+				expect.fail('Expected an error to be thrown, but none was thrown');
+			} catch {
+				// We expect an error to be thrown, so we do nothing here
+			}
 		});
 
 		it('should allow specifying a dockerfile in the composition', async () => {

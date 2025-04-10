@@ -676,6 +676,6 @@ export function* sampleDaemonOutputGenerator(): IterableIterator<string> {
 
 export function* sampleDaemonStreamGenerator(): IterableIterator<string> {
 	for (const step of sampleDaemonOutput.filter((stepp) => stepp.stream)) {
-		yield step.stream!;
+		yield step.stream;
 	}
 }

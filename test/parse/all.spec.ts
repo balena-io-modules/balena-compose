@@ -340,7 +340,7 @@ describe('validation', () => {
 		expect(f).to.not.throw();
 	});
 
-	it('should not throw when build config specifies valid network', async () => {
+	it('should not throw when build config specifies valid network', () => {
 		const f = () => {
 			compose.normalize({
 				version: '2.4',
@@ -357,7 +357,7 @@ describe('validation', () => {
 		expect(f).to.not.throw();
 	});
 
-	it('should throw when build config specifies invalid network', async () => {
+	it('should throw when build config specifies invalid network', () => {
 		const f = () => {
 			compose.normalize({
 				version: '2.4',
@@ -374,7 +374,7 @@ describe('validation', () => {
 		expect(f).to.throw("Missing network definition for 'mynet'");
 	});
 
-	it('should support extension fields', async () => {
+	it('should support extension fields', () => {
 		const f = () => {
 			compose.normalize({
 				version: '2.4',
@@ -389,7 +389,7 @@ describe('validation', () => {
 		expect(f).to.not.throw();
 	});
 
-	it('should throw when long syntax depends_on does not specify service_started condition', async () => {
+	it('should throw when long syntax depends_on does not specify service_started condition', () => {
 		const f = () => {
 			compose.normalize({
 				version: '2.4',
@@ -412,7 +412,7 @@ describe('validation', () => {
 		);
 	});
 
-	it('should throw when long syntax tmpfs mounts specify options', async () => {
+	it('should throw when long syntax tmpfs mounts specify options', () => {
 		const f = () => {
 			compose.normalize({
 				version: '2.4',
@@ -429,7 +429,7 @@ describe('validation', () => {
 		expect(f).to.throw(ValidationError, 'Tmpfs options are not allowed');
 	});
 
-	it(`should throw when long syntax volume mounts specify options`, async () => {
+	it(`should throw when long syntax volume mounts specify options`, () => {
 		const f = () => {
 			compose.normalize({
 				version: '2.4',
@@ -649,7 +649,7 @@ describe('env_file support', () => {
 	});
 
 	describe('should throw', () => {
-		it('if env_file path is an absolute path', async () => {
+		it('if env_file path is an absolute path', () => {
 			const data = {
 				version: '2.1',
 				services: {
@@ -665,7 +665,7 @@ describe('env_file support', () => {
 			expect(f).to.throw('Absolute filepath not allowed: /absolute/path');
 		});
 
-		it('if env_file path points outside the project dir', async () => {
+		it('if env_file path points outside the project dir', () => {
 			const data = {
 				version: '2.1',
 				services: {

@@ -65,7 +65,7 @@ export class DockerfileTemplateResolver implements Resolver {
 
 	public resolve(
 		bundle: Bundle,
-		specifiedDockerfilePath: string = 'Dockerfile',
+		specifiedDockerfilePath = 'Dockerfile',
 		additionalTemplateVars: Dictionary<string> = {},
 	) {
 		// Generate the variables to replace

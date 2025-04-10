@@ -14,13 +14,13 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "lint": "balena-lint lib/ typings/ test/ && tsc --noEmit",
+    "lint": "balena-lint -t ./tsconfig.test.json lib/ typings/ test/ && tsc --noEmit",
+    "lint-fix": "balena-lint -t ./tsconfig.test.json --fix lib/ typings/ test/",
     "copy": "npm run copy:secrets && npm run copy:schemas",
     "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
     "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
-    "prettify": "balena-lint --project ./tsconfig.test.json --fix lib/ typings/ test/",
     "prepack": "npm run build"
   },
   "repository": {
@@ -34,8 +34,7 @@
   },
   "homepage": "https://github.com/balena-io-modules/balena-compose#readme",
   "devDependencies": {
-    "@balena/lint": "^8.0.0",
-    "@types/chai-as-promised": "^7.1.3",
+    "@balena/lint": "^9.2.2",
     "@types/docker-modem": "^3.0.6",
     "@types/dockerode": "^3.3.23",
     "@types/duplexify": "^3.6.1",
@@ -53,7 +52,6 @@
     "@types/semver": "^7.3.5",
     "@types/tar-stream": "^2.2.0",
     "chai": "^4.3.4",
-    "chai-as-promised": "^7.1.1",
     "common-tags": "^1.8.2",
     "mocha": "^11.0.0",
     "ncp": "^2.0.0",

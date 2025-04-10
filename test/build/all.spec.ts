@@ -36,10 +36,10 @@ const displayOutput = process.env.DISPLAY_TEST_OUTPUT === '1';
 let dockerOpts: Dockerode.DockerOptions;
 if (process.env.CIRCLECI != null) {
 	const certs = ['ca.pem', 'cert.pem', 'key.pem'].map((f) =>
-		path.join(process.env.DOCKER_CERT_PATH!, f),
+		path.join(process.env.DOCKER_CERT_PATH, f),
 	);
 	const [ca, cert, key] = certs.map((c) => fs.readFileSync(c));
-	const parsed = url.parse(process.env.DOCKER_HOST!);
+	const parsed = url.parse(process.env.DOCKER_HOST);
 
 	dockerOpts = {
 		host: 'https://' + parsed.hostname,
@@ -50,7 +50,7 @@ if (process.env.CIRCLECI != null) {
 	};
 } else {
 	dockerOpts = {
-		socketPath: process.env.DOCKER_HOST || '/var/run/docker.sock',
+		socketPath: process.env.DOCKER_HOST ?? '/var/run/docker.sock',
 	};
 }
 const docker = new Dockerode(dockerOpts);
@@ -97,8 +97,7 @@ describe('Directory build', () => {
 		const builder = Builder.fromDockerode(docker);
 		const hooks = getSuccessHooks(done);
 
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
-		builder
+		void builder
 			.buildDir(`${TEST_FILE_PATH}/directory-successful-build`, {}, hooks)
 			.then((stream) => {
 				if (displayOutput) {
@@ -140,8 +139,8 @@ describe('Directory build', () => {
 		};
 
 		const builder = Builder.fromDockerode(docker);
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
-		builder
+
+		void builder
 			.buildDir(`${TEST_FILE_PATH}/directory-successful-build`, {}, hooks)
 			.then((stream) => {
 				if (displayOutput) {
@@ -156,8 +155,7 @@ describe('Directory build', () => {
 		const builder = Builder.fromDockerode(docker);
 		const hooks = getFailureHooks(done);
 
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
-		builder
+		void builder
 			.buildDir(`${TEST_FILE_PATH}/directory-no-dockerfile`, {}, hooks)
 			.then((stream) => {
 				if (displayOutput) {
@@ -172,8 +170,7 @@ describe('Directory build', () => {
 		const builder = Builder.fromDockerode(docker);
 		const hooks = getFailureHooks(done);
 
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
-		builder
+		void builder
 			.buildDir(`${TEST_FILE_PATH}/directory-invalid-dockerfile`, {}, hooks)
 			.then((stream) => {
 				if (displayOutput) {
@@ -195,8 +192,12 @@ describe('Directory build', () => {
 		};
 
 		const builder = Builder.fromDockerode(docker);
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
-		builder.buildDir(`${TEST_FILE_PATH}/directory-successful-build`, {}, hooks);
+
+		void builder.buildDir(
+			`${TEST_FILE_PATH}/directory-successful-build`,
+			{},
+			hooks,
+		);
 	});
 
 	it('should pass stream to caller on unsuccessful build', function (done) {
@@ -211,8 +212,8 @@ describe('Directory build', () => {
 		};
 
 		const builder = Builder.fromDockerode(docker);
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises -- we are using the done callback
-		builder.buildDir(
+
+		void builder.buildDir(
 			`${TEST_FILE_PATH}/directory-invalid-dockerfile`,
 			{},
 			hooks,

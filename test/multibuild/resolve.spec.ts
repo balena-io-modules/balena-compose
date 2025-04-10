@@ -1,5 +1,4 @@
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import * as fs from 'fs';
 import type { Pack } from 'tar-stream';
 
@@ -8,9 +7,6 @@ import type { BuildTask } from '../../lib/multibuild';
 import { resolveTask } from '../../lib/multibuild/resolve';
 
 import { TEST_FILES_PATH } from './build-utils';
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 const buildMetadata = new (BuildMetadata as any)('/tmp');
 buildMetadata.balenaYml = {
@@ -40,7 +36,7 @@ describe('Project resolution', () => {
 							expect(newTask.resolved).to.equal(true);
 							resolve();
 						} catch (error) {
-							reject(error);
+							reject(error as Error);
 						}
 					},
 				],
@@ -97,7 +93,7 @@ describe('Project resolution', () => {
 							expect(newTask.dockerfile).to.equal(`test\ntest2\n`);
 							resolve();
 						} catch (error) {
-							reject(error);
+							reject(error as Error);
 						}
 					},
 				],
@@ -130,7 +126,7 @@ describe('Project resolution', () => {
 							expect(newTask.resolved).to.equal(true);
 							resolve();
 						} catch (error) {
-							reject(error);
+							reject(error as Error);
 						}
 					},
 				],

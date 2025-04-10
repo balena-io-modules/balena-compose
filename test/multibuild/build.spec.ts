@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import * as fs from 'fs';
 import * as semver from 'semver';
 
@@ -34,9 +33,6 @@ import type { BuildTask, LocalImage } from '../../lib/multibuild';
 import { splitBuildStream, BuildProcessError } from '../../lib/multibuild';
 import { runBuildTask } from '../../lib/multibuild/build';
 import { resolveTask } from '../../lib/multibuild/resolve';
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 const docker = getDocker();
 
@@ -69,7 +65,7 @@ describe('Project building', () => {
 			repo: 'alpine',
 			tag: 'latest',
 		});
-		await checkExists(image.name!);
+		await checkExists(image.name);
 	});
 
 	it('should correctly return an image with a build error', async () => {
@@ -98,7 +94,7 @@ describe('Project building', () => {
 		});
 		// tslint:disable-next-line:no-unused-expression
 		expect(image).to.have.property('error').that.is.not.null;
-		await checkExists(image.name!);
+		await checkExists(image.name);
 	});
 
 	it('should correctly return no layers or name when a base image cannot be downloaded', async () => {
@@ -214,7 +210,7 @@ describe('Resolved project building', () => {
 		})
 			.then((image) => {
 				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name!);
+				return checkExists(image.name);
 			})
 			.then((inspect: any) => {
 				expect(inspect).to.have.property('Architecture').that.equals('amd64');
@@ -223,7 +219,7 @@ describe('Resolved project building', () => {
 
 	const dockerSupportsPlatform = async () =>
 		semver.satisfies(
-			semver.coerce((await docker.version()).ApiVersion) || '0.0.0',
+			semver.coerce((await docker.version()).ApiVersion) ?? '0.0.0',
 			'>=1.38.0',
 		);
 
@@ -259,7 +255,7 @@ describe('Resolved project building', () => {
 		})
 			.then((image) => {
 				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name!);
+				return checkExists(image.name);
 			})
 			.then((inspect: any) => {
 				expect(inspect).to.have.property('Architecture').that.equals('386');
@@ -294,7 +290,7 @@ describe('Resolved project building', () => {
 		})
 			.then((image) => {
 				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name!);
+				return checkExists(image.name);
 			})
 			.then((inspect: any) => {
 				expect(inspect).to.have.property('Architecture').that.equals('386');
@@ -377,7 +373,7 @@ describe('Resolved project building', () => {
 			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
 		}).then((image) => {
 			expect(image).to.have.property('successful').that.equals(true);
-			return checkExists(image.name!);
+			return checkExists(image.name);
 		});
 	});
 });
@@ -419,7 +415,7 @@ describe('External images', () => {
 			expect(image).to.have.property('successful').that.equals(true);
 			expect(image).to.have.property('startTime').that.is.a('number');
 			expect(image).to.have.property('endTime').that.is.a('number');
-			return checkExists(image.name!);
+			return checkExists(image.name);
 		});
 	});
 
@@ -475,7 +471,7 @@ describe('External images', () => {
 			expect(image).to.have.property('name').that.equals('alpine:latest');
 			expect(image).to.have.property('startTime').that.is.a('number');
 			expect(image).to.have.property('endTime').that.is.a('number');
-			return checkExists(image.name!);
+			return checkExists(image.name);
 		});
 	});
 });
@@ -601,7 +597,7 @@ describe('Specifying a dockerfile hook', () => {
 	});
 });
 
-describe('Specifying build options', async () => {
+describe('Specifying build options', () => {
 	let comp: Compose.Composition;
 	before(async function () {
 		const composeObj = await import(
@@ -665,7 +661,7 @@ describe('Specifying build options', async () => {
 				.that.equals('stage1');
 
 			expect(image).to.not.have.property('error');
-			const imageInspectInfo = await checkExists(image.name!);
+			const imageInspectInfo = await checkExists(image.name);
 			expect(imageInspectInfo.Config.Env).to.include('stage=stage1');
 		});
 	});
@@ -688,7 +684,7 @@ describe('Specifying build options', async () => {
 			};
 			newTask = resolveTask(tasks[0], 'test', 'test', resolveListeners);
 			resolve(runBuildTask(tasks[0], docker, secretMap, buildVars));
-		}).then(async (image) => {
+		}).then((image) => {
 			expect(newTask).to.have.property('resolved', true);
 			expect(newTask)
 				.to.have.property('dockerOpts')

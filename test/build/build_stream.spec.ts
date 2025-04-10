@@ -147,7 +147,7 @@ describe('createBuildStream', function () {
 function eventLoopWriteIterable(
 	stream: Writable,
 	iter: Iterator<string | Buffer>,
-	shouldEndStream: boolean = true,
+	shouldEndStream = true,
 ): Promise<void> {
 	return new Promise((resolve, reject) => {
 		stream.on('error', reject);

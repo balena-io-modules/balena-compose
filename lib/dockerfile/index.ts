@@ -30,7 +30,7 @@ export function process(
 		.split('\n')
 		.map((line) => {
 			// The '#' symbol is interpreted as a comment only at the start of the line
-			return line[0] !== '#'
+			return !line.startsWith('#')
 				? lodash.template(line, { interpolate: /%%([A-Z][A-Z_]+)%%/ })(
 						variables,
 					)

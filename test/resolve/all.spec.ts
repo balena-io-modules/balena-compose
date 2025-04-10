@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { expect, use } from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import * as fs from 'fs';
 import type { Readable } from 'stream';
 import * as tar from 'tar-stream';
@@ -23,8 +22,6 @@ import * as TarUtils from 'tar-utils';
 
 import * as Resolve from '../../lib/resolve';
 import * as Utils from '../../lib/resolve/utils';
-
-use(chaiAsPromised);
 
 const defaultResolvers: () => Resolve.Resolver[] = () =>
 	Resolve.getDefaultResolvers();
@@ -96,7 +93,7 @@ function getPromiseForEvents(
 							resolve({ event: eventArg });
 						}
 					} catch (error) {
-						reject(error);
+						reject(error as Error);
 					}
 				},
 			];

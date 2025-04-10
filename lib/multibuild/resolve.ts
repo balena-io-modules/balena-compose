@@ -82,19 +82,17 @@ export function resolveTask(
 	const resolvers = Resolve.getDefaultResolvers();
 	const listeners: ResolveListeners = _.cloneDeep(resolveListeners);
 
-	(listeners['resolver'] = listeners['resolver'] || []).push(
-		(resolverName: string) => {
-			task.projectType = resolverName;
-			task.resolved = true;
-			resolveTaskPromise();
-		},
-	);
+	listeners['resolver'] ??= [];
+	listeners['resolver'].push((resolverName: string) => {
+		task.projectType = resolverName;
+		task.resolved = true;
+		resolveTaskPromise();
+	});
 
-	(listeners['resolved-name'] = listeners['resolved-name'] || []).push(
-		(resolvedName: string) => {
-			task.dockerfilePath = resolvedName;
-		},
-	);
+	listeners['resolved-name'] ??= [];
+	listeners['resolved-name'].push((resolvedName: string) => {
+		task.dockerfilePath = resolvedName;
+	});
 
 	const templateVars = {
 		BALENA_SERVICE_NAME: task.serviceName,
