@@ -72,7 +72,8 @@ export class ArchDockerfileResolver implements Resolver {
 		return satisfied.arch !== undefined || satisfied.deviceType !== undefined;
 	}
 
-	public resolve(
+	// eslint-disable-next-line @typescript-eslint/require-await -- We need to return a promise for backwards compatibility
+	public async resolve(
 		bundle: Bundle,
 		specifiedDockerfilePath?: string,
 		additionalTemplateVars: Dictionary<string> = {},
@@ -94,7 +95,7 @@ export class ArchDockerfileResolver implements Resolver {
 		} else if (satisfiedPair.arch != null) {
 			satisfied = satisfiedPair.arch;
 		} else {
-			return Promise.reject(
+			throw new Error(
 				'Resolve called without a satisfied architecture specific dockerfile',
 			);
 		}
@@ -117,11 +118,11 @@ export class ArchDockerfileResolver implements Resolver {
 			throw new DockerfileTemplateVariableError(e);
 		}
 
-		return Promise.resolve({
+		return {
 			name,
 			size: satisfied[1].size,
 			contents: Buffer.from(this.dockerfileContents),
-		});
+		};
 	}
 
 	public getCanonicalName(filename: string): string {

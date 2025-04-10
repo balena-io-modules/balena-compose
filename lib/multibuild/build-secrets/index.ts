@@ -91,10 +91,7 @@ export function generateSecretPopulationMap(
 		if (yml.buildSecrets.global != null) {
 			secretObjects = secretObjects.concat(yml.buildSecrets.global);
 		}
-		if (
-			yml.buildSecrets.services != null &&
-			yml.buildSecrets.services[serviceName] != null
-		) {
+		if (yml.buildSecrets.services?.[serviceName] != null) {
 			secretObjects = secretObjects.concat(
 				yml.buildSecrets.services[serviceName],
 			);
@@ -169,7 +166,7 @@ export async function populateSecrets(
 		// Remove the image
 		try {
 			await docker.getImage(imageName).remove({ force: true });
-		} catch (_e) {
+		} catch {
 			// It won't be present on a build failure, so ignore this
 		}
 	}
@@ -229,7 +226,7 @@ export async function removeSecrets(
 		// Remove the image
 		try {
 			await docker.getImage(imageName).remove({ force: true });
-		} catch (_e) {
+		} catch {
 			// It won't be present on a build failure, so ignore this
 		}
 	}

@@ -41,10 +41,10 @@ function getDockerOpts(extraOpts?: any): Dockerode.DockerOptions {
 	let dockerOpts: Dockerode.DockerOptions = {};
 	if (process.env.CIRCLECI != null) {
 		const certs = ['ca.pem', 'cert.pem', 'key.pem'].map((f) =>
-			Path.join(process.env.DOCKER_CERT_PATH!, f),
+			Path.join(process.env.DOCKER_CERT_PATH, f),
 		);
 		const [ca, cert, key] = certs.map((c) => fs.readFileSync(c, 'utf-8'));
-		const parsed = Url.parse(process.env.DOCKER_HOST!);
+		const parsed = Url.parse(process.env.DOCKER_HOST);
 
 		dockerOpts = {
 			host: 'https://' + parsed.hostname,
@@ -63,7 +63,7 @@ function getDockerOpts(extraOpts?: any): Dockerode.DockerOptions {
 	}
 	Object.assign(dockerOpts, extraOpts);
 	// extraOpts.host takes precedence over default dockerOpts.socketPath
-	if (extraOpts && extraOpts.host && !extraOpts.socketPath) {
+	if (extraOpts?.host && !extraOpts.socketPath) {
 		delete dockerOpts.socketPath;
 	}
 	return dockerOpts;
@@ -82,7 +82,9 @@ export async function checkExists(
 
 export function streamPrinter(stream: Stream.Readable) {
 	if (printOutput) {
-		stream.on('data', (data) => console.log(data.toString()));
+		stream.on('data', (data) => {
+			console.log(data.toString());
+		});
 	}
 }
 

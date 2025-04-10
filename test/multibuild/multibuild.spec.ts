@@ -15,8 +15,7 @@
  * limitations under the License.
  */
 
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import * as fs from 'fs';
 import type * as Stream from 'stream';
 
@@ -30,9 +29,6 @@ import {
 import type { BuildTask, LocalImage } from '../../lib/multibuild';
 import { performBuilds } from '../../lib/multibuild';
 import BuildMetadata from '../../lib/multibuild/build-metadata';
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 class StreamOutputParser {
 	public outputLines: string[] = [];
@@ -75,7 +71,7 @@ describe('performBuilds()', () => {
 		expect(image).to.have.property('successful').that.equals(true);
 		expect(image).to.have.property('layers').that.is.an('array');
 
-		const imageInspectInfo = await checkExists(image.name!);
+		const imageInspectInfo = await checkExists(image.name);
 		// tslint:disable-next-line: no-unused-expression
 		expect(imageInspectInfo).to.be.an('object').that.is.not.empty;
 

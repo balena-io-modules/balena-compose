@@ -15,14 +15,10 @@
  * limitations under the License.
  */
 
-import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
+import { expect } from 'chai';
 import * as Path from 'path';
 
 import { PathUtils } from '../../lib/multibuild';
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 describe('Path utilities', () => {
 	it('should correctly create relative paths', (done) => {

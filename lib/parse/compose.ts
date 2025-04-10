@@ -178,7 +178,7 @@ function normalizeObjectToComposition(
 			}
 
 			// Normalise services
-			const services: Dict<any> = c.services || {};
+			const services: Dict<any> = c.services ?? {};
 			const serviceNames = Object.keys(services ?? {});
 			const volumeNames = Object.keys(c.volumes ?? {});
 			const networkNames = Object.keys(c.networks ?? {});
@@ -212,12 +212,12 @@ function normalizeObjectToComposition(
 function preflight(_version: SchemaVersion, data: any) {
 	// Convert `null` networks to empty objects
 	if (data.networks != null && typeof data.networks === 'object') {
-		data.networks = _.mapValues(data.networks, (n) => n || {});
+		data.networks = _.mapValues(data.networks, (n) => n ?? {});
 	}
 
 	// Convert `null` volumes to empty objects
 	if (data.volumes != null && typeof data.volumes === 'object') {
-		data.volumes = _.mapValues(data.volumes, (v) => v || {});
+		data.volumes = _.mapValues(data.volumes, (v) => v ?? {});
 	}
 }
 
@@ -269,9 +269,7 @@ function normalizeService(
 		if (!Array.isArray(service.extra_hosts)) {
 			// At this point we know that the extra_hosts entry is an object, so cast to
 			// keep TS happy
-			service.extra_hosts = normalizeExtraHostObject(
-				service.extra_hosts as any,
-			);
+			service.extra_hosts = normalizeExtraHostObject(service.extra_hosts);
 		}
 	}
 
@@ -332,7 +330,7 @@ function normalizeServiceBuild(
 	}
 	if (serviceBuild.extra_hosts && !Array.isArray(serviceBuild.extra_hosts)) {
 		serviceBuild.extra_hosts = normalizeExtraHostObject(
-			serviceBuild.extra_hosts as any,
+			serviceBuild.extra_hosts,
 		);
 	}
 	if (serviceBuild.isolation) {
@@ -343,7 +341,7 @@ function normalizeServiceBuild(
 		serviceBuild.network !== 'host' &&
 		serviceBuild.network !== 'none'
 	) {
-		if (networkNames.indexOf(serviceBuild.network) === -1) {
+		if (!networkNames.includes(serviceBuild.network)) {
 			throw new ValidationError(
 				`Missing network definition for '${serviceBuild.network}'`,
 			);
@@ -382,7 +380,7 @@ function normalizeServiceVolumes(
 		}
 	});
 	appliedBindMountsByLabel.forEach(([label, appliedBindMounts]) => {
-		if (_.every(appliedBindMounts, (m) => mounts.indexOf(m) !== -1)) {
+		if (_.every(appliedBindMounts, (m) => mounts.includes(m))) {
 			labels.push(label);
 		}
 	});
@@ -454,7 +452,7 @@ function validateServiceVolume(
 			if (!serviceVolume.target) {
 				throw new ValidationError('Missing bind mount target');
 			}
-			if (allowedBindMounts.indexOf(serviceVolume.source) === -1) {
+			if (!allowedBindMounts.includes(serviceVolume.source)) {
 				// not a well-known bind mount but an arbitrary one
 				throw new ValidationError('Bind mounts are not allowed');
 			}
@@ -479,7 +477,7 @@ function validateServiceVolume(
 			if (!serviceVolume.source) {
 				throw new ValidationError('Missing volume source');
 			}
-			if (volumeNames.indexOf(serviceVolume.source) === -1) {
+			if (!volumeNames.includes(serviceVolume.source)) {
 				throw new ValidationError(
 					`Missing volume definition for '${serviceVolume.source}'`,
 				);
@@ -664,10 +662,7 @@ function createImageDescriptor(
 	};
 }
 
-function normalizeKeyValuePairs(
-	obj?: ListOrDict,
-	sep: string = '=',
-): Dict<string> {
+function normalizeKeyValuePairs(obj?: ListOrDict, sep = '='): Dict<string> {
 	if (!obj) {
 		return {};
 	}
@@ -694,7 +689,7 @@ function normalizeKeyValuePairs(
 
 function normalizeAndValidateFilePath(envFile: StringOrList): StringOrList {
 	// use a set to store only unique normalized file paths
-	const normalizedEnvFilePaths: Set<string> = new Set();
+	const normalizedEnvFilePaths = new Set<string>();
 	if (!Array.isArray(envFile)) {
 		envFile = [envFile];
 	}
@@ -787,9 +782,10 @@ async function readAndNormalizeExpandEnvFile(
 	envFile: string,
 	fileResolverCb: (path: string) => Promise<Readable>,
 ): Promise<Dict<string>> {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const readline = require('readline');
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
+
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const { once } = require('events');
 	const intermediateEnv: Dict<string> = {};
 	let readableError;

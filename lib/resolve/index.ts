@@ -80,7 +80,7 @@ export function resolveInput(
 	for (const event of Object.keys(resolveListeners) as Array<
 		keyof ResolveListeners
 	>) {
-		for (const listener of resolveListeners[event] || []) {
+		for (const listener of resolveListeners[event] ?? []) {
 			pack.on(event, listener);
 		}
 	}
@@ -147,7 +147,7 @@ async function resolveTarStreamOnEntry(
 	if (candidates.length > 0) {
 		const fileInfo = {
 			name,
-			size: header.size || 0,
+			size: header.size ?? 0,
 			contents: await TarUtils.streamToBuffer(stream),
 		};
 		for (const resolver of candidates) {
@@ -227,7 +227,7 @@ async function addResolverOutput(
 	);
 
 	const content = dockerfile.contents.toString();
-	const newContent = (await bundle.callDockerfileHook(content)) || content;
+	const newContent = (await bundle.callDockerfileHook(content)) ?? content;
 	pack.entry({ name: dockerfile.name, size: newContent.length }, newContent);
 }
 

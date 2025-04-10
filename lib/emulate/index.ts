@@ -113,21 +113,21 @@ const argsToString = (
 	if (Array.isArray(args)) {
 		let ret = '';
 		// Handle command meta-arguments (like --from=stage)
-		if (args[0] != null && args[0].startsWith('--')) {
+		if (args[0]?.startsWith('--')) {
 			ret += args[0] + ' ';
 			args = args.slice(1);
 		}
 		if (spaceSeparatedArrayCommands.includes(commandName)) {
 			return ret + args.join(' ');
 		}
-		return ret + '["' + (args as string[]).join('","') + '"]';
+		return ret + '["' + args.join('","') + '"]';
 	} else if (args != null && typeof args === 'object') {
 		return _.map(args, (value: string, key: string) => {
 			const escapedValue = JSON.stringify(value);
 			return `${key}=${escapedValue}`;
 		}).join(' ');
 	} else {
-		return args as string;
+		return args;
 	}
 };
 
@@ -177,7 +177,7 @@ const getTarEntryHandler = (
 	dockerfileName: string,
 	opts: TransposeOptions,
 ) => {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const streamToPromise = require('stream-to-promise');
 	return (
 		header: tar.Headers,
@@ -211,7 +211,7 @@ const getTarEntryHandler = (
 export function transposeTarStream(
 	tarStream: NodeJS.ReadableStream,
 	options: TransposeOptions,
-	dockerfileName: string = 'Dockerfile',
+	dockerfileName = 'Dockerfile',
 ) {
 	const extract = tar.extract();
 	const pack = tar.pack();
@@ -241,7 +241,7 @@ export function transposeTarStream(
 export function getBuildThroughStream(
 	opts: TransposeOptions,
 ): NodeJS.ReadWriteStream {
-	// eslint-disable-next-line @typescript-eslint/no-var-requires
+	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const es = require('event-stream');
 	// Regex to match against 'Step 1/5:', 'Step 1/5 :' 'Step 1:' 'Step 1 :'
 	// and all lower case versions.

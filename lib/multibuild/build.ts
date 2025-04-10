@@ -61,7 +61,7 @@ function taskHooks(
 			layers: string[],
 			fromTags: FromTagInfo[],
 		) => {
-			const tag = task.tag != null ? task.tag : imageId;
+			const tag = task.tag ?? imageId;
 			const image = new LocalImage(docker, tag, task.serviceName, {
 				external: false,
 				successful: true,
@@ -136,7 +136,7 @@ export async function runBuildTask(
 	const usePlatformOption: boolean =
 		!!task.dockerPlatform &&
 		semver.satisfies(
-			semver.coerce((await docker.version()).ApiVersion) || '0.0.0',
+			semver.coerce((await docker.version()).ApiVersion) ?? '0.0.0',
 			'>=1.38.0',
 		) &&
 		(task.useDefaultPlatformForMultiarchBaseImages === true ||
@@ -163,7 +163,7 @@ export async function runBuildTask(
 
 	// Workaround to deal with timing issues when resolution takes longer.
 	// Promise ensures that task is resolved before build process continues.
-	const taskResolved = task.resolvedPromise || Promise.resolve();
+	const taskResolved = task.resolvedPromise ?? Promise.resolve();
 
 	return new Promise((resolve, reject) => {
 		// TODO: narrow the new Promise and properly await this in a follow-up.
@@ -176,7 +176,7 @@ export async function runBuildTask(
 				return;
 			}
 
-			let dockerOpts = task.dockerOpts || {};
+			let dockerOpts = task.dockerOpts ?? {};
 			dockerOpts = _.merge(
 				dockerOpts,
 				generateBuildArgs(task, buildArgs),
@@ -184,9 +184,7 @@ export async function runBuildTask(
 			);
 
 			if (secrets != null && task.serviceName in secrets) {
-				if (dockerOpts.volumes == null) {
-					dockerOpts.volumes = [];
-				}
+				dockerOpts.volumes ??= [];
 				dockerOpts.volumes.push(
 					`${secrets[task.serviceName].tmpDirectory}:/run/secrets:ro`,
 				);

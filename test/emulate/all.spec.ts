@@ -16,7 +16,6 @@
  */
 
 import * as chai from 'chai';
-import * as chaiAsPromised from 'chai-as-promised';
 import { stripIndents } from 'common-tags';
 import * as fs from 'fs';
 import * as path from 'path';
@@ -24,7 +23,6 @@ import * as tar from 'tar-stream';
 
 import * as transpose from '../../lib/emulate';
 
-chai.use(chaiAsPromised);
 const expect = chai.expect;
 
 const opts: transpose.TransposeOptions = {
@@ -170,11 +168,13 @@ describe('Transpose a tar stream', () => {
 			'./test/emulate/test-files/valid-archive.tar',
 		);
 
-		return transpose.transposeTarStream(tarStream, opts).then((stream) => {
-			return expect(getDockerfileFromTarStream(stream)).eventually.to.equal(
-				expectedOutput,
-			);
-		});
+		return transpose
+			.transposeTarStream(tarStream, opts)
+			.then(async (stream) => {
+				return expect(await getDockerfileFromTarStream(stream)).to.equal(
+					expectedOutput,
+				);
+			});
 	});
 
 	it('should transpose a larger tar stream', function () {

@@ -135,7 +135,8 @@ export async function fromImageDescriptors(
 					})
 					.catch((e) => {
 						if (e instanceof ContractError) {
-							return reject(e);
+							reject(e);
+							return;
 						}
 						reject(new TarError(e));
 					});
@@ -144,7 +145,9 @@ export async function fromImageDescriptors(
 					.then(() => {
 						next();
 					})
-					.catch((e) => reject(new TarError(e)));
+					.catch((e) => {
+						reject(new TarError(e));
+					});
 			}
 		};
 

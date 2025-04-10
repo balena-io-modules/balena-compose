@@ -79,7 +79,7 @@ export default class Builder {
 		// Connect the input stream to the rw stream
 		dup.setWritable(inputStream);
 
-		let streamError: Error;
+		let streamError: Error | undefined;
 		const failBuild = _.once((err: Error) => {
 			streamError = err;
 			dup.destroy(err);
@@ -113,7 +113,13 @@ export default class Builder {
 				outputStream.on('end', () =>
 					// The 'end' event was observed to be emitted under error
 					// conditions, hence the test for streamError.
-					streamError ? reject(streamError) : resolve(),
+					{
+						if (streamError) {
+							reject(streamError);
+						} else {
+							resolve();
+						}
+					},
 				);
 				// Connect the output of the docker daemon to the duplex stream
 				dup.setReadable(outputStream);

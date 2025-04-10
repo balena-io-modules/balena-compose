@@ -24,7 +24,7 @@ interface ReleaseAttributesBase {
 	contract?: JsonType;
 }
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+// eslint-disable-next-line @typescript-eslint/no-empty-interface, @typescript-eslint/no-empty-object-type
 interface ReleaseImageAttributesBase {
 	// empty
 }

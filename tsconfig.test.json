@@ -4,7 +4,6 @@
     "noImplicitAny": false,
     "noUnusedLocals": false,
     "noUnusedParameters": false,
-    "strictNullChecks": false,
   },
   "include": [
     "lib/**/*.ts",

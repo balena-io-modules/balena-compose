@@ -117,7 +117,7 @@ export class NodeResolver implements Resolver {
 				.pick('preinstall', 'install', 'postinstall')
 				.size() > 0;
 
-		const nodeEngine: string | unknown = _.get(packageJson, 'engines.node');
+		const nodeEngine: unknown = _.get(packageJson, 'engines.node');
 		if (nodeEngine == null) {
 			throw new Error('package.json: engines.node must be specified');
 		}

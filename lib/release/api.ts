@@ -1,4 +1,4 @@
-import pMap = require('p-map');
+import * as pMap from 'p-map';
 import type { PinejsClientCore } from 'pinejs-client-core';
 import * as models from './models';
 import type { Dict } from './types';
@@ -25,7 +25,7 @@ export interface Request {
 	 * });
 	 * ```
 	 */
-	client: PinejsClientCore<unknown>;
+	client: PinejsClientCore;
 
 	/**
 	 * The ID of the user the release should belong to. The user authenticated via `client`
@@ -133,8 +133,7 @@ export async function create(req: Request) {
 					is_a_build_of__service: service.id,
 					status: 'running',
 					start_timestamp: new Date(),
-					...(imgDescriptor &&
-						imgDescriptor.contract && { contract: imgDescriptor.contract }),
+					...(imgDescriptor?.contract && { contract: imgDescriptor.contract }),
 				},
 			);
 
@@ -152,7 +151,7 @@ export async function create(req: Request) {
 }
 
 export async function updateRelease(
-	api: PinejsClientCore<unknown>,
+	api: PinejsClientCore,
 	id: number,
 	body: Partial<models.ReleaseAttributes>,
 ): Promise<void> {
@@ -166,7 +165,7 @@ export async function updateRelease(
 }
 
 export async function updateImage(
-	api: PinejsClientCore<unknown>,
+	api: PinejsClientCore,
 	id: number,
 	body: Partial<models.ImageAttributes>,
 ): Promise<void> {
@@ -182,7 +181,7 @@ export async function updateImage(
 // Helpers
 
 async function getUser(
-	api: PinejsClientCore<unknown>,
+	api: PinejsClientCore,
 	id: number,
 ): Promise<models.UserModel> {
 	const user = await api
@@ -199,7 +198,7 @@ async function getUser(
 }
 
 async function getApplication(
-	api: PinejsClientCore<unknown>,
+	api: PinejsClientCore,
 	id: number,
 ): Promise<models.ApplicationModel> {
 	const app = await api
@@ -216,7 +215,7 @@ async function getApplication(
 }
 
 async function getOrCreateService(
-	api: PinejsClientCore<unknown>,
+	api: PinejsClientCore,
 	body: models.ServiceAttributes,
 ): Promise<models.ServiceModel> {
 	return (await api
@@ -232,7 +231,7 @@ async function getOrCreateService(
 }
 
 async function createRelease(
-	api: PinejsClientCore<unknown>,
+	api: PinejsClientCore,
 	body: models.ReleaseAttributes,
 ) {
 	return (await api
@@ -244,7 +243,7 @@ async function createRelease(
 }
 
 async function createImage(
-	api: PinejsClientCore<unknown>,
+	api: PinejsClientCore,
 	release: number,
 	labels: Dict<string> | undefined,
 	envvars: Dict<string> | undefined,

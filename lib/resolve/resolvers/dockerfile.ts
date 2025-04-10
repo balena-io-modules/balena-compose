@@ -24,7 +24,7 @@ export class DockerfileResolver implements Resolver {
 	public name = 'Standard Dockerfile';
 	public dockerfileContents: string;
 
-	private gotDockerfile: boolean = false;
+	private gotDockerfile = false;
 
 	public entry(file: FileInfo): void {
 		this.gotDockerfile = true;
@@ -45,7 +45,7 @@ export class DockerfileResolver implements Resolver {
 		// * Otherwise, it will match `Dockerfile` at the root of the project directory tree, as
 		//   `entryPath.unparsed` is the full tar entry path which must be exactly `'Dockerfile'`.
 
-		return entryPath.unparsed === (specifiedDockerfilePath || 'Dockerfile');
+		return entryPath.unparsed === (specifiedDockerfilePath ?? 'Dockerfile');
 	}
 
 	public isSatisfied(): boolean {
@@ -54,7 +54,7 @@ export class DockerfileResolver implements Resolver {
 
 	public resolve(_bundle: Bundle, specifiedDockerfilePath?: string) {
 		return Promise.resolve({
-			name: specifiedDockerfilePath || 'Dockerfile',
+			name: specifiedDockerfilePath ?? 'Dockerfile',
 			contents: Buffer.from(this.dockerfileContents),
 			size: this.dockerfileContents.length,
 		});

@@ -15,10 +15,7 @@
  * limitations under the License.
  */
 
-import type {
-	DockerImageManifest,
-	DockerImageManifestPlatform,
-} from '../../lib/multibuild/manifests';
+import type { DockerImageManifestPlatform } from '../../lib/multibuild/manifests';
 import {
 	MEDIATYPE_MANIFEST_V1,
 	MEDIATYPE_MANIFEST_LIST_V2,
@@ -40,9 +37,8 @@ class Tester {
 
 	public testGetManifest(): void {
 		it('should return a manifest', async () => {
-			const result = await getManifest(this.modem, this.repoString);
-			expect(result).to.be.not.null;
-			const manifest = result as DockerImageManifest;
+			const manifest = await getManifest(this.modem, this.repoString);
+			expect(manifest).to.be.not.null;
 			expect(manifest.Descriptor.mediaType).to.be.oneOf([
 				MEDIATYPE_MANIFEST_V1,
 				MEDIATYPE_MANIFEST_LIST_V2,
@@ -52,9 +48,9 @@ class Tester {
 			expect(manifest.Descriptor.digest).to.not.be.undefined;
 			expect(manifest.Platforms).to.not.be.undefined;
 			expect(Array.isArray(manifest.Platforms)).to.be.true;
-			manifest.Platforms!.forEach((p: DockerImageManifestPlatform) => {
-				expect(p!.architecture).to.be.not.undefined;
-				expect(p!.os).to.be.not.undefined;
+			manifest.Platforms.forEach((p: DockerImageManifestPlatform) => {
+				expect(p.architecture).to.be.not.undefined;
+				expect(p.os).to.be.not.undefined;
 			});
 		});
 	}

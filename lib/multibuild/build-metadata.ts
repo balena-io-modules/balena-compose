@@ -118,7 +118,7 @@ export class BuildMetadata {
 		];
 
 		let bufData: Buffer | undefined;
-		let foundType: MetadataFileType;
+		let foundType: MetadataFileType | undefined;
 		let foundName: string | undefined;
 
 		for (const { name, type } of potentials) {
@@ -138,7 +138,7 @@ export class BuildMetadata {
 			let result: Either<t.Errors, ParsedBalenaYml>;
 			try {
 				let value: unknown;
-				if (foundType! === MetadataFileType.Json) {
+				if (foundType === MetadataFileType.Json) {
 					value = JSON.parse(bufData.toString());
 				} else {
 					value = jsYaml.load(bufData.toString());
@@ -153,8 +153,8 @@ export class BuildMetadata {
 			}
 
 			this.balenaYml = {
-				buildSecrets: result.right['build-secrets'] || {},
-				buildVariables: result.right['build-variables'] || {},
+				buildSecrets: result.right['build-secrets'] ?? {},
+				buildVariables: result.right['build-variables'] ?? {},
 			};
 		} else {
 			this.balenaYml = { buildSecrets: {}, buildVariables: {} };
@@ -184,7 +184,7 @@ export class BuildMetadata {
 		];
 
 		let bufData: Buffer | undefined;
-		let foundType: MetadataFileType;
+		let foundType: MetadataFileType | undefined;
 
 		for (const { name, type } of potentials) {
 			if (name in this.metadataFiles) {
@@ -198,7 +198,7 @@ export class BuildMetadata {
 			const validator: RegistrySecretValidator = new RegistrySecretValidator();
 			let maybeSecrets: unknown;
 			try {
-				if (foundType! === MetadataFileType.Yaml) {
+				if (foundType === MetadataFileType.Yaml) {
 					maybeSecrets = jsYaml.load(bufData.toString());
 				} else {
 					maybeSecrets = JSON.parse(bufData.toString());
