@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency dockerfile-ast to ^0.7.0
+      hash: 8c25f6bf2f299f7cdb61bc1460e29e2b8cd27d21
+      body: |
+        Update dockerfile-ast from 0.2.1 to 0.7.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.0.7
+  title: ""
+  date: 2025-04-11T13:21:54.907Z
+- commits:
     - subject: Update dependency @types/tar-stream to v3
       hash: 40ae244885ce54c3251e81cf9e4c441175486b33
       body: |
