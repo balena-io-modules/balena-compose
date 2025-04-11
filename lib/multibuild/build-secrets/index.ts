@@ -146,7 +146,7 @@ export async function populateSecrets(
 	const imageName = 'balena-secrets:latest';
 	const dockerOpts = {
 		t: imageName,
-		volumes: [`${tmpDir}:${tmpDir}:rw`],
+		volumes: JSON.stringify([`${tmpDir}:${tmpDir}:rw`]),
 		forcerm: true,
 	};
 	const builder = Builder.fromDockerode(docker);
