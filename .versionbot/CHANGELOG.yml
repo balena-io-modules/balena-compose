@@ -1,4 +1,16 @@
 - commits:
+    - subject: Change docker-modem to a devDependency
+      hash: 71f820d5b3435f4a4891a2af2267f253ac177873
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Thodoris Greasidis
+      nested: []
+  version: 7.0.8
+  title: ""
+  date: 2025-05-15T18:10:43.566Z
+- commits:
     - subject: Update dependency dockerfile-ast to ^0.7.0
       hash: 8c25f6bf2f299f7cdb61bc1460e29e2b8cd27d21
       body: |
