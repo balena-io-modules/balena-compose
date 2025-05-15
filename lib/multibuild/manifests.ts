@@ -16,7 +16,7 @@
  *
  */
 
-import type * as Dockermodem from 'docker-modem';
+import type * as Dockerode from 'dockerode';
 import { getAuthConfigObj } from './registry-secrets';
 
 export const MEDIATYPE_MANIFEST_V1 =
@@ -46,7 +46,7 @@ export type DockerImageManifest = {
 };
 
 export function getManifest(
-	modem: Dockermodem,
+	modem: Dockerode['modem'],
 	repository: string,
 	dockerOpts: { [key: string]: any } = {},
 ): Promise<DockerImageManifest> {

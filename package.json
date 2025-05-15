@@ -53,6 +53,7 @@
     "@types/tar-stream": "^3.0.0",
     "chai": "^4.3.4",
     "common-tags": "^1.8.2",
+    "docker-modem": "^5.0.3",
     "mocha": "^11.0.0",
     "ncp": "^2.0.0",
     "pinejs-client-core": "^7.2.0",
@@ -64,7 +65,6 @@
   "dependencies": {
     "ajv": "^6.12.3",
     "docker-file-parser": "^1.0.7",
-    "docker-modem": "^5.0.3",
     "docker-progress": "^5.1.0",
     "dockerfile-ast": "^0.7.0",
     "dockerode": "^4.0.2",
