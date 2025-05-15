@@ -1,4 +1,28 @@
 - commits:
+    - subject: Update dockerode to 4.0.4
+      hash: d3937a4d9a6e5a927c108bd401d3a01e257251dc
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+    - subject: Use JSON serialization for balena build secrets
+      hash: 5ddc108242dcb2dd7316ea5ebb201ac9c5ec6d9e
+      body: |
+        Build secrets make use of a `volumes` option passed to the build image
+        docker API. This option is only available in balenaEngine. With the
+        changes on apocas/docker-modem#181, this array will be serialized using
+        URL serialization by dockerode, which is not accepted by balenaEngine.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Felipe Lalanne
+      nested: []
+  version: 7.0.9
+  title: ""
+  date: 2025-05-15T18:23:42.119Z
+- commits:
     - subject: Change docker-modem to a devDependency
       hash: 71f820d5b3435f4a4891a2af2267f253ac177873
       body: ""
