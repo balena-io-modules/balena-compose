@@ -96,6 +96,12 @@ export default class Builder {
 		inputStream.on('error', failBuild);
 		dup.on('error', failBuild);
 
+		// If buildOpts includes any volumes, JSON serialize them before passing
+		// them to the engine
+		if (buildOpts.volumes != null && Array.isArray(buildOpts.volumes)) {
+			buildOpts.volumes = JSON.stringify(buildOpts.volumes);
+		}
+
 		const buildPromise = (async () => {
 			const daemonStream = await this.docker.buildImage(inputStream, buildOpts);
 
