@@ -20,7 +20,11 @@
     "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
     "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
+    "build:go:wasm": "cd lib/parse/compose-go-wasm && GOOS=js GOARCH=wasm go build -o ../../../dist/parse/compose-go.wasm .",
+    "build:go:bin": "cd lib/parse/compose-go-bin && go build -ldflags='-s -w' -o ../../../dist/parse/compose-go .",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
+    "test:go:wasm": "npm run build:go:wasm && ts-mocha --project ./tsconfig.test.json --grep 'compose-go-wasm'",
+    "test:go:bin": "npm run build:go:bin && COMPOSE_GO_BINARY=./dist/parse/compose-go ts-mocha --project ./tsconfig.test.json --grep 'compose-go-bin'",
     "prepack": "npm run build"
   },
   "repository": {
