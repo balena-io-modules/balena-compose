@@ -25,7 +25,7 @@ import type {
 	Service,
 	StringOrList,
 	Volume,
-} from './types';
+} from '../types';
 
 export function defaultComposition(
 	image?: string,
@@ -652,7 +652,7 @@ function createImageDescriptor(
 
 	// TODO(robertgzr): could probably move this into normalizeServiceBuild
 	if (service.image) {
-		build.tag = service.image;
+		build.tags = [...(build.tags ?? []), service.image];
 	}
 
 	return {
@@ -662,7 +662,10 @@ function createImageDescriptor(
 	};
 }
 
-function normalizeKeyValuePairs(obj?: ListOrDict, sep = '='): Dict<string> {
+function normalizeKeyValuePairs(
+	obj?: ListOrDict<any>,
+	sep = '=',
+): Dict<string> {
 	if (!obj) {
 		return {};
 	}
@@ -732,12 +735,11 @@ async function readEnvFilesFromComposition(
 ): Promise<Dict<Dict<string>>> {
 	const envFileVariables: Dict<Dict<string>> = {};
 	for (const service of Object.values(composition.services)) {
-		let envFilePaths = service.env_file;
-		if (envFilePaths) {
-			if (!Array.isArray(envFilePaths)) {
-				envFilePaths = [envFilePaths];
-			}
-			for (const envFilePath of envFilePaths) {
+		const envFiles = service.env_file;
+		if (envFiles) {
+			for (const envFile of envFiles) {
+				const envFilePath =
+					typeof envFile === 'string' ? envFile : envFile.path;
 				if (!(envFilePath in envFileVariables)) {
 					envFileVariables[envFilePath] = await readAndNormalizeExpandEnvFile(
 						envFilePath,
@@ -756,13 +758,12 @@ function assignExpandedEnvFilesToComposition(
 ): Composition {
 	// Apply all read env_files content to the services referncing the env_files
 	for (const service of Object.values(composition.services)) {
-		let envFilePaths = service.env_file;
-		if (envFilePaths) {
+		const envFiles = service.env_file;
+		if (envFiles) {
 			service.environment = service.environment ?? {};
-			if (!Array.isArray(envFilePaths)) {
-				envFilePaths = [envFilePaths];
-			}
-			for (const envFilePath of envFilePaths) {
+			for (const envFile of envFiles) {
+				const envFilePath =
+					typeof envFile === 'string' ? envFile : envFile.path;
 				for (const [key, value] of Object.entries(
 					envFileVariables[envFilePath],
 				)) {

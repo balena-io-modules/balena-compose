@@ -13,7 +13,7 @@ import {
 	Network,
 	Service,
 	Volume,
-} from './types';
+} from '../types';
 
 export {
 	defaultComposition,
