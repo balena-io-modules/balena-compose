@@ -1,0 +1,10 @@
+name: compose-test
+version: '3.8'
+
+services:
+  base:
+    extends:
+      file: docker-compose.base.yml
+      service: base
+    labels:
+      io.balena.features.supervisor-api: '1'

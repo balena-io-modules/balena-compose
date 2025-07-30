@@ -1,0 +1,16 @@
+services:
+  web:
+    image: nginx:latest
+    command: ["nginx", "-g", "daemon off;"]
+    ports:
+      - 8080:80
+    volumes:
+      - nginx:/etc/nginx/nginx.conf
+    networks:
+      - web-network
+
+networks:
+  web-network:
+
+volumes:
+  nginx:

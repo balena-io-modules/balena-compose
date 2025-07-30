@@ -1,0 +1,4 @@
+services:
+  base:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
