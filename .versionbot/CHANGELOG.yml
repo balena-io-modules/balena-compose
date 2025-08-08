@@ -1,4 +1,16 @@
 - commits:
+    - subject: Allow pinejs-client-core ^8.0.0 on peerDependency
+      hash: 36d40242dcfde2e665085163c0c83056cb8e09f7
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 7.0.10
+  title: ""
+  date: 2025-08-08T14:55:02.129Z
+- commits:
     - subject: Update dockerode to 4.0.4
       hash: d3937a4d9a6e5a927c108bd401d3a01e257251dc
       body: ""
