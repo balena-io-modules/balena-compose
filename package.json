@@ -19,8 +19,10 @@
     "copy": "npm run copy:secrets && npm run copy:schemas",
     "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
     "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
-    "build": "npm run clean && tsc --project ./ && npm run copy",
+    "build": "npm run clean && tsc --project ./ && npm run copy && npm run build:go",
+    "build:go": "go build -C lib/parse -ldflags=\"-s -w\" -o ../../dist/parse/balena-compose-go",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
+    "test:go": "npm run build:go && ts-mocha --project ./tsconfig.test.json -g 'compose-go'",
     "prepack": "npm run build"
   },
   "repository": {

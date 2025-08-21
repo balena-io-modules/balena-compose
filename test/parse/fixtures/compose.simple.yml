@@ -1,0 +1,18 @@
+version: "2.4"
+
+services:
+  web:
+      image: nginx:latest
+      command: nginx -g 'daemon off;'
+      ports:
+          - 80:80
+      networks:
+          - my-network
+      volumes:
+          - my-volume:/var/www/html
+
+networks:
+    my-network:
+
+volumes:
+    my-volume:
