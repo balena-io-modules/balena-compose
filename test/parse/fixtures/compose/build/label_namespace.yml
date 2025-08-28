@@ -1,0 +1,6 @@
+services:
+  main:
+    build:
+      context: .
+      labels:
+        io.balena.private.foo: bar

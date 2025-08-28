@@ -252,6 +252,20 @@ describe('compose-go', () => {
 			}
 		});
 
+		it('should reject io.balena.private namespace in labels', async () => {
+			try {
+				await parse('test/parse/fixtures/compose/services/label_namespace.yml');
+				expect.fail(
+					'Expected compose parser to reject io.balena.private namespace in labels',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'labels cannot use the "io.balena.private" namespace',
+				);
+			}
+		});
+
 		it('should warn on long syntax depends_on config', async () => {
 			const composition = await parse(
 				'test/parse/fixtures/compose/services/depends_on_long_syntax.yml',
@@ -1050,6 +1064,20 @@ describe('compose-go', () => {
 						);
 					}
 				}
+			}
+		});
+
+		it('should reject io.balena.private namespace in labels', async () => {
+			try {
+				await parse('test/parse/fixtures/compose/build/label_namespace.yml');
+				expect.fail(
+					'Expected compose parser to reject io.balena.private namespace in labels',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'labels cannot use the "io.balena.private" namespace',
+				);
 			}
 		});
 	});

@@ -247,6 +247,11 @@ function normalizeService(
 		service.build = normalizeServiceBuild(rawService.build, composeFilePath);
 	}
 
+	// Reject if io.balena.private namespace is used for labels
+	if (service.labels) {
+		rejectNamespacedLabels(service.labels);
+	}
+
 	// Reject network_mode:container:${containerId} as we don't support this
 	if (service.network_mode?.match(/^container:.*$/)) {
 		throw new ComposeError(
@@ -384,6 +389,11 @@ function normalizeServiceBuild(
 		}
 	}
 
+	// Reject if io.balena.private namespace is used for labels
+	if (build.labels) {
+		rejectNamespacedLabels(build.labels);
+	}
+
 	// Convert absolute context paths to relative paths
 	/// compose-go converts relative context to absolute, but the existing image build methods
 	/// in balena-compose rely on relative paths.
@@ -401,6 +411,18 @@ function normalizeServiceBuild(
 			path.relative(path.dirname(composeFilePath), build.context) || '.';
 	}
 	return build;
+}
+
+function rejectNamespacedLabels(labels: Dict<any>) {
+	for (const [key] of Object.entries(labels)) {
+		if (key.startsWith('io.balena.private')) {
+			throw new ComposeError(
+				`labels cannot use the "io.balena.private" namespace`,
+				'error',
+				'ValidationError',
+			);
+		}
+	}
 }
 
 function longToShortSyntaxPorts(
