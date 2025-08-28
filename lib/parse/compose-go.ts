@@ -542,8 +542,43 @@ function longToShortSyntaxVolumes(volumes: ServiceVolumeConfig[]): string[] {
 	return shortSyntaxVolumes;
 }
 
+export const NETWORK_CONFIG_DENY_LIST = ['attachable', 'external', 'name'];
+
 function normalizeNetwork(rawNetwork: Dict<any>): Network {
 	const network: Network = { ...rawNetwork };
+
+	// Reject if unsupported fields are present
+	for (const field of NETWORK_CONFIG_DENY_LIST) {
+		if (field in network) {
+			throw new ComposeError(
+				`network.${field} is not allowed`,
+				'error',
+				'ValidationError',
+			);
+		}
+	}
+
+	// Reject if driver is not bridge
+	if (network.driver && !['bridge', 'default'].includes(network.driver)) {
+		throw new ComposeError(
+			`Only "bridge" and "default" are supported for network.driver, got "${network.driver}"`,
+			'error',
+			'ValidationError',
+		);
+	}
+
+	// Reject if `io.balena.private` namespace is used for labels
+	if (network.labels) {
+		rejectNamespacedLabels(network.labels);
+	}
+
+	// Warn if com.docker.network.bridge.name driver_opts is present as it may interfere with device firewall
+	if (network.driver_opts?.['com.docker.network.bridge.name']) {
+		console.warn(
+			'com.docker.network.bridge.name network.driver_opt may interfere with device firewall',
+		);
+	}
+
 	return network;
 }
 

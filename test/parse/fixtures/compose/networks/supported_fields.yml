@@ -1,0 +1,50 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    networks:
+      - my_network
+      - my_network_2
+
+networks:
+  my_network:
+    driver: bridge
+    driver_opts:
+      com.docker.network.driver.mtu: 1500
+    enable_ipv4: false
+    enable_ipv6: true
+    ipam:
+      driver: default
+      config:
+        - subnet: 2001:db8::/64
+          gateway: 2001:db8::1
+          ip_range: 2001:db8:1::/64
+          aux_addresses:
+            host1: 2001:db8:1::1
+            host2: 2001:db8:1::2
+            host3: 2001:db8:1::3
+        - subnet: 2021:db8::/64
+          gateway: 2021:db8::1
+          ip_range: 2021:db8:1::/64
+          aux_addresses:
+            host1: 2021:db8:1::1
+            host2: 2021:db8:1::2
+            host3: 2021:db8:1::3
+    internal: true
+    labels:
+      io.balena.label: test
+  my_network_2:
+    driver: bridge
+    enable_ipv6: false
+    ipam:
+      driver: default
+      config:
+        - subnet: 10.0.0.0/16
+          gateway: 10.0.0.1
+          ip_range: 10.0.1.0/24
+          aux_addresses:
+            host1: 10.0.1.1
+            host2: 10.0.1.2
+            host3: 10.0.1.3
+    labels:
+      - io.balena.label=test2

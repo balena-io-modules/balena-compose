@@ -1,0 +1,10 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    networks:
+      - my_network
+
+networks:
+  my_network:
+    external: true

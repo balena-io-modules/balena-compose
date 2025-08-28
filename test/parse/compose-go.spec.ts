@@ -6,6 +6,7 @@ import {
 	ComposeError,
 	BUILD_CONFIG_DENY_LIST,
 	SERVICE_CONFIG_DENY_LIST,
+	NETWORK_CONFIG_DENY_LIST,
 } from '../../lib/parse/compose-go';
 
 describe('compose-go', () => {
@@ -1070,6 +1071,151 @@ describe('compose-go', () => {
 		it('should reject io.balena.private namespace in labels', async () => {
 			try {
 				await parse('test/parse/fixtures/compose/build/label_namespace.yml');
+				expect.fail(
+					'Expected compose parser to reject io.balena.private namespace in labels',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'labels cannot use the "io.balena.private" namespace',
+				);
+			}
+		});
+	});
+
+	describe('networks', () => {
+		let warnStub: SinonStub;
+
+		beforeEach(() => {
+			warnStub = stub(console, 'warn');
+		});
+
+		afterEach(() => {
+			warnStub.restore();
+		});
+
+		it('should normalize network config', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/compose/networks/supported_fields.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						command: ['sh', '-c', 'sleep infinity'],
+						image: 'alpine:latest',
+						networks: {
+							my_network: null,
+							my_network_2: null,
+						},
+					},
+				},
+				networks: {
+					my_network: {
+						driver: 'bridge',
+						driver_opts: {
+							'com.docker.network.driver.mtu': '1500',
+						},
+						ipam: {
+							driver: 'default',
+							config: [
+								{
+									subnet: '2001:db8::/64',
+									gateway: '2001:db8::1',
+									ip_range: '2001:db8:1::/64',
+									aux_addresses: {
+										host1: '2001:db8:1::1',
+										host2: '2001:db8:1::2',
+										host3: '2001:db8:1::3',
+									},
+								},
+								{
+									subnet: '2021:db8::/64',
+									gateway: '2021:db8::1',
+									ip_range: '2021:db8:1::/64',
+									aux_addresses: {
+										host1: '2021:db8:1::1',
+										host2: '2021:db8:1::2',
+										host3: '2021:db8:1::3',
+									},
+								},
+							],
+						},
+						internal: true,
+						labels: {
+							'io.balena.label': 'test',
+						},
+						enable_ipv4: false,
+						enable_ipv6: true,
+					},
+					my_network_2: {
+						driver: 'bridge',
+						ipam: {
+							driver: 'default',
+							config: [
+								{
+									subnet: '10.0.0.0/16',
+									gateway: '10.0.0.1',
+									ip_range: '10.0.1.0/24',
+									aux_addresses: {
+										host1: '10.0.1.1',
+										host2: '10.0.1.2',
+										host3: '10.0.1.3',
+									},
+								},
+							],
+						},
+						labels: {
+							'io.balena.label': 'test2',
+						},
+						enable_ipv6: false,
+					},
+				},
+			});
+		});
+
+		it('should reject unsupported network config fields', async () => {
+			for (const field of NETWORK_CONFIG_DENY_LIST) {
+				try {
+					await parse(
+						`test/parse/fixtures/compose/networks/unsupported/${field}.yml`,
+					);
+					expect.fail(`Expected compose parser to reject network.${field}`);
+				} catch (error) {
+					expect(error).to.be.instanceOf(ComposeError);
+					expect(error.message).to.equal(`network.${field} is not allowed`);
+				}
+			}
+		});
+
+		it('should reject non-bridge or non-default network drivers', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/networks/unsupported/driver_custom.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject non-bridge or non-default network drivers',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'Only "bridge" and "default" are supported for network.driver, got "custom"',
+				);
+			}
+		});
+
+		it('should warn if com.docker.network.bridge.name driver_opts is present', async () => {
+			await parse(
+				'test/parse/fixtures/compose/networks/driver_opt_bridge_name.yml',
+			);
+			expect(warnStub.callCount).to.equal(1);
+			expect(warnStub.firstCall.args[0]).to.equal(
+				'com.docker.network.bridge.name network.driver_opt may interfere with device firewall',
+			);
+		});
+
+		it('should reject io.balena.private namespace in labels', async () => {
+			try {
+				await parse('test/parse/fixtures/compose/networks/label_namespace.yml');
 				expect.fail(
 					'Expected compose parser to reject io.balena.private namespace in labels',
 				);
