@@ -1,0 +1,10 @@
+services:
+  main:
+    configs:
+      - my_config
+    image: alpine:latest
+    command: sleep infinity
+
+configs:
+  my_config:
+    external: true

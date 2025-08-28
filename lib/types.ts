@@ -39,7 +39,7 @@ interface DependsOnConfig {
 	required?: boolean;
 }
 
-interface DevicesConfig {
+export interface DevicesConfig {
 	source: string;
 	target: string;
 	permissions: string;
@@ -121,7 +121,7 @@ interface ServiceImageMount extends ServiceVolumeBase {
 	};
 }
 
-type ServiceVolumeConfig =
+export type ServiceVolumeConfig =
 	| ServiceBindMount
 	| ServiceVolumeMount
 	| ServiceTmpfsMount
@@ -181,11 +181,11 @@ export interface Service {
 	configs?: Config[]; // Normalized from Array<string | Config>
 	container_name?: string;
 	credential_spec?: Dict<string>;
-	depends_on?: Dict<DependsOnConfig>; // Normalized from Array<string> | Dict<DependsOnConfig>
+	depends_on?: string[] | Dict<DependsOnConfig>;
 	deploy?: Dict<any>; // Unsupported with no intention to support, therefore `any` is permissible
 	develop?: Array<{ watch: any }>; // Unsupported with no current intention to support (as we have livepush) therefore `any` is permissible
 	device_cgroup_rules?: string[];
-	devices?: DevicesConfig[]; // Normalized from string[]
+	devices?: string[] | DevicesConfig[];
 	dns?: string[]; // Normalized from StringOrList
 	dns_opt?: string[];
 	dns_search?: string[]; // Normalized from StringOrList
@@ -266,7 +266,7 @@ export interface Service {
 	user?: string;
 	userns_mode?: string;
 	uts?: string;
-	volumes?: ServiceVolumeConfig[];
+	volumes?: string[] | ServiceVolumeConfig[];
 	volumes_from?: string[];
 	working_dir?: string;
 }

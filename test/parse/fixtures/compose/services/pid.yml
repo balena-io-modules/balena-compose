@@ -1,0 +1,12 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    pid: service:one
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+  host:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    pid: host

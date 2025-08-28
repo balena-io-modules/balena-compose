@@ -1,0 +1,5 @@
+services:
+  main:
+    build:
+      cache_to:
+        - my_cache

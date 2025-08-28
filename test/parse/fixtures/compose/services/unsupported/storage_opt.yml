@@ -1,0 +1,6 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    storage_opt:
+      size: 1G

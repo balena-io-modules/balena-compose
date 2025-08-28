@@ -1,0 +1,16 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    env_file:
+      - path: ./env/.env.a
+        required: true
+      - path: ./env/.env.b
+        required: true
+      - path: ./env/.env.nonexistent
+        required: false # As required is false, no errors are thrown if the file does not exist
+    environment:
+      - ENV_TO_OVERRIDE=overridden
+      - ENV=value
+      - UNSET_A=
+      - UNSET_B=

@@ -1,0 +1,13 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    deploy:
+      mode: replicated
+      replicas: 3
+      resources:
+        limits:
+          cpus: '0.50'
+          memory: 512M
+        reservations:
+          cpus: '0.25'

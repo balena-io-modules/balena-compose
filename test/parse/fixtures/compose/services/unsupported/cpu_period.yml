@@ -1,0 +1,7 @@
+version: '2.4'
+
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    cpu_period: 100000

@@ -1,0 +1,8 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - type: npipe
+        source: //./pipe/docker_engine
+        target: /var/run/docker.sock

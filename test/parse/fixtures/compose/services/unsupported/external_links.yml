@@ -1,0 +1,5 @@
+services:
+  main:
+    image: alpine:latest
+    external_links:
+      - redis

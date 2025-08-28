@@ -1,0 +1,7 @@
+services:
+  web:
+    extends:
+      service: web
+      file: extends_nonexistent_file.yml
+    environment:
+      - ENV_TEST=overridden

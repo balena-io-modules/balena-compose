@@ -1,0 +1,9 @@
+services:
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    oom_score_adj: -900
+  two:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    oom_score_adj: 1000

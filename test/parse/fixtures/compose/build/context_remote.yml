@@ -1,0 +1,4 @@
+services:
+  remote:
+    build:
+      context: https://github.com/balena-io-examples/balena-nodejs-hello-world.git

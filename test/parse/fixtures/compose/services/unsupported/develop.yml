@@ -1,0 +1,11 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    develop:
+      watch:
+        - path: .
+          action: sync
+          target: /app
+          ignore:
+            - node_modules/

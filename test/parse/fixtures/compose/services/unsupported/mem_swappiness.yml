@@ -1,0 +1,5 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    mem_swappiness: 60

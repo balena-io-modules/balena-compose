@@ -1,0 +1,14 @@
+services:
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes_from:
+      - container:deadbeef:ro
+  two:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - test:/test
+
+volumes:
+  test:

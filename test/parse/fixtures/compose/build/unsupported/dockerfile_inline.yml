@@ -1,0 +1,6 @@
+services:
+  main:
+    build:
+      dockerfile_inline: |
+        FROM baseimage
+        RUN some command

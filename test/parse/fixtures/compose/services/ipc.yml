@@ -1,0 +1,8 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    ipc: service:one
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"

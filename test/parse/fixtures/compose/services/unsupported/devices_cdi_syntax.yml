@@ -1,0 +1,8 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    devices:
+      - vendor1.com/device=gpu
+      - nvidia.com/gpu=0
+      - intel.com/qat=device1

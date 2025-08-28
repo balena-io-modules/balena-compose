@@ -1,0 +1,21 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    restart: always
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    restart: on-failure
+  two:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    restart: no
+  three:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    restart: unless-stopped
+  four:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    restart: on-failure:3

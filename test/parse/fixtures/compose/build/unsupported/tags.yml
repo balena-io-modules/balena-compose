@@ -1,0 +1,6 @@
+services:
+  main:
+    build:
+      tags:
+        - my_tag
+        - my_tag2

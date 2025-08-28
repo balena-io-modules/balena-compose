@@ -1,0 +1,5 @@
+services:
+  main:
+    build:
+      additional_contexts:
+        - my_context=my_context_value

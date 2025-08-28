@@ -1,0 +1,9 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"

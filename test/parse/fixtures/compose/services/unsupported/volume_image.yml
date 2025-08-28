@@ -1,0 +1,8 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - type: image
+        source: alpine:latest
+        target: /app

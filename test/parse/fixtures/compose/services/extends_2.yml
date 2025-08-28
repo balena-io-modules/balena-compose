@@ -1,0 +1,6 @@
+services:
+  web:
+    image: nginx:latest
+    environment:
+      - ENV_TEST=true
+      - ENV_TEST_2=true

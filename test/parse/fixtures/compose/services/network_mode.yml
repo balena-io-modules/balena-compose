@@ -1,0 +1,13 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    network_mode: host
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    network_mode: none
+  two:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    network_mode: service:main

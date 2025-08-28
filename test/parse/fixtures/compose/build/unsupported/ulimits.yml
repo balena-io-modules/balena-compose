@@ -1,0 +1,7 @@
+services:
+  main:
+    build:
+      ulimits:
+        nofile:
+          soft: 1024
+          hard: 2048

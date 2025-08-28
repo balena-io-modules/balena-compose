@@ -1,0 +1,23 @@
+services:
+  main:
+    command: 'sleep infinity'
+    build:
+        args:
+            - ARG2=value2
+        context: .
+        cache_from:
+            - my_cache
+            - my_cache2
+        dockerfile: Dockerfile
+        extra_hosts:
+            - "host1:127.0.0.1"
+            - "host2:127.0.0.2"
+        labels:
+            - "com.example.label=value"
+            - "com.example.label2=value2"
+        network: build_net
+        shm_size: 1G
+        target: my_target
+
+networks:
+  build_net:

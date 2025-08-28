@@ -1,0 +1,4 @@
+services:
+  main:
+    build:
+      pull: true

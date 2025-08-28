@@ -1,0 +1,15 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    security_opt:
+      - label:type:unconfined
+      - label:level:s0:c1024,c1024
+      - label:user:balena
+      - label:role:balena
+      - label:disable
+      - apparmor:MY_PROFILE
+      - seccomp:unconfined
+      - seccomp:builtin
+      - seccomp:profile.json
+      - systempaths:unconfined

@@ -1,0 +1,21 @@
+services:
+  main:
+    command: sleep infinity
+    build:
+        context: "."
+        dockerfile: Dockerfile.main
+  one:
+    command: sleep infinity
+    build:
+        context: ./one
+        dockerfile: Dockerfile.one
+  two:
+    command: sleep infinity
+    build:
+        context: ./two
+        dockerfile: Dockerfile.two
+  three:
+    command: sleep infinity
+    build:
+        context: ./three
+        dockerfile: Dockerfile.three

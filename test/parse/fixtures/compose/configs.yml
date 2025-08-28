@@ -1,0 +1,9 @@
+services:
+  web:
+    image: nginx
+    configs:
+      - my_config
+
+configs:
+  my_config:
+    external: true

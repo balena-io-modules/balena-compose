@@ -1,0 +1,18 @@
+services:
+  web:
+    image: alpine:latest
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+      redis:
+        condition: service_started
+        required: false
+      main:
+        condition: service_completed_successfully
+  redis:
+    image: redis
+  db:
+    image: postgres
+  main:
+    image: alpine:latest

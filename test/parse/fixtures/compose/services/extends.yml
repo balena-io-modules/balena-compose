@@ -1,0 +1,17 @@
+services:
+  common:
+    image: busybox
+    environment:
+      TZ: utc
+      PORT: 80
+  cli:
+    extends:
+      service: common
+    environment:
+      PORT: 8080
+  web:
+    extends:
+      service: web
+      file: extends_2.yml
+    environment:
+      - ENV_TEST=overridden

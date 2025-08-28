@@ -1,0 +1,6 @@
+services:
+  main:
+    build:
+      entitlements:
+        - network.host
+        - security.insecure

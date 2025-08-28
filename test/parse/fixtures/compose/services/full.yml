@@ -1,0 +1,122 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    annotations:
+      - com.example.annotation=value
+    attach: false
+    cgroup: 'host'
+    cpu_rt_runtime: 100000
+    cpu_rt_period: 100000
+    cpus: 0.5
+    cpuset: 0-2
+    depends_on:
+      - one
+    device_cgroup_rules:
+      - 'c 1:3 mr'
+      - 'a 7:* rmw'
+    devices:
+      - /dev/sda:/dev/sda:rwm
+      - /dev/sdb:/dev/sdb:r
+    dns: 8.8.8.8
+    dns_opt:
+      - use-vc
+      - no-tld-query
+    dns_search:
+      - balena.io
+      - balenadev.io
+    domainname: balenatest.io
+    entrypoint: "/bin/sh -c 'sleep infinity'"
+    environment:
+      - ENV_TEST=true
+    expose: # This should be removed
+      - 3000-3005/tcp
+    extra_hosts:
+      - host1=127.0.0.1
+      - host2=127.0.0.2
+    group_add:
+      - mail
+      - 1111
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+      start_interval: 10s
+    hostname: balena
+    init: true
+    ipc: service:one
+    labels:
+      - com.example.label=value
+      - com.example.label2=value2
+    mac_address: 02:42:ac:11:00:02
+    mem_limit: 1024m
+    mem_reservation: 512m
+    pids_limit: 50
+    post_start:
+      - command: ./do_something_on_startup.sh
+        user: root
+        privileged: true
+        working_dir: /app
+        environment:
+          - FOO=BAR1
+    pre_stop:
+      - command: ./do_something_on_shutdown.sh
+        user: root
+        privileged: true
+        working_dir: /app
+        environment:
+          - FOO=BAR2
+    privileged: true
+    read_only: true
+    security_opt:
+      - no-new-privileges
+    shm_size: 1024m
+    stop_grace_period: 3s
+    stop_signal: SIGUSR1
+    sysctls:
+      - net.ipv4.ip_forward=1
+      - kernel.msgmax=65536
+    tmpfs:
+      - /data:mode=755,uid=1009,gid=1009
+      - /run
+    tty: true
+    ulimits:
+      noproc: 65535
+      nofile:
+        soft: 20000
+        hard: 40000
+    user: balena
+    userns_mode: host
+    uts: host
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    annotations:
+      com.example.annotation2: value2
+    dns: 
+      - 8.8.8.8
+      - 8.8.4.4
+    entrypoint:
+      - php
+      - -d
+      - zend_extension=/usr/local/lib/php/extensions/no-debug-non-zts-20100525/xdebug.so
+      - -d
+      - memory_limit=-1
+      - vendor/bin/phpunit
+    environment:
+      ENV_TEST_2: true
+    extra_hosts:
+      host3: 127.0.0.3
+      host4: 127.0.0.4
+    ipc: shareable
+    labels:
+      com.example.label3: value3
+      com.example.label4: value4
+    pids_limit: -1
+    read_only: false
+    shm_size: 1073741824
+    sysctls:
+      net.ipv4.ip_forward: 1
+      kernel.msgmax: 65536

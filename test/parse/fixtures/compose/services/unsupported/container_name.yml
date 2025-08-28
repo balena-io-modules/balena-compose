@@ -1,0 +1,5 @@
+services:
+  main:
+    container_name: my_container
+    image: alpine:latest
+    command: sleep infinity

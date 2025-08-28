@@ -1,0 +1,9 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    labels:
+      - io.balena.label=overridden
+    label_file:
+      - ./labels/a.labels
+      - ./labels/b.labels

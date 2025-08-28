@@ -1,0 +1,9 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    links:
+      - one:alias_for_one
+  one:
+    image: alpine:latest
+    command: sh -c "sleep infinity"

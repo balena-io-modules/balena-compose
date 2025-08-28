@@ -1,0 +1,25 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    ports:
+      - 8080:8080
+      - 8081:8081
+  long:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    ports:
+      - target: 9090
+        published: 9090
+        host_ip: 127.0.0.1
+        protocol: tcp
+        app_protocol: https
+        mode: host
+        name: port1
+      - target: 9091
+        published: 9091
+        host_ip: 127.0.0.2
+        protocol: udp
+        app_protocol: http
+        mode: ingress
+        name: port2
