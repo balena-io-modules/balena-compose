@@ -582,7 +582,35 @@ function normalizeNetwork(rawNetwork: Dict<any>): Network {
 	return network;
 }
 
+export const VOLUME_CONFIG_DENY_LIST = ['external', 'name'];
+
 function normalizeVolume(rawVolume: Dict<any>): Volume {
 	const volume: Volume = { ...rawVolume };
+
+	// Reject if non-local driver is used
+	if (volume.driver && !['local', 'default'].includes(volume.driver)) {
+		throw new ComposeError(
+			`Only "local" and "default" are supported for volume.driver, got "${volume.driver}"`,
+			'error',
+			'ValidationError',
+		);
+	}
+
+	// Reject if unsupported fields are present
+	for (const field of VOLUME_CONFIG_DENY_LIST) {
+		if (field in volume) {
+			throw new ComposeError(
+				`volume.${field} is not allowed`,
+				'error',
+				'ValidationError',
+			);
+		}
+	}
+
+	// Reject if `io.balena.private` namespace is used for labels
+	if (volume.labels) {
+		rejectNamespacedLabels(volume.labels);
+	}
+
 	return volume;
 }

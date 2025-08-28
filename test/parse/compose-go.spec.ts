@@ -7,6 +7,7 @@ import {
 	BUILD_CONFIG_DENY_LIST,
 	SERVICE_CONFIG_DENY_LIST,
 	NETWORK_CONFIG_DENY_LIST,
+	VOLUME_CONFIG_DENY_LIST,
 } from '../../lib/parse/compose-go';
 
 describe('compose-go', () => {
@@ -1223,6 +1224,100 @@ describe('compose-go', () => {
 				expect(error).to.be.instanceOf(ComposeError);
 				expect(error.message).to.equal(
 					'labels cannot use the "io.balena.private" namespace',
+				);
+			}
+		});
+	});
+
+	describe('volumes', () => {
+		it('should normalize volume config', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/compose/volumes/supported_fields.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						image: 'alpine:latest',
+						command: ['sh', '-c', 'sleep infinity'],
+						volumes: ['my_volume:/app'],
+						networks: {
+							default: null,
+						},
+					},
+				},
+				volumes: {
+					my_volume: {
+						driver: 'local',
+						driver_opts: {
+							type: 'tmpfs',
+							o: 'size=100m,uid=1000,gid=1000,mode=700',
+							device: 'tmpfs',
+						},
+						labels: {
+							'io.foo.bar': 'baz',
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		it('should normalize a volume without configuration to an empty object', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/compose/volumes/null.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						image: 'alpine:latest',
+						command: ['sh', '-c', 'sleep infinity'],
+						volumes: ['my-volume:/data'],
+						networks: {
+							default: null,
+						},
+					},
+				},
+				volumes: {
+					'my-volume': {},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		it('should reject unsupported volume config fields', async () => {
+			for (const field of VOLUME_CONFIG_DENY_LIST) {
+				try {
+					await parse(
+						`test/parse/fixtures/compose/volumes/unsupported/${field}.yml`,
+					);
+					expect.fail(`Expected compose parser to reject volume.${field}`);
+				} catch (error) {
+					expect(error).to.be.instanceOf(ComposeError);
+					expect(error.message).to.equal(`volume.${field} is not allowed`);
+				}
+			}
+		});
+
+		it('should reject non-local or non-default volume drivers', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/volumes/unsupported/driver_custom.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject non-local or non-default volume drivers',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'Only "local" and "default" are supported for volume.driver, got "custom"',
 				);
 			}
 		});

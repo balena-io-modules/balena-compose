@@ -1,0 +1,10 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - my_volume:/app
+
+volumes:
+  my_volume:
+    name: my_volume

@@ -1,0 +1,16 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - my_volume:/app
+
+volumes:
+  my_volume:
+    driver: local
+    driver_opts:
+      type: tmpfs
+      o: size=100m,uid=1000,gid=1000,mode=700
+      device: tmpfs
+    labels:
+      io.foo.bar: baz
