@@ -1,0 +1,5 @@
+services:
+  child3:
+    image: alpine:latest
+    environment:
+      CHILD3_VAR: ${CHILD3_VAR}

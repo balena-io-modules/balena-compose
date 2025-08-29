@@ -1,0 +1,5 @@
+services:
+  child:
+    image: alpine:latest
+    environment:
+      CHILD_VAR: child_value

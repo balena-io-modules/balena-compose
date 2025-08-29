@@ -1,0 +1,24 @@
+x-env: &base
+  environment:
+    - CONFIG_KEY=value1
+    - EXAMPLE_KEY=value2
+  annotations:
+    io.balena.test: true
+
+x-keys1: &keys1
+  KEY1: VALUE1
+x-keys2: &keys2
+  KEY2: VALUE2
+ 
+services:
+  first:
+    <<: *base
+    image: my-image:latest
+  second:
+    <<: *base
+    image: another-image:latest
+  third:
+    image: my-image:latest
+    environment:
+      <<: [*keys1, *keys2]
+      YET_ANOTHER: VARIABLE

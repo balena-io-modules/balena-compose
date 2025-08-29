@@ -1,0 +1,6 @@
+services:
+  child2:
+    image: alpine:latest
+    environment:
+      CHILD2_VAR: child2_value
+      CHILD2_VAR2: ${CHILD2_VAR2}

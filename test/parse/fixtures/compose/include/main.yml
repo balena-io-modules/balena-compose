@@ -1,0 +1,14 @@
+services:
+  main:
+    image: alpine:latest
+    depends_on:
+      - child
+  
+include:
+  - child.yml
+  - path: 
+      - ./child/child2.yml
+      - ./child/child3.yml
+    env_file:
+      - ./child/.env
+      - ./child/.env.child

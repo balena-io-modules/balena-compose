@@ -1,0 +1,30 @@
+services:
+  main:
+    image: alpine:latest
+    volumes:
+      - db-data:/data
+      - metrics:/metrics
+    environment: &env
+      CONFIG_KEY: value1
+      EXAMPLE_KEY: value2
+      DEMO_VAR: value3
+    dns: &dns
+      - 1.1.1.1
+      - 1.0.0.1
+
+  second:
+    image: alpine:latest
+    environment:
+      <<: *env
+      EXAMPLE_KEY: value2-override
+    dns: *dns
+
+volumes:
+  db-data:
+    labels: &labels
+      io.balena.test: true
+      io.balena.test2: true
+  metrics:
+    labels:
+      <<: *labels
+      io.balena.test: false

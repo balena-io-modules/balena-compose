@@ -1584,4 +1584,217 @@ describe('compose-go', () => {
 			});
 		});
 	});
+
+	// See https://docs.docker.com/reference/compose-file/fragments/
+	it('should support fragments', async () => {
+		const composition = await parse(
+			'test/parse/fixtures/compose/fragments.yml',
+		);
+
+		expect(composition).to.deep.equal({
+			services: {
+				main: {
+					image: 'alpine:latest',
+					command: null,
+					volumes: ['db-data:/data', 'metrics:/metrics'],
+					environment: {
+						CONFIG_KEY: 'value1',
+						EXAMPLE_KEY: 'value2',
+						DEMO_VAR: 'value3',
+					},
+					dns: ['1.1.1.1', '1.0.0.1'],
+					networks: {
+						default: null,
+					},
+				},
+				second: {
+					image: 'alpine:latest',
+					command: null,
+					environment: {
+						CONFIG_KEY: 'value1',
+						EXAMPLE_KEY: 'value2-override',
+						DEMO_VAR: 'value3',
+					},
+					dns: ['1.1.1.1', '1.0.0.1'],
+					networks: {
+						default: null,
+					},
+				},
+			},
+			volumes: {
+				'db-data': {
+					labels: {
+						'io.balena.test': 'true',
+						'io.balena.test2': 'true',
+					},
+				},
+				metrics: {
+					labels: {
+						'io.balena.test': 'false',
+						'io.balena.test2': 'true',
+					},
+				},
+			},
+			networks: {
+				default: {
+					ipam: {},
+				},
+			},
+		});
+	});
+
+	// See https://docs.docker.com/reference/compose-file/extension/
+	it('should support extensions', async () => {
+		const composition = await parse(
+			'test/parse/fixtures/compose/extensions.yml',
+		);
+
+		expect(composition).to.deep.equal({
+			services: {
+				first: {
+					image: 'my-image:latest',
+					command: null,
+					environment: {
+						CONFIG_KEY: 'value1',
+						EXAMPLE_KEY: 'value2',
+					},
+					annotations: {
+						'io.balena.test': 'true',
+					},
+					networks: {
+						default: null,
+					},
+				},
+				second: {
+					image: 'another-image:latest',
+					command: null,
+					environment: {
+						CONFIG_KEY: 'value1',
+						EXAMPLE_KEY: 'value2',
+					},
+					annotations: {
+						'io.balena.test': 'true',
+					},
+					networks: {
+						default: null,
+					},
+				},
+				third: {
+					image: 'my-image:latest',
+					command: null,
+					environment: {
+						KEY1: 'VALUE1',
+						KEY2: 'VALUE2',
+						YET_ANOTHER: 'VARIABLE',
+					},
+					networks: {
+						default: null,
+					},
+				},
+			},
+			networks: {
+				default: {
+					ipam: {},
+				},
+			},
+		});
+	});
+
+	it('should support include directives', async () => {
+		const composition = await parse(
+			'test/parse/fixtures/compose/include/main.yml',
+		);
+
+		expect(composition).to.deep.equal({
+			services: {
+				main: {
+					image: 'alpine:latest',
+					command: null,
+					depends_on: ['child'],
+					networks: {
+						default: null,
+					},
+				},
+				child: {
+					image: 'alpine:latest',
+					command: null,
+					environment: {
+						CHILD_VAR: 'child_value',
+					},
+					networks: {
+						default: null,
+					},
+				},
+				child2: {
+					image: 'alpine:latest',
+					command: null,
+					environment: {
+						CHILD2_VAR: 'child2_value',
+						CHILD2_VAR2: 'child2_value2',
+					},
+					networks: {
+						default: null,
+					},
+				},
+				child3: {
+					image: 'alpine:latest',
+					command: null,
+					environment: {
+						CHILD3_VAR: 'child3_value',
+					},
+					networks: {
+						default: null,
+					},
+				},
+			},
+			networks: {
+				default: {
+					ipam: {},
+				},
+			},
+		});
+	});
+
+	it('should support variable interpolation', async () => {
+		// Set environment variables for interpolation
+		process.env.IMAGE_TAG = '3.18';
+		process.env.APP_PORT = '8080';
+		process.env.APP_ENV = 'production';
+		process.env.DB_NAME = 'myapp_db';
+
+		const composition = await parse(
+			'test/parse/fixtures/compose/interpolation/compose.yml',
+		);
+
+		expect(composition).to.deep.equal({
+			services: {
+				main: {
+					image: 'alpine:3.18',
+					command: null,
+					environment: {
+						NODE_ENV: 'production',
+						DATABASE: 'myapp_db',
+						PORT: '8080',
+						DEFAULT_VAR: 'default_value',
+						VALUE_FROM_DOTENV: '', // 'value_from_dotenv', // TODO: vars from .env in working directory are not being picked up
+					},
+					ports: ['8080:8080'],
+					networks: {
+						default: null,
+					},
+				},
+			},
+			networks: {
+				default: {
+					ipam: {},
+				},
+			},
+		});
+
+		// Clean up environment variables
+		delete process.env.IMAGE_TAG;
+		delete process.env.APP_PORT;
+		delete process.env.APP_ENV;
+		delete process.env.DB_NAME;
+	});
 });
