@@ -1,0 +1,14 @@
+services:
+  web:
+    image: nginx:1.21
+    environment:
+      DEBUG: "false"
+      THIRD_VAR: "third"
+    labels:
+      io.balena.test.tier: 'database'
+      io.balena.test.third: 'true'
+
+networks:
+  frontend:
+    labels:
+      io.balena.test.network2: 'frontend'

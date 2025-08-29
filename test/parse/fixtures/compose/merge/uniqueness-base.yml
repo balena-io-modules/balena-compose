@@ -1,0 +1,13 @@
+services:
+  web:
+    image: nginx:1.19
+    ports:
+      - 3000:3000/tcp
+      - 80:80/udp
+    volumes:
+      - web-data:/html
+      - static-data:/static
+
+volumes:
+  web-data:
+  static-data:

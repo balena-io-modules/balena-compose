@@ -32,18 +32,37 @@ export class ComposeError extends Error {
 }
 
 /**
- * Parse a compose file using compose-go, and return a normalized composition object
- * @param composeFilePath - Path to the compose file to parse
+ * Parse one or more compose files using compose-go, and return a normalized composition object
+ * @param composeFilePaths - Path(s) to the compose file(s) to parse. Can be a single string or an array of strings.
  * @returns Normalized composition object
  */
-export async function parse(composeFilePath: string): Promise<Composition> {
+export async function parse(
+	composeFilePaths: string | string[],
+): Promise<Composition> {
+	// Normalize input to always be an array
+	const filePaths = Array.isArray(composeFilePaths)
+		? composeFilePaths
+		: [composeFilePaths];
+
+	// Validate that at least one file path is provided
+	if (filePaths.length === 0) {
+		throw new ComposeError(
+			'At least one compose file path must be provided',
+			'error',
+			'ArgumentError',
+		);
+	}
+
 	// Use a random UUID as the project name so it's easy to remove later,
 	// as balena doesn't use the project name, but compose-go injects it in several places.
 	const projectName = randomUUID();
 
+	// Build the command with -f flags for each file
+	const fileFlags = filePaths.map((filePath) => `-f ${filePath}`).join(' ');
+
 	// TODO: Is this the final path of the built binary?
 	const result = await exec(
-		`dist/parse/balena-compose-go ${composeFilePath} ${projectName}`,
+		`dist/parse/balena-compose-go ${fileFlags} ${projectName}`,
 	).catch((e) => {
 		// If exec error has stdout/stderr, handle them later; otherwise throw immediately
 		if (e.stdout !== undefined && e.stderr !== undefined) {
@@ -76,7 +95,8 @@ export async function parse(composeFilePath: string): Promise<Composition> {
 	};
 
 	// Normalize raw composition into a balena-acceptable composition
-	return normalize(parsedResult.data, composeFilePath);
+	// Use the first file path as the base for relative path calculations
+	return normalize(parsedResult.data, filePaths[0]);
 }
 
 /**

@@ -1,0 +1,9 @@
+services:
+  web:
+    ports:
+      - 3000:3000
+      - 3000:3000/udp
+      - 80:80
+    volumes:
+      - web-data:/static
+      - static-data:/html

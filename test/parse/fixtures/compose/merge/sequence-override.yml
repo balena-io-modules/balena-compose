@@ -1,0 +1,19 @@
+services:
+  app:
+    ports:
+      - 3001:3001
+      - 80:80
+    dns:
+      - 8.8.8.8
+    dns_search:
+      - test2.local
+    depends_on:
+      - cache
+    tmpfs:
+      - /run
+  db:
+    environment:
+      - POSTGRES_DB_2=mydb2
+  cache:
+    image: redis:6
+    command: ["sh", "-c", "sleep infinity"]

@@ -1,0 +1,25 @@
+services:
+  web:
+    image: nginx:1.19
+    command: ["sh", "-c", "echo 'one' && sleep infinity"]
+    environment:
+      DEBUG: "false"
+      LOG_LEVEL: "info"
+    networks:
+      - frontend
+    labels:
+      io.balena.test.app: 'myapp'
+      io.balena.test.tier: 'frontend'
+
+  db:
+    image: postgres:13
+    command: ["sh", "-c", "echo 'db' && sleep infinity"]
+    environment:
+      POSTGRES_DB: mydb
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: pass
+
+networks:
+  frontend:
+    labels:
+      io.balena.test.network: 'frontend1'

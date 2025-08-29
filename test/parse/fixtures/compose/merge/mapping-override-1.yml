@@ -1,0 +1,22 @@
+services:
+  web:
+    image: nginx:1.20
+    environment:
+      DEBUG: "true"
+      NEW_VAR: "value"
+    networks:
+      - frontend
+    labels:
+      io.balena.test.tier: 'backend'
+      io.balena.test.environment: 'dev'
+
+  cache:
+    image: redis:6
+    command: ["sh", "-c", "sleep infinity"]
+    labels:
+      io.balena.test.tier: 'backend'
+
+networks:
+  frontend:
+    labels:
+      io.balena.test.network: 'frontend2'

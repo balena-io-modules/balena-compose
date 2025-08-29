@@ -1,0 +1,14 @@
+services:
+  web:
+    image: nginx:1.19
+    attach: true
+    restart: unless-stopped
+    mem_limit: 512m
+    volumes:
+      - web-data:/var/www/html
+    networks:
+      - frontend
+volumes:
+  web-data:
+networks:
+  frontend:

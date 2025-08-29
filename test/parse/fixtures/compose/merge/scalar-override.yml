@@ -1,0 +1,8 @@
+services:
+  web:
+    restart: no
+    mem_limit: 1g
+    networks:
+      - backend
+networks:
+  backend:

@@ -1,0 +1,23 @@
+services:
+  app:
+    command: ["npm", "run", "dev"]
+    image: node:18
+    ports:
+      - 3000:3000
+      - 9229:9229
+    dns:
+      - 1.1.1.1
+    dns_search:
+      - test.local
+      - dev.local
+    tmpfs:
+      - /tmp
+    devices:
+      - /dev/sdb:/dev/sdb:rw
+    depends_on:
+      - db
+  db:
+    image: postgres:13
+    command: ["sh", "-c", "echo 'db' && sleep infinity"]
+    environment:
+      - POSTGRES_DB=mydb

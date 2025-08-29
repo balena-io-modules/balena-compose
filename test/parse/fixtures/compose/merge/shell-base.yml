@@ -1,0 +1,7 @@
+services:
+  web:
+    image: nginx:1.19
+    command: ["sh", "-c", "sleep infinity"]
+    entrypoint: ["sh", "-c", "sleep infinity"]
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]

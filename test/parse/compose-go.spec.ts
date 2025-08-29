@@ -1322,4 +1322,266 @@ describe('compose-go', () => {
 			}
 		});
 	});
+
+	// See https://docs.docker.com/reference/compose-file/merge/
+	describe('multiple file merging', () => {
+		it('should merge scalars by adding missing entries and merging conflicting ones', async () => {
+			const composition = await parse([
+				'test/parse/fixtures/compose/merge/scalar-base.yml',
+				'test/parse/fixtures/compose/merge/scalar-override.yml',
+			]);
+
+			expect(composition).to.deep.equal({
+				services: {
+					web: {
+						image: 'nginx:1.19',
+						command: null,
+						restart: 'no',
+						attach: true,
+						mem_limit: '1073741824', // 1g
+						networks: {
+							backend: null,
+							frontend: null,
+						},
+						volumes: ['web-data:/var/www/html'],
+					},
+				},
+				networks: {
+					backend: {
+						ipam: {},
+					},
+					frontend: {
+						ipam: {},
+					},
+				},
+				volumes: {
+					'web-data': {},
+				},
+			});
+		});
+
+		it('should replace shell commands', async () => {
+			const composition = await parse([
+				'test/parse/fixtures/compose/merge/shell-base.yml',
+				'test/parse/fixtures/compose/merge/shell-override.yml',
+			]);
+
+			expect(composition).to.deep.equal({
+				services: {
+					web: {
+						image: 'nginx:1.19',
+						command: ['sh', '-c', 'sleep 50'],
+						entrypoint: ['sh', '-c', 'sleep 51'],
+						healthcheck: {
+							test: ['CMD', 'curl', '-f', 'http://localhost:3001'],
+						},
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		it('should merge mappings by adding missing entries and merging conflicting ones', async () => {
+			const composition = await parse([
+				'test/parse/fixtures/compose/merge/mapping-base.yml',
+				'test/parse/fixtures/compose/merge/mapping-override-1.yml',
+				'test/parse/fixtures/compose/merge/mapping-override-2.yml',
+			]);
+
+			expect(composition).to.deep.equal({
+				services: {
+					web: {
+						image: 'nginx:1.21',
+						command: ['sh', '-c', "echo 'one' && sleep infinity"],
+						environment: {
+							DEBUG: 'false',
+							LOG_LEVEL: 'info',
+							NEW_VAR: 'value',
+							THIRD_VAR: 'third',
+						},
+						networks: {
+							frontend: null,
+						},
+						labels: {
+							'io.balena.test.app': 'myapp',
+							'io.balena.test.tier': 'database',
+							'io.balena.test.environment': 'dev',
+							'io.balena.test.third': 'true',
+						},
+					},
+					db: {
+						image: 'postgres:13',
+						command: ['sh', '-c', "echo 'db' && sleep infinity"],
+						environment: {
+							POSTGRES_DB: 'mydb',
+							POSTGRES_USER: 'user',
+							POSTGRES_PASSWORD: 'pass',
+						},
+						networks: {
+							default: null,
+						},
+					},
+					cache: {
+						image: 'redis:6',
+						command: ['sh', '-c', 'sleep infinity'],
+						labels: {
+							'io.balena.test.tier': 'backend',
+						},
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					frontend: {
+						ipam: {},
+						labels: {
+							'io.balena.test.network': 'frontend2',
+							'io.balena.test.network2': 'frontend',
+						},
+					},
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		it('should merge sequences by appending values', async () => {
+			const composition = await parse([
+				'test/parse/fixtures/compose/merge/sequence-base.yml',
+				'test/parse/fixtures/compose/merge/sequence-override.yml',
+			]);
+
+			expect(composition).to.deep.equal({
+				services: {
+					app: {
+						image: 'node:18',
+						command: ['npm', 'run', 'dev'],
+						ports: ['3000:3000', '9229:9229', '3001:3001', '80:80'],
+						dns: ['1.1.1.1', '8.8.8.8'],
+						dns_search: ['test.local', 'dev.local', 'test2.local'],
+						depends_on: ['cache', 'db'],
+						tmpfs: ['/tmp', '/run'],
+						devices: ['/dev/sdb:/dev/sdb:rw'],
+						networks: {
+							default: null,
+						},
+					},
+					db: {
+						image: 'postgres:13',
+						command: ['sh', '-c', "echo 'db' && sleep infinity"],
+						environment: {
+							POSTGRES_DB: 'mydb',
+							POSTGRES_DB_2: 'mydb2',
+						},
+						networks: {
+							default: null,
+						},
+					},
+					cache: {
+						image: 'redis:6',
+						command: ['sh', '-c', 'sleep infinity'],
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		// See https://docs.docker.com/reference/compose-file/merge/#unique-resources
+		it('should only append entries that do not violate uniqueness constraints', async () => {
+			const composition = await parse([
+				'test/parse/fixtures/compose/merge/uniqueness-base.yml',
+				'test/parse/fixtures/compose/merge/uniqueness-override.yml',
+			]);
+
+			expect(composition).to.deep.equal({
+				services: {
+					web: {
+						image: 'nginx:1.19',
+						command: null,
+						ports: ['3000:3000', '80:80/udp', '3000:3000/udp', '80:80'],
+						volumes: ['static-data:/html', 'web-data:/static'],
+						networks: {
+							default: null,
+						},
+					},
+				},
+				volumes: {
+					'web-data': {},
+					'static-data': {},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		// See https://docs.docker.com/reference/compose-file/merge/#reset-value
+		it('should respect !reset YAML tag to override a previously set value', async () => {
+			const composition = await parse([
+				'test/parse/fixtures/compose/merge/reset-base.yml',
+				'test/parse/fixtures/compose/merge/reset-override.yml',
+			]);
+
+			expect(composition).to.deep.equal({
+				services: {
+					app: {
+						image: 'myapp',
+						command: null,
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		// See https://docs.docker.com/reference/compose-file/merge/#replace-value
+		it('should respect !override YAML tag to replace a previously set value', async () => {
+			const composition = await parse([
+				'test/parse/fixtures/compose/merge/replace-base.yml',
+				'test/parse/fixtures/compose/merge/replace-override.yml',
+			]);
+
+			expect(composition).to.deep.equal({
+				services: {
+					app: {
+						image: 'myapp',
+						command: null,
+						ports: ['8443:443'],
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+	});
 });
