@@ -1,0 +1,13 @@
+version: '3.8'
+
+services:
+  main:
+    image: alpine:${IMAGE_TAG}
+    environment:
+      NODE_ENV: ${APP_ENV}
+      DATABASE: ${DB_NAME}
+      PORT: ${APP_PORT}
+      DEFAULT_VAR: ${UNSET_VAR:-default_value}  # Uses default value if UNSET_VAR is not set
+      VALUE_FROM_DOTENV: ${VALUE_FROM_DOTENV}
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
