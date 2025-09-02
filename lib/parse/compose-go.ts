@@ -247,6 +247,24 @@ export const SERVICE_CONFIG_DENY_LIST = [
 
 const OOM_SCORE_ADJ_WARN_THRESHOLD = -900;
 
+const bindMountByLabel: Array<[string, string[]]> = [
+	['io.balena.features.balena-socket', ['/var/run/docker.sock']],
+	['io.balena.features.balena-socket', ['/var/run/balena-engine.sock']],
+	['io.balena.features.dbus', ['/run/dbus']],
+	['io.balena.features.sysfs', ['/sys']],
+	['io.balena.features.procfs', ['/proc']],
+	['io.balena.features.kernel-modules', ['/lib/modules']],
+	['io.balena.features.firmware', ['/lib/firmware']],
+	[
+		'io.balena.features.journal-logs',
+		['/var/log/journal', '/run/log/journal', '/etc/machine-id'],
+	],
+];
+
+const allowedBindMounts = bindMountByLabel.flatMap(
+	([_, appliedBindMounts]) => appliedBindMounts,
+);
+
 function normalizeService(
 	rawService: Dict<any>,
 	composeFilePath: string,
@@ -341,13 +359,29 @@ function normalizeService(
 		);
 	}
 
-	// Convert long syntax volumes to short syntax
-	/// compose-go converts all volumes definitions to long syntax, however legacy Supervisors don't support this.
-	/// TODO: Support this in Helios
 	if (service.volumes) {
-		service.volumes = longToShortSyntaxVolumes(
-			service.volumes as ServiceVolumeConfig[],
-		);
+		// At this point, service.volumes hasn't been converted to string[] so it's safe to cast to ServiceVolumeConfig[]
+		const v = service.volumes as ServiceVolumeConfig[];
+
+		// Convert allowed bind mounts to labels
+		const labels = allowedBindMountsToLabels(v);
+
+		if (labels.length > 0) {
+			service.labels = {
+				...service.labels,
+				...Object.fromEntries(labels.map((label) => [label, '1'])),
+			};
+		}
+
+		// Convert long syntax volumes to short syntax
+		/// compose-go converts all volumes definitions to long syntax, however legacy Supervisors don't support this.
+		/// TODO: Support this in Helios
+		const shortSyntaxVolumes = longToShortSyntaxVolumes(v);
+		if (shortSyntaxVolumes.length > 0) {
+			service.volumes = shortSyntaxVolumes;
+		} else {
+			delete service.volumes;
+		}
 	}
 
 	// Delete env_file, as compose-go adds env_file vars to service.environment
@@ -494,6 +528,7 @@ function longToShortSyntaxDependsOn(
 		}
 
 		// If required is false, the service is optional, so we don't need to express a dependency
+		// TODO: Compose warns if service isn't started or available if required=false. Supervisor will need to warn once it supports long syntax depends_on.
 		if (dependsOnConfig.required !== false) {
 			shortSyntaxDependsOn.push(serviceName);
 		}
@@ -529,10 +564,31 @@ function longToShortSyntaxDevices(
 	return shortSyntaxDevices;
 }
 
+function allowedBindMountsToLabels(volumes: ServiceVolumeConfig[]): string[] {
+	const labels: string[] = [];
+	bindMountByLabel.forEach(([label, appliedBindMounts]) => {
+		// EVERY bind mount associated with the label must be present for the label to be applied,
+		// except in the case of balena-engine label which only requires one of either bind mount
+		if (
+			appliedBindMounts.every((m) =>
+				volumes.some((v) => v.source && v.source === m),
+			)
+		) {
+			labels.push(label);
+		}
+	});
+	return labels;
+}
+
 function longToShortSyntaxVolumes(volumes: ServiceVolumeConfig[]): string[] {
 	const shortSyntaxVolumes: string[] = [];
 
 	for (const v of volumes) {
+		// Ignore allowed bind mounts as they're converted to labels separately
+		if (v.source && allowedBindMounts.includes(v.source)) {
+			continue;
+		}
+
 		// Reject volumes of type bind, image, npipe, or cluster
 		if (['bind', 'image', 'npipe', 'cluster'].includes(v.type)) {
 			throw new ComposeError(

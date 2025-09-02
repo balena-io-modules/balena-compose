@@ -1,0 +1,15 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/run/balena-engine.sock:/var/run/balena-engine.sock
+      - /run/dbus:/run/dbus
+      - /sys:/sys
+      - /proc:/proc
+      - /lib/modules:/lib/modules
+      - /lib/firmware:/lib/firmware
+      - /var/log/journal:/var/log/journal
+      - /run/log/journal:/run/log/journal
+      - /etc/machine-id:/etc/machine-id

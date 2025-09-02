@@ -859,6 +859,64 @@ describe('compose-go', () => {
 			}
 		});
 
+		it('should convert allowed bind mounts to labels', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/compose/services/volumes_allowed_bind_mount.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						image: 'alpine:latest',
+						command: ['sh', '-c', 'sleep infinity'],
+						labels: {
+							'io.balena.features.balena-socket': '1',
+							'io.balena.features.dbus': '1',
+							'io.balena.features.sysfs': '1',
+							'io.balena.features.procfs': '1',
+							'io.balena.features.kernel-modules': '1',
+							'io.balena.features.firmware': '1',
+							'io.balena.features.journal-logs': '1',
+						},
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		// QUESTION: This is balena-compose's current behavior, should we loosen the requirements?
+		it('should not convert allowed bind mounts to labels if not all bind mounts associated with label are present', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/compose/services/volumes_allowed_bind_mount_partial.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						image: 'alpine:latest',
+						command: ['sh', '-c', 'sleep infinity'],
+						networks: {
+							default: null,
+						},
+						labels: {
+							// balena-socket only requires that one of either bind mount be present
+							'io.balena.features.balena-socket': '1',
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
 		it('should normalize service volumes to short syntax', async () => {
 			const composition = await parse(
 				'test/parse/fixtures/compose/services/volumes.yml',

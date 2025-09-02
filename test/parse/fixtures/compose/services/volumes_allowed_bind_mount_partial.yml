@@ -1,0 +1,8 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /var/log/journal:/var/log/journal
+      - /etc/machine-id:/etc/machine-id
