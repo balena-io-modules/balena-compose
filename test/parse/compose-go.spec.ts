@@ -719,7 +719,33 @@ describe('compose-go parsing & validation', () => {
 					main: {
 						image: 'alpine:latest',
 						command: ['sh', '-c', 'sleep infinity'],
-						ports: ['8080:8080', '8081:8081'],
+						ports: [
+							'3000',
+							'3001',
+							'3002',
+							'3003',
+							'3004',
+							'3005',
+							'8000:8000',
+							'9090:8080',
+							'9091:8081',
+							'49100:22',
+							'8000-9000:80',
+							'127.0.0.1:8001:8001',
+							'127.0.0.1:5000:5000',
+							'127.0.0.1:5001:5001',
+							'127.0.0.1:5002:5002',
+							'127.0.0.1:5003:5003',
+							'127.0.0.1:5004:5004',
+							'127.0.0.1:5005:5005',
+							'127.0.0.1:5006:5006',
+							'127.0.0.1:5007:5007',
+							'127.0.0.1:5008:5008',
+							'127.0.0.1:5009:5009',
+							'127.0.0.1:5010:5010',
+							'::1:6001:6001',
+							'6060:6060/udp',
+						],
 						networks: {
 							default: null,
 						},
@@ -739,6 +765,20 @@ describe('compose-go parsing & validation', () => {
 					},
 				},
 			});
+		});
+
+		it('should reject invalid ports', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/services/unsupported/ports_invalid.yml',
+				);
+				expect.fail('Expected compose parser to reject invalid ports');
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'Failed to parse compose file: Invalid proto: tc',
+				);
+			}
 		});
 
 		it('should parse restart policy', async () => {

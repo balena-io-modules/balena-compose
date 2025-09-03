@@ -515,7 +515,7 @@ function longToShortSyntaxPorts(
 			// See: https://docs.docker.com/reference/compose-file/services/#long-syntax-4
 			shortSyntaxPorts.push(
 				(port.host_ip ? `${port.host_ip}:` : '') +
-					`${port.published}:${port.target}` +
+					`${port.published ? `${port.published}:` : ''}${port.target}` +
 					// Only include protocol if it's not default (not TCP)
 					(port.protocol !== 'tcp' ? `/${port.protocol}` : ''),
 			);

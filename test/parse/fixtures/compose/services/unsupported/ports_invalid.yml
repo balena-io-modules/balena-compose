@@ -1,0 +1,7 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    ports:
+      - 8080:8080/tc
+      - 8081:8081/ud

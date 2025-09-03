@@ -3,8 +3,22 @@ services:
     image: alpine:latest
     command: sh -c "sleep infinity"
     ports:
-      - 8080:8080
-      - 8081:8081
+      - "3000"
+      - "3000-3005"
+      - "8000:8000"
+      - "9090-9091:8080-8081"
+      - "49100:22"
+      - "8000-9000:80"
+      - "127.0.0.1:8001:8001"
+      - "127.0.0.1:5000-5010:5000-5010"
+      # FIXME: compose-go doesn't accept an IPv6 address without square brackets, even though
+      # it's documented as supported in the compose spec and docker compose CLI
+      # allows a non-bracketed address. I suspect docker compose is doing some transforming
+      # to ports without square brackets prior to passing the compose to compose-go.
+      # Perhaps requires opening an issue with the compose team?
+      # - "::1:6000:6000"
+      - "[::1]:6001:6001"
+      - "6060:6060/udp"
   long:
     image: alpine:latest
     command: sh -c "sleep infinity"
