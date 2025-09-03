@@ -156,7 +156,7 @@ function normalizeObjectToComposition(
 		validate(version, c);
 	} catch (e) {
 		if (e instanceof SchemaError) {
-			throw new ValidationError(e);
+			throw new ValidationError(e.message);
 		}
 		throw e;
 	}
@@ -195,7 +195,7 @@ function normalizeObjectToComposition(
 						return [serviceName, normalizedService];
 					} catch (err) {
 						if (err instanceof ValidationError) {
-							throw new ServiceError(serviceName, err);
+							throw new ServiceError(err.message, serviceName);
 						}
 						throw err;
 					}

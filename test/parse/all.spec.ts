@@ -407,7 +407,7 @@ describe('validation', () => {
 			});
 		};
 		expect(f).to.throw(
-			ValidationError,
+			ServiceError,
 			'Only "service_started" type of service dependency is supported',
 		);
 	});
@@ -426,7 +426,7 @@ describe('validation', () => {
 				},
 			});
 		};
-		expect(f).to.throw(ValidationError, 'Tmpfs options are not allowed');
+		expect(f).to.throw(ServiceError, 'Tmpfs options are not allowed');
 	});
 
 	it(`should throw when long syntax volume mounts specify options`, () => {
@@ -451,7 +451,7 @@ describe('validation', () => {
 				},
 			});
 		};
-		expect(f).to.throw(ValidationError, 'Volume options are not allowed');
+		expect(f).to.throw(ServiceError, 'Volume options are not allowed');
 	});
 
 	it('should throw if label `io.balena.features.requires.sw.supervisor` uses a wrong version range', () => {
@@ -469,7 +469,7 @@ describe('validation', () => {
 			});
 		};
 		expect(f).to.throw(
-			ValidationError,
+			ServiceError,
 			"Invalid value for label 'io.balena.features.requires.sw.supervisor'. Expected a valid semver range; got 'not-valid'",
 		);
 	});
@@ -489,7 +489,7 @@ describe('validation', () => {
 			});
 		};
 		expect(f).to.throw(
-			ValidationError,
+			ServiceError,
 			"Invalid value for label 'io.balena.features.requires.sw.l4t'. Expected a valid semver range; got 'not-valid'",
 		);
 	});
@@ -509,7 +509,7 @@ describe('validation', () => {
 			});
 		};
 		expect(f).to.throw(
-			ValidationError,
+			ServiceError,
 			"Invalid value for label 'io.balena.features.requires.arch.sw'. Expected a valid architecture string got 'not-valid'",
 		);
 	});

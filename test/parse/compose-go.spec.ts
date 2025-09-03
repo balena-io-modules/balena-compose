@@ -1,16 +1,21 @@
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import { stub } from 'sinon';
+
 import {
 	parse,
-	ComposeError,
 	BUILD_CONFIG_DENY_LIST,
 	SERVICE_CONFIG_DENY_LIST,
 	NETWORK_CONFIG_DENY_LIST,
 	VOLUME_CONFIG_DENY_LIST,
 } from '../../lib/parse/compose-go';
+import {
+	ComposeError,
+	ServiceError,
+	ValidationError,
+} from '../../lib/parse/errors';
 
-describe('compose-go', () => {
+describe('compose-go parsing & validation', () => {
 	it('should parse a simple compose file', async () => {
 		const composition = await parse('test/parse/fixtures/compose/simple.yml');
 		expect(composition.services).to.be.an('object');
@@ -241,14 +246,16 @@ describe('compose-go', () => {
 					);
 					expect.fail(`Expected compose parser to reject service.${field}`);
 				} catch (error) {
-					expect(error).to.be.instanceOf(ComposeError);
 					// Top-level secrets and configs are rejected earlier so have a different error message
 					if (['secrets', 'configs'].includes(field)) {
+						expect(error).to.be.instanceOf(ComposeError);
 						expect(error.message).to.equal(
 							'Top-level secrets and/or configs are not supported',
 						);
 					} else {
+						expect(error).to.be.instanceOf(ServiceError);
 						expect(error.message).to.equal(`service.${field} is not allowed`);
+						expect(error.serviceName).to.equal('main');
 					}
 				}
 			}
@@ -261,10 +268,11 @@ describe('compose-go', () => {
 					'Expected compose parser to reject io.balena.private namespace in labels',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
 				expect(error.message).to.equal(
 					'labels cannot use the "io.balena.private" namespace',
 				);
+				expect(error.serviceName).to.equal('main');
 			}
 		});
 
@@ -332,10 +340,11 @@ describe('compose-go', () => {
 					'Expected compose parser to reject devices config with CDI syntax',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
 				expect(error.message).to.equal(
 					'devices config with CDI syntax is not allowed',
 				);
+				expect(error.serviceName).to.equal('main');
 			}
 		});
 
@@ -541,7 +550,8 @@ describe('compose-go', () => {
 					'Expected compose parser to reject network_mode:container:${containerId}',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'service.network_mode container:${containerId} is not allowed',
 				);
@@ -692,7 +702,8 @@ describe('compose-go', () => {
 					'Expected compose parser to reject pid:container:${containerId}',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'service.pid container:${containerId} is not allowed',
 				);
@@ -794,7 +805,8 @@ describe('compose-go', () => {
 					'Expected compose parser to reject security_opt settings except no-new-privileges',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'Only no-new-privileges is allowed for service.security_opt',
 				);
@@ -808,7 +820,8 @@ describe('compose-go', () => {
 				);
 				expect.fail('Expected compose parser to reject volumes of type bind');
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'service.volumes cannot be of type "bind"',
 				);
@@ -822,7 +835,8 @@ describe('compose-go', () => {
 				);
 				expect.fail('Expected compose parser to reject volumes of type image');
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'service.volumes cannot be of type "image"',
 				);
@@ -836,7 +850,8 @@ describe('compose-go', () => {
 				);
 				expect.fail('Expected compose parser to reject volumes of type npipe');
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'service.volumes cannot be of type "npipe"',
 				);
@@ -852,7 +867,8 @@ describe('compose-go', () => {
 					'Expected compose parser to reject volumes of type cluster',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'service.volumes cannot be of type "cluster"',
 				);
@@ -989,7 +1005,8 @@ describe('compose-go', () => {
 					'Expected compose parser to reject volumes_from which references container:${containerId}',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('one');
 				expect(error.message).to.equal(
 					'service.volumes_from which references a containerId is not allowed',
 				);
@@ -1125,7 +1142,8 @@ describe('compose-go', () => {
 				await parse('test/parse/fixtures/compose/build/context_remote.yml');
 				expect.fail('Expected compose parser to reject remote build context');
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('remote');
 				expect(error.message).to.equal(
 					'service.build.context cannot be a remote context',
 				);
@@ -1140,12 +1158,14 @@ describe('compose-go', () => {
 					);
 					expect.fail(`Expected compose parser to reject build.${field}`);
 				} catch (error) {
-					expect(error).to.be.instanceOf(ComposeError);
 					if (['secrets', 'configs'].includes(field)) {
+						expect(error).to.be.instanceOf(ValidationError);
 						expect(error.message).to.equal(
 							'Top-level secrets and/or configs are not supported',
 						);
 					} else {
+						expect(error).to.be.instanceOf(ServiceError);
+						expect(error.serviceName).to.equal('main');
 						expect(error.message).to.equal(
 							`service.build.${field} is not allowed`,
 						);
@@ -1161,7 +1181,8 @@ describe('compose-go', () => {
 					'Expected compose parser to reject io.balena.private namespace in labels',
 				);
 			} catch (error) {
-				expect(error).to.be.instanceOf(ComposeError);
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'labels cannot use the "io.balena.private" namespace',
 				);

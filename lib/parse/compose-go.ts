@@ -5,6 +5,12 @@ import { promisify } from 'util';
 import { randomUUID } from 'crypto';
 import * as path from 'path';
 
+import {
+	ComposeError,
+	ValidationError,
+	ArgumentError,
+	ServiceError,
+} from './errors';
 import type {
 	Composition,
 	Dict,
@@ -17,19 +23,6 @@ import type {
 } from '../types';
 
 const exec = promisify(execSync);
-
-export class ComposeError extends Error {
-	// The error level, e.g. "error", "fatal", "panic"
-	level: string;
-	// The optional error type, e.g. "ParseError", "EncodeError"
-	name: string;
-
-	constructor(message: string, level = 'error', name?: string) {
-		super(message);
-		this.level = level;
-		this.name = name ?? 'ComposeError';
-	}
-}
 
 /**
  * Parse one or more compose files using compose-go, and return a normalized composition object
@@ -46,11 +39,7 @@ export async function parse(
 
 	// Validate that at least one file path is provided
 	if (filePaths.length === 0) {
-		throw new ComposeError(
-			'At least one compose file path must be provided',
-			'error',
-			'ArgumentError',
-		);
+		throw new ArgumentError('At least one compose file path must be provided');
 	}
 
 	// Use a random UUID as the project name so it's easy to remove later,
@@ -115,7 +104,7 @@ function toComposeError(stderr: string): ComposeError[] {
 	lines.forEach((line) => {
 		const match = line.match(/time="[^"]+" level=([a-z]+) msg="([^"]+)"/);
 		if (match) {
-			// This is an error logged directly from logrus
+			// This is an error logged directly from compose-go's logrus
 			errors.push(new ComposeError(match[2], match[1]));
 		} else {
 			// This is a JSON-formatted error output by our Go wrapper
@@ -148,10 +137,8 @@ function normalize(
 
 	// Reject top-level secrets & configs
 	if (rawComposition.secrets || rawComposition.configs) {
-		throw new ComposeError(
+		throw new ValidationError(
 			'Top-level secrets and/or configs are not supported',
-			'error',
-			'ValidationError',
 		);
 	}
 
@@ -162,6 +149,7 @@ function normalize(
 			composition.services[serviceName] = normalizeService(
 				service as Dict<any>,
 				composeFilePath,
+				serviceName,
 			);
 		}
 	}
@@ -268,62 +256,59 @@ const allowedBindMounts = bindMountByLabel.flatMap(
 function normalizeService(
 	rawService: Dict<any>,
 	composeFilePath: string,
+	serviceName: string,
 ): Service {
 	const service: Service = { ...rawService };
 
 	// Reject if unsupported fields are present
 	for (const field of SERVICE_CONFIG_DENY_LIST) {
 		if (field in service) {
-			throw new ComposeError(
-				`service.${field} is not allowed`,
-				'error',
-				'ValidationError',
-			);
+			throw new ServiceError(`service.${field} is not allowed`, serviceName);
 		}
 	}
 
 	if (rawService.build) {
-		service.build = normalizeServiceBuild(rawService.build, composeFilePath);
+		service.build = normalizeServiceBuild(
+			rawService.build,
+			composeFilePath,
+			serviceName,
+		);
 	}
 
 	// Reject if io.balena.private namespace is used for labels
 	if (service.labels) {
-		rejectNamespacedLabels(service.labels);
+		rejectNamespacedLabels(service.labels, serviceName);
 	}
 
 	// Reject network_mode:container:${containerId} as we don't support this
 	if (service.network_mode?.match(/^container:.*$/)) {
-		throw new ComposeError(
+		throw new ServiceError(
 			'service.network_mode container:${containerId} is not allowed',
-			'error',
-			'ValidationError',
+			serviceName,
 		);
 	}
 
 	// Reject pid:container:${containerId} as we don't support this
 	if (service.pid?.match(/^container:.*$/)) {
-		throw new ComposeError(
+		throw new ServiceError(
 			'service.pid container:${containerId} is not allowed',
-			'error',
-			'ValidationError',
+			serviceName,
 		);
 	}
 
 	// Reject all security_opt settings except no-new-privileges
 	if (service.security_opt?.some((opt) => !opt.match('no-new-privileges'))) {
-		throw new ComposeError(
+		throw new ServiceError(
 			'Only no-new-privileges is allowed for service.security_opt',
-			'error',
-			'ValidationError',
+			serviceName,
 		);
 	}
 
 	// Reject volumes_from which references container:${containerId}
 	if (service.volumes_from?.some((v) => v.match(/^container:.*$/))) {
-		throw new ComposeError(
+		throw new ServiceError(
 			'service.volumes_from which references a containerId is not allowed',
-			'error',
-			'ValidationError',
+			serviceName,
 		);
 	}
 
@@ -356,11 +341,14 @@ function normalizeService(
 	if (service.devices) {
 		service.devices = longToShortSyntaxDevices(
 			service.devices as DevicesConfig[],
+			serviceName,
 		);
 	}
 
 	if (service.volumes) {
-		// At this point, service.volumes hasn't been converted to string[] so it's safe to cast to ServiceVolumeConfig[]
+		// At this point, service.volumes hasn't been converted to string[]
+		// so it's safe to cast to ServiceVolumeConfig[], as compose-go converts
+		// all volumes definitions to long syntax.
 		const v = service.volumes as ServiceVolumeConfig[];
 
 		// Convert allowed bind mounts to labels
@@ -376,7 +364,7 @@ function normalizeService(
 		// Convert long syntax volumes to short syntax
 		/// compose-go converts all volumes definitions to long syntax, however legacy Supervisors don't support this.
 		/// TODO: Support this in Helios
-		const shortSyntaxVolumes = longToShortSyntaxVolumes(v);
+		const shortSyntaxVolumes = longToShortSyntaxVolumes(v, serviceName);
 		if (shortSyntaxVolumes.length > 0) {
 			service.volumes = shortSyntaxVolumes;
 		} else {
@@ -435,23 +423,23 @@ export const BUILD_CONFIG_DENY_LIST = [
 function normalizeServiceBuild(
 	rawServiceBuild: Dict<any>,
 	composeFilePath: string,
+	serviceName: string,
 ): BuildConfig {
 	const build: BuildConfig = { ...rawServiceBuild };
 
 	// Reject if unsupported fields are present
 	for (const field of BUILD_CONFIG_DENY_LIST) {
 		if (field in build) {
-			throw new ComposeError(
+			throw new ServiceError(
 				`service.build.${field} is not allowed`,
-				'error',
-				'ValidationError',
+				serviceName,
 			);
 		}
 	}
 
 	// Reject if io.balena.private namespace is used for labels
 	if (build.labels) {
-		rejectNamespacedLabels(build.labels);
+		rejectNamespacedLabels(build.labels, serviceName);
 	}
 
 	// Convert absolute context paths to relative paths
@@ -460,10 +448,9 @@ function normalizeServiceBuild(
 	if (build.context) {
 		/// Reject if remote context (ends with .git) as we don't currently support this
 		if (build.context.endsWith('.git')) {
-			throw new ComposeError(
+			throw new ServiceError(
 				`service.build.context cannot be a remote context`,
-				'error',
-				'ValidationError',
+				serviceName,
 			);
 		}
 
@@ -473,14 +460,17 @@ function normalizeServiceBuild(
 	return build;
 }
 
-function rejectNamespacedLabels(labels: Dict<any>) {
+const NAMESPACED_LABEL_ERROR_MESSAGE =
+	'labels cannot use the "io.balena.private" namespace';
+function rejectNamespacedLabels(labels: Dict<any>, serviceName?: string) {
 	for (const [key] of Object.entries(labels)) {
+		// Reject io.balena.private label namespace
 		if (key.startsWith('io.balena.private')) {
-			throw new ComposeError(
-				`labels cannot use the "io.balena.private" namespace`,
-				'error',
-				'ValidationError',
-			);
+			if (serviceName) {
+				throw new ServiceError(NAMESPACED_LABEL_ERROR_MESSAGE, serviceName);
+			} else {
+				throw new ValidationError(NAMESPACED_LABEL_ERROR_MESSAGE);
+			}
 		}
 	}
 }
@@ -528,12 +518,16 @@ function longToShortSyntaxDependsOn(
 			dependsOnConfig.restart !== undefined
 		) {
 			console.warn(
-				`Long syntax depends_on ${JSON.stringify(dependsOnConfig)} for service "${serviceName}" or a definition that generates a long syntax depends_on config is not yet supported, using short syntax to express dependency`,
+				`Long syntax depends_on ${JSON.stringify(dependsOnConfig)} ` +
+					`for service "${serviceName}" or a definition that generates ` +
+					'a long syntax depends_on config is not yet supported, ' +
+					'using short syntax to express dependency',
 			);
 		}
 
 		// If required is false, the service is optional, so we don't need to express a dependency
-		// TODO: Compose warns if service isn't started or available if required=false. Supervisor will need to warn once it supports long syntax depends_on.
+		// TODO: Compose warns if service isn't started or available if required=false.
+		//       Supervisor will need to warn once it supports long syntax depends_on.
 		if (dependsOnConfig.required !== false) {
 			shortSyntaxDependsOn.push(serviceName);
 		}
@@ -544,6 +538,7 @@ function longToShortSyntaxDependsOn(
 
 function longToShortSyntaxDevices(
 	devices: NonNullable<DevicesConfig[]>,
+	serviceName: string,
 ): string[] {
 	const shortSyntaxDevices: string[] = [];
 	const CDIRegex = new RegExp('^(?!/)');
@@ -554,10 +549,9 @@ function longToShortSyntaxDevices(
 			CDIRegex.test(deviceConfig.source) ||
 			CDIRegex.test(deviceConfig.target)
 		) {
-			throw new ComposeError(
+			throw new ServiceError(
 				`devices config with CDI syntax is not allowed`,
-				'error',
-				'ValidationError',
+				serviceName,
 			);
 		}
 
@@ -585,7 +579,10 @@ function allowedBindMountsToLabels(volumes: ServiceVolumeConfig[]): string[] {
 	return labels;
 }
 
-function longToShortSyntaxVolumes(volumes: ServiceVolumeConfig[]): string[] {
+function longToShortSyntaxVolumes(
+	volumes: ServiceVolumeConfig[],
+	serviceName: string,
+): string[] {
 	const shortSyntaxVolumes: string[] = [];
 
 	for (const v of volumes) {
@@ -596,10 +593,9 @@ function longToShortSyntaxVolumes(volumes: ServiceVolumeConfig[]): string[] {
 
 		// Reject volumes of type bind, image, npipe, or cluster
 		if (['bind', 'image', 'npipe', 'cluster'].includes(v.type)) {
-			throw new ComposeError(
+			throw new ServiceError(
 				`service.volumes cannot be of type "${v.type}"`,
-				'error',
-				'ValidationError',
+				serviceName,
 			);
 		}
 
@@ -609,10 +605,9 @@ function longToShortSyntaxVolumes(volumes: ServiceVolumeConfig[]): string[] {
 		const isLongSyntaxVolume =
 			v.type === 'volume' && v.volume && Object.keys(v.volume).length > 0;
 		if (isLongSyntaxTmpfs || isLongSyntaxVolume) {
-			throw new ComposeError(
+			throw new ServiceError(
 				`long syntax service.volumes are not supported`,
-				'error',
-				'ValidationError',
+				serviceName,
 			);
 		}
 
@@ -632,20 +627,14 @@ function normalizeNetwork(rawNetwork: Dict<any>): Network {
 	// Reject if unsupported fields are present
 	for (const field of NETWORK_CONFIG_DENY_LIST) {
 		if (field in network) {
-			throw new ComposeError(
-				`network.${field} is not allowed`,
-				'error',
-				'ValidationError',
-			);
+			throw new ValidationError(`network.${field} is not allowed`);
 		}
 	}
 
 	// Reject if driver is not bridge
 	if (network.driver && !['bridge', 'default'].includes(network.driver)) {
-		throw new ComposeError(
+		throw new ValidationError(
 			`Only "bridge" and "default" are supported for network.driver, got "${network.driver}"`,
-			'error',
-			'ValidationError',
 		);
 	}
 
@@ -671,21 +660,15 @@ function normalizeVolume(rawVolume: Dict<any>): Volume {
 
 	// Reject if non-local driver is used
 	if (volume.driver && !['local', 'default'].includes(volume.driver)) {
-		throw new ComposeError(
+		throw new ValidationError(
 			`Only "local" and "default" are supported for volume.driver, got "${volume.driver}"`,
-			'error',
-			'ValidationError',
 		);
 	}
 
 	// Reject if unsupported fields are present
 	for (const field of VOLUME_CONFIG_DENY_LIST) {
 		if (field in volume) {
-			throw new ComposeError(
-				`volume.${field} is not allowed`,
-				'error',
-				'ValidationError',
-			);
+			throw new ValidationError(`volume.${field} is not allowed`);
 		}
 	}
 
