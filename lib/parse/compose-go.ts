@@ -172,6 +172,23 @@ function normalize(
 		}
 	}
 
+	// Reject if non-null build.network not defined in top-level networks
+	// (network: none is allowed and disables network)
+	if (composition.services) {
+		for (const [serviceName, service] of Object.entries(composition.services)) {
+			if (
+				service.build?.network &&
+				service.build.network !== 'none' &&
+				!rawComposition.networks?.[service.build.network]
+			) {
+				throw new ServiceError(
+					`service.build.network "${service.build.network}" is not defined in top-level networks`,
+					serviceName,
+				);
+			}
+		}
+	}
+
 	return composition;
 }
 

@@ -1,0 +1,5 @@
+services:
+  main:
+    command: sh -c "sleep infinity"
+    build:
+      network: invalid

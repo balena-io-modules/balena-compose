@@ -1310,6 +1310,23 @@ describe('compose-go parsing & validation', () => {
 				);
 			}
 		});
+
+		it('should reject a build config with a network not defined in top-level networks', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/build/unsupported/invalid_net.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject a build config with an invalid network',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.message).to.equal(
+					'service.build.network "invalid" is not defined in top-level networks',
+				);
+				expect(error.serviceName).to.equal('main');
+			}
+		});
 	});
 
 	describe('networks', () => {
