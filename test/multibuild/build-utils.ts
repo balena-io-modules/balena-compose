@@ -25,7 +25,7 @@ import * as Url from 'url';
 import BuildMetadata from '../../lib/multibuild/build-metadata';
 import type { BalenaYml } from '../../lib/multibuild/build-secrets';
 
-export const TEST_FILES_PATH = 'test/multibuild/test-files';
+export const TEST_FILES_PATH = 'test/multibuild/fixtures';
 
 const printOutput = process.env.DISPLAY_TEST_OUTPUT === '1';
 let docker: Dockerode;

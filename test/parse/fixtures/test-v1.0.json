@@ -1,4 +1,0 @@
-{
-  "s1": { "build": "./" },
-  "s2": { "image": "some/image" }
-}

@@ -1,11 +1,5 @@
-import { defaultComposition, normalize, parse } from './compose';
+import { defaultComposition, parse, toImageDescriptors } from './compose-go';
 import { ServiceError, ValidationError } from './errors';
-import {
-	DEFAULT_SCHEMA_VERSION,
-	SchemaError,
-	SchemaVersion,
-	validate,
-} from './schemas';
 import {
 	BuildConfig,
 	Composition,
@@ -17,18 +11,14 @@ import {
 
 export {
 	defaultComposition,
-	normalize,
 	parse,
+	toImageDescriptors,
 	BuildConfig,
 	Composition,
-	DEFAULT_SCHEMA_VERSION,
 	ImageDescriptor,
 	Network,
-	SchemaError,
-	SchemaVersion,
 	Service,
 	ServiceError,
-	validate,
 	ValidationError,
 	Volume,
 };

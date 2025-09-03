@@ -1,9 +1,13 @@
 import { expect } from 'chai';
 import type { SinonStub } from 'sinon';
 import { stub } from 'sinon';
-
+import { promises as fs } from 'fs';
+import * as path from 'path';
+import * as os from 'os';
 import {
 	parse,
+	defaultComposition,
+	toImageDescriptors,
 	BUILD_CONFIG_DENY_LIST,
 	SERVICE_CONFIG_DENY_LIST,
 	NETWORK_CONFIG_DENY_LIST,
@@ -21,6 +25,94 @@ describe('compose-go parsing & validation', () => {
 		expect(composition.services).to.be.an('object');
 		expect(composition.networks).to.be.an('object');
 		expect(composition.volumes).to.be.an('object');
+	});
+
+	it('should parse a more complex compose file', async () => {
+		const composition = await parse('test/parse/fixtures/default.yml');
+		expect(composition).to.deep.equal({
+			services: {
+				s1: {
+					build: {
+						context: 's1',
+						dockerfile: 'Dockerfile',
+					},
+					command: null,
+					networks: {
+						default: null,
+					},
+					ports: ['80:5000'],
+					depends_on: ['s3'],
+					environment: {
+						SOME_VAR: 'some=value',
+						ENV_ONE: 'val_one',
+					},
+				},
+				s2: {
+					build: {
+						context: 's2',
+						target: 'stage1',
+						network: 'none',
+						dockerfile: 'Dockerfile',
+					},
+					command: null,
+					networks: {
+						default: null,
+					},
+					depends_on: ['s1', 's3'],
+					privileged: true,
+					environment: {
+						SOME_VAR: 'some value',
+						ENV_ONE: 'val_one',
+						ENV_TWO: 'val_two',
+						ENV_THREE: 'val_three',
+					},
+					extra_hosts: ['foo=127.0.0.1'],
+					volumes: ['v2:/v2:ro'],
+				},
+				s3: {
+					image: 'some/image',
+					command: null,
+					networks: {
+						default: null,
+					},
+					ports: ['1000', '1001:1002', '1003:1004'],
+					extra_hosts: ['bar=8.8.8.8'],
+					tmpfs: ['/tmp1', '/tmp2'],
+					volumes: ['v1:/v1'],
+				},
+				s4: {
+					image: 'some/image',
+					command: null,
+					networks: {
+						default: null,
+					},
+					labels: {
+						'io.balena.features.balena-socket': '1',
+						'io.balena.features.dbus': '1',
+						'io.balena.features.sysfs': '1',
+						'io.balena.features.procfs': '1',
+						'io.balena.features.kernel-modules': '1',
+						'io.balena.features.firmware': '1',
+						'io.balena.features.journal-logs': '1',
+					},
+				},
+			},
+			networks: {
+				default: {
+					ipam: {},
+				},
+				n1: {
+					ipam: {},
+				},
+				n2: {
+					ipam: {},
+				},
+			},
+			volumes: {
+				v1: {},
+				v2: {},
+			},
+		});
 	});
 
 	it('should remove project name and version from composition', async () => {
@@ -862,6 +954,22 @@ describe('compose-go parsing & validation', () => {
 			} catch (error) {
 				expect(error).to.be.instanceOf(ServiceError);
 				expect(error.serviceName).to.equal('main');
+				expect(error.message).to.equal(
+					'service.volumes cannot be of type "bind"',
+				);
+			}
+		});
+
+		it('should reject volumes of type bind with relative paths', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/services/unsupported/volume_bind_relative.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject volumes of type bind with relative paths',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
 				expect(error.message).to.equal(
 					'service.volumes cannot be of type "bind"',
 				);
@@ -2081,5 +2189,129 @@ describe('compose-go parsing & validation', () => {
 		delete process.env.APP_PORT;
 		delete process.env.APP_ENV;
 		delete process.env.DB_NAME;
+	});
+
+	describe('default composition', () => {
+		let tmpPath: string;
+		beforeEach(() => {
+			tmpPath = path.join(os.tmpdir(), 'compose.yml');
+		});
+
+		afterEach(async () => {
+			await fs.unlink(tmpPath);
+		});
+
+		it('with build context', async () => {
+			const composeStr = defaultComposition();
+			await fs.writeFile(tmpPath, composeStr);
+
+			const composition = await parse(tmpPath);
+			const imageDescriptors = toImageDescriptors(composition);
+
+			expect(imageDescriptors).to.deep.equal([
+				{
+					serviceName: 'main',
+					image: { context: '.', dockerfile: 'Dockerfile' },
+				},
+			]);
+		});
+
+		it('with build dockerfile name', async () => {
+			const composeStr = defaultComposition(undefined, 'MyDockerfile');
+			await fs.writeFile(tmpPath, composeStr);
+
+			const composition = await parse(tmpPath);
+			const imageDescriptors = toImageDescriptors(composition);
+
+			expect(imageDescriptors).to.deep.equal([
+				{
+					serviceName: 'main',
+					image: { context: '.', dockerfile: 'MyDockerfile' },
+				},
+			]);
+		});
+
+		it('with image', async () => {
+			const composeStr = defaultComposition('some/image');
+			await fs.writeFile(tmpPath, composeStr);
+
+			const composition = await parse(tmpPath);
+			const imageDescriptors = toImageDescriptors(composition);
+
+			expect(imageDescriptors).to.deep.equal([
+				{ serviceName: 'main', image: 'some/image' },
+			]);
+		});
+	});
+
+	describe('contract validation', () => {
+		it('should validate contract labels', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/contracts/valid.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						image: 'alpine:latest',
+						command: ['sh', '-c', 'sleep infinity'],
+						networks: {
+							default: null,
+						},
+						labels: {
+							'io.balena.features.requires.sw.arch': 'amd64',
+							'io.balena.features.requires.sw.supervisor': '16.0.0',
+							'io.balena.features.requires.sw.l4t': '3.10',
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
+
+		it('should reject if label `io.balena.features.requires.sw.supervisor` uses a wrong version range', async () => {
+			try {
+				await parse('test/parse/fixtures/contracts/invalid_sw_supervisor.yml');
+				expect.fail(
+					'Expected compose parser to throw if label `io.balena.features.requires.sw.supervisor` uses a wrong version range',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ValidationError);
+				expect(error.message).to.equal(
+					"Invalid value for label 'io.balena.features.requires.sw.supervisor'. Expected a valid semver range; got 'not-valid'",
+				);
+			}
+		});
+
+		it('should reject if label `io.balena.features.requires.sw.l4t` uses a wrong version range', async () => {
+			try {
+				await parse('test/parse/fixtures/contracts/invalid_sw_l4t.yml');
+				expect.fail(
+					'Expected compose parser to throw if label `io.balena.features.requires.sw.l4t` uses a wrong version range',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ValidationError);
+				expect(error.message).to.equal(
+					"Invalid value for label 'io.balena.features.requires.sw.l4t'. Expected a valid semver range; got 'not-valid'",
+				);
+			}
+		});
+
+		it('should reject if label `io.balena.features.requires.arch.sw` uses an invalid architecture', async () => {
+			try {
+				await parse('test/parse/fixtures/contracts/invalid_arch_sw.yml');
+				expect.fail(
+					'Expected compose parser to throw if label `io.balena.features.requires.arch.sw` uses an invalid architecture',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ValidationError);
+				expect(error.message).to.equal(
+					"Invalid value for label 'io.balena.features.requires.arch.sw'. Expected a valid architecture string got 'not-valid'",
+				);
+			}
+		});
 	});
 });

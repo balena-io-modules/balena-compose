@@ -4,6 +4,7 @@ import { exec as execSync } from 'child_process';
 import { promisify } from 'util';
 import { randomUUID } from 'crypto';
 import * as path from 'path';
+import { validRange } from 'semver';
 
 import {
 	ComposeError,
@@ -20,9 +21,166 @@ import type {
 	Volume,
 	DevicesConfig,
 	ServiceVolumeConfig,
+	ContractObject,
+	ImageDescriptor,
 } from '../types';
 
 const exec = promisify(execSync);
+
+export function defaultComposition(
+	image?: string,
+	dockerfile?: string,
+): string {
+	let context: string;
+	if (image) {
+		context = `image: ${image}`;
+	} else {
+		if (dockerfile) {
+			context = `build: {context: ".", dockerfile: "${dockerfile}"}`;
+		} else {
+			context = 'build: "."';
+		}
+	}
+	return `# This file has been auto-generated.
+networks: {}
+volumes:
+  resin-data: {}
+services:
+  main:
+    ${context}
+    privileged: true
+    tty: true
+    restart: always
+    network_mode: host
+    volumes:
+      - type: volume
+        source: resin-data
+        target: /data
+    labels:
+      io.resin.features.kernel-modules: 1
+      io.resin.features.firmware: 1
+      io.resin.features.dbus: 1
+      io.resin.features.supervisor-api: 1
+      io.resin.features.resin-api: 1
+`;
+}
+
+interface ContractParser {
+	validate(value: string, label: string): void;
+	transform(value: string): ContractObject;
+}
+
+function validateVersionRange(value: string, label: string) {
+	if (validRange(value) == null) {
+		throw new ValidationError(
+			`Invalid value for label '${label}'. ` +
+				'Expected a valid semver range; ' +
+				`got '${value}'`,
+		);
+	}
+}
+
+const contractRequirementLabelPrefix = 'io.balena.features.requires.';
+const supportedContractRequirementLabels: Dict<ContractParser> = {
+	'sw.supervisor': {
+		validate(value, label) {
+			validateVersionRange(value, label);
+		},
+		transform(value) {
+			return { type: 'sw.supervisor', version: value };
+		},
+	},
+	'sw.l4t': {
+		validate(value, label) {
+			validateVersionRange(value, label);
+		},
+		transform(value) {
+			return { type: 'sw.l4t', version: value };
+		},
+	},
+	'hw.device-type': {
+		validate() {
+			/* we might want to validate that the device type is a valid slug */
+		},
+		transform(value) {
+			return { type: 'hw.device-type', slug: value };
+		},
+	},
+	'arch.sw': {
+		validate(value, label) {
+			if (!['aarch64', 'rpi', 'amd64', 'armv7hf', 'i386'].includes(value)) {
+				throw new ValidationError(
+					`Invalid value for label '${label}'. ` +
+						'Expected a valid architecture string ' +
+						`got '${value}'`,
+				);
+			}
+			/* we might want to validate that the device type is a valid slug */
+		},
+		transform(value) {
+			return { type: 'arch.sw', slug: value };
+		},
+	},
+};
+
+/**
+ * Transforms a normalized composition into a list of image descriptors
+ * that can be used to pull or build a service image.
+ */
+export function toImageDescriptors(c: Composition): ImageDescriptor[] {
+	return Object.entries(c.services).map(([name, service]) => {
+		return createImageDescriptor(name, service);
+	});
+}
+
+function createContractFromLabels(
+	serviceName: string,
+	labels?: Dict<string>,
+): ContractObject | null {
+	const requires = Object.entries(labels ?? {}).flatMap(([key, value]) => {
+		if (!key.startsWith(contractRequirementLabelPrefix)) {
+			return [];
+		}
+
+		key = key.replace(contractRequirementLabelPrefix, '');
+		if (!(key in supportedContractRequirementLabels)) {
+			return [];
+		}
+
+		const parser = supportedContractRequirementLabels[key];
+		return [parser.transform(value)];
+	});
+
+	if (requires.length === 0) {
+		return null;
+	}
+
+	return {
+		type: 'sw.container',
+		slug: `contract-for-${serviceName}`,
+		requires,
+	};
+}
+
+function createImageDescriptor(
+	serviceName: string,
+	service: Service,
+): ImageDescriptor {
+	const contract = createContractFromLabels(serviceName, service.labels);
+	if (service.image && !service.build) {
+		return {
+			serviceName,
+			image: service.image,
+			...(contract && { contract }),
+		};
+	}
+	const build = service.build!;
+	return {
+		serviceName,
+		image: build,
+		...(contract && { contract }),
+	};
+}
 
 /**
  * Parse one or more compose files using compose-go, and return a normalized composition object
@@ -294,7 +452,7 @@ function normalizeService(
 
 	// Reject if io.balena.private namespace is used for labels
 	if (service.labels) {
-		rejectNamespacedLabels(service.labels, serviceName);
+		validateLabels(service.labels, serviceName);
 	}
 
 	// Reject network_mode:container:${containerId} as we don't support this
@@ -462,7 +620,7 @@ function normalizeServiceBuild(
 
 	// Reject if io.balena.private namespace is used for labels
 	if (build.labels) {
-		rejectNamespacedLabels(build.labels, serviceName);
+		validateLabels(build.labels, serviceName);
 	}
 
 	// Convert absolute context paths to relative paths
@@ -485,14 +643,22 @@ function normalizeServiceBuild(
 
 const NAMESPACED_LABEL_ERROR_MESSAGE =
 	'labels cannot use the "io.balena.private" namespace';
-function rejectNamespacedLabels(labels: Dict<any>, serviceName?: string) {
-	for (const [key] of Object.entries(labels)) {
+function validateLabels(labels: Dict<any>, serviceName?: string) {
+	for (const [name, value] of Object.entries(labels)) {
 		// Reject io.balena.private label namespace
-		if (key.startsWith('io.balena.private')) {
+		if (name.startsWith('io.balena.private')) {
 			if (serviceName) {
 				throw new ServiceError(NAMESPACED_LABEL_ERROR_MESSAGE, serviceName);
 			} else {
 				throw new ValidationError(NAMESPACED_LABEL_ERROR_MESSAGE);
+			}
+		}
+
+		// Validate contract labels
+		if (name.startsWith(contractRequirementLabelPrefix)) {
+			const ctype = name.replace(contractRequirementLabelPrefix, '');
+			if (ctype in supportedContractRequirementLabels) {
+				supportedContractRequirementLabels[ctype].validate(value, name);
 			}
 		}
 	}
@@ -675,7 +841,7 @@ function normalizeNetwork(rawNetwork: Dict<any>): Network {
 
 	// Reject if `io.balena.private` namespace is used for labels
 	if (network.labels) {
-		rejectNamespacedLabels(network.labels);
+		validateLabels(network.labels);
 	}
 
 	// Warn if com.docker.network.bridge.name driver_opts is present as it may interfere with device firewall
@@ -709,7 +875,7 @@ function normalizeVolume(rawVolume: Dict<any>): Volume {
 
 	// Reject if `io.balena.private` namespace is used for labels
 	if (volume.labels) {
-		rejectNamespacedLabels(volume.labels);
+		validateLabels(volume.labels);
 	}
 
 	return volume;

@@ -75,7 +75,7 @@ export function splitBuildStream(
 	composition: Compose.Composition,
 	buildStream: stream.Readable,
 ): Promise<BuildTask[]> {
-	const images = Compose.parse(composition);
+	const images = Compose.toImageDescriptors(composition);
 	return fromImageDescriptors(images, buildStream);
 }
 

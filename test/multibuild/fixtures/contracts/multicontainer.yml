@@ -1,0 +1,5 @@
+services:
+  one:
+    build: ./one
+  two:
+    build: ./two

@@ -1,7 +1,5 @@
 import { TypedError } from 'typed-error';
 
-export class InternalInconsistencyError extends TypedError {}
-
 export class ComposeError extends TypedError {
 	constructor(
 		public message: string,
