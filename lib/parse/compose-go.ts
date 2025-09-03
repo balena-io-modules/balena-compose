@@ -209,7 +209,7 @@ export async function parse(
 
 	// TODO: Is this the final path of the built binary?
 	const result = await exec(
-		`dist/parse/balena-compose-go ${fileFlags} ${projectName}`,
+		`dist/bin/balena-compose-go ${fileFlags} ${projectName}`,
 		{ env: process.env },
 	).catch((e) => {
 		// If exec error has stdout/stderr, handle them later; otherwise throw immediately

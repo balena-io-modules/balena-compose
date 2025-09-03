@@ -1,0 +1,36 @@
+name: 'Build Go binaries for all platforms'
+description: 'Build Go binaries for all OS and architecture combinations'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.25'
+
+    - name: Build binaries for all platforms
+      shell: bash
+      run: |
+        cd lib/parse
+        
+        # Create output directory
+        mkdir -p ../../dist/bin
+        
+        # Build for all platforms
+        platforms=(linux-amd64 linux-arm64 linux-arm darwin-amd64 darwin-arm64 windows-amd64 windows-386)
+        for platform in ${platforms[@]}; do
+          echo "Building for $platform..."
+          GOOS=$(echo $platform | cut -d'-' -f1)
+          GOARCH=$(echo $platform | cut -d'-' -f2)
+          go build -ldflags="-s -w" -o ../../dist/bin/balena-compose-go-$platform
+        done
+
+        echo "All binaries built successfully"
+        ls -la ../../dist/bin/
+
+    - name: Upload binaries as artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: go-binaries-all-platforms
+        path: dist/bin/balena-compose-go-*

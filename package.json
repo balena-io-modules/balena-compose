@@ -20,7 +20,8 @@
     "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
     "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy && npm run build:go",
-    "build:go": "go build -C lib/parse -ldflags=\"-s -w\" -o ../../dist/parse/balena-compose-go",
+    "build:go": "scripts/build-binary.sh",
+    "preinstall": "node-pre-gyp install --fallback-to-build=false || npm run build:go",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
     "test:go": "npm run build:go && ts-mocha --project ./tsconfig.test.json -g 'compose-go'",
     "prepack": "npm run build"
@@ -67,6 +68,7 @@
     "typescript": "^5.5.3"
   },
   "dependencies": {
+    "@mapbox/node-pre-gyp": "^2.0.0",
     "ajv": "^6.12.3",
     "docker-file-parser": "^1.0.7",
     "docker-progress": "^5.1.0",
@@ -93,6 +95,13 @@
   },
   "peerDependencies": {
     "pinejs-client-core": "^6.14.13 || ^7.0.0 || ^8.0.0"
+  },
+  "binary": {
+    "module_name": "balena-compose-go",
+    "module_path": "./dist/bin",
+    "host": "https://github.com/balena-io-modules/balena-compose/releases/download",
+    "package_name": "balena-compose-go-{node_abi}-{platform}-{arch}-{libc}.tar.gz",
+    "remote_path": "v{version}"
   },
   "versionist": {
     "publishedAt": "2025-08-08T14:55:02.195Z"

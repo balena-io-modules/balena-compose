@@ -1,0 +1,68 @@
+name: 'Publish Go binaries to GitHub release'
+description: 'Package and publish Go binaries to GitHub release after PR merge'
+
+runs:
+  using: "composite"
+  steps:
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install publishing tools
+      shell: bash
+      run: |
+        npm install -g @mapbox/node-pre-gyp
+        npm install -g node-pre-gyp-github
+
+    - name: Download built binaries
+      uses: actions/download-artifact@v4
+      with:
+        name: go-binaries-all-platforms
+        path: dist/bin/
+
+    - name: Package and publish all binaries
+      shell: bash
+      env:
+        NODE_PRE_GYP_GITHUB_TOKEN: ${{ fromJSON(inputs.secrets).GITHUB_TOKEN }}
+      run: |
+        echo "Publishing binaries for version $(node -p "require('./package.json').version")"
+        
+        # Create staging directory
+        mkdir -p build/stage
+        
+        # Package each binary
+        for binary in dist/bin/balena-compose-go-*; do
+          echo "Packaging $(basename "$binary")..."
+          
+          # Extract platform and arch from filename
+          filename=$(basename "$binary")
+          
+          # Determine platform and arch
+          case "$filename" in
+            *linux-amd64*) platform="linux"; arch="x64" ;;
+            *linux-arm64*) platform="linux"; arch="arm64" ;;
+            *linux-arm*) platform="linux"; arch="arm" ;;
+            *darwin-amd64*) platform="darwin"; arch="x64" ;;
+            *darwin-arm64*) platform="darwin"; arch="arm64" ;;
+            *windows-amd64*) platform="win32"; arch="x64" ;;
+            *windows-386*) platform="win32"; arch="ia32" ;;
+            *) echo "Unknown platform for $filename"; continue ;;
+          esac
+          
+          # Copy to expected location for packaging
+          cp "$binary" dist/bin/balena-compose-go
+          
+          # Package with node-pre-gyp
+          NODE_PRE_GYP_PLATFORM="$platform" NODE_PRE_GYP_ARCH="$arch" \
+            node-pre-gyp package
+          
+          # Clean up for next iteration
+          rm -f dist/bin/balena-compose-go
+        done
+        
+        echo "All binaries packaged:"
+        ls -la build/stage/
+        
+        # Publish all packaged binaries to GitHub release
+        node-pre-gyp-github publish --release
