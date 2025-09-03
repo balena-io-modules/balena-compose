@@ -828,6 +828,38 @@ describe('compose-go parsing & validation', () => {
 			}
 		});
 
+		it('should reject volumes of type bind with relative paths', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/services/unsupported/volume_bind_relative.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject volumes of type bind with relative paths',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'service.volumes cannot be of type "bind"',
+				);
+			}
+		});
+
+		it('should reject volumes of type bind with relative paths', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/services/unsupported/volume_bind_relative.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject volumes of type bind with relative paths',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'service.volumes cannot be of type "bind"',
+				);
+			}
+		});
+
 		it('should reject volumes of type image', async () => {
 			try {
 				await parse(
@@ -871,6 +903,39 @@ describe('compose-go parsing & validation', () => {
 				expect(error.serviceName).to.equal('main');
 				expect(error.message).to.equal(
 					'service.volumes cannot be of type "cluster"',
+				);
+			}
+		});
+
+		it('should reject invalid volume definitions', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/services/unsupported/volume_invalid.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject invalid volume definitions',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.message).to.equal(
+					'service.volumes {"type":"volume","target":"thisIsNotAValidVolume","volume":{}} must specify source and target',
+				);
+				expect(error.serviceName).to.equal('main');
+			}
+		});
+
+		it('should reject a composition where a volume definition is missing in top-level volumes', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/services/unsupported/volume_missing.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject a composition where a volume definition is missing in top-level volumes',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ComposeError);
+				expect(error.message).to.equal(
+					'Failed to parse compose file: service "main" refers to undefined volume thisIsNotAValidVolume: invalid compose project',
 				);
 			}
 		});
@@ -957,6 +1022,63 @@ describe('compose-go parsing & validation', () => {
 					vol1: {},
 					vol2: {},
 					vol3: {},
+				},
+			});
+		});
+
+		it('should reject if service volume of type volume defines volume options', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/build/unsupported/volume_options.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject if service volume of type volume defines volume options',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.message).to.equal(
+					'long syntax service.volumes are not supported',
+				);
+			}
+		});
+
+		it('should reject if service volume of type tmpfs defines tmpfs options', async () => {
+			try {
+				await parse(
+					'test/parse/fixtures/compose/build/unsupported/tmpfs_options.yml',
+				);
+				expect.fail(
+					'Expected compose parser to reject if service volume of type tmpfs defines tmpfs options',
+				);
+			} catch (error) {
+				expect(error).to.be.instanceOf(ServiceError);
+				expect(error.message).to.equal(
+					'long syntax service.volumes are not supported',
+				);
+			}
+		});
+
+		// QUESTION: This isn't currently supported in SV but balena-compose allows it,
+		// should we continue to allow it?
+		it('should allow short syntax tmpfs options', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/compose/build/unsupported/tmpfs_short_syntax_options.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						image: 'alpine:latest',
+						command: ['sh', '-c', 'sleep infinity'],
+						tmpfs: ['/tmp:mode=755,uid=1000,gid=1000,size=100m'],
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
 				},
 			});
 		});

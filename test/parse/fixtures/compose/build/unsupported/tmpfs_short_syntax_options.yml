@@ -1,0 +1,6 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    tmpfs:
+      - /tmp:mode=755,uid=1000,gid=1000,size=100m

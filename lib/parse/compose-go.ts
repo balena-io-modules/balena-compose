@@ -364,11 +364,17 @@ function normalizeService(
 		// Convert long syntax volumes to short syntax
 		/// compose-go converts all volumes definitions to long syntax, however legacy Supervisors don't support this.
 		/// TODO: Support this in Helios
-		const shortSyntaxVolumes = longToShortSyntaxVolumes(v, serviceName);
+		const { shortSyntaxVolumes, shortSyntaxTmpfs } = longToShortSyntaxVolumes(
+			v,
+			serviceName,
+		);
 		if (shortSyntaxVolumes.length > 0) {
 			service.volumes = shortSyntaxVolumes;
 		} else {
 			delete service.volumes;
+		}
+		if (shortSyntaxTmpfs.length > 0) {
+			service.tmpfs = [...(service.tmpfs ?? []), ...shortSyntaxTmpfs];
 		}
 	}
 
@@ -582,8 +588,9 @@ function allowedBindMountsToLabels(volumes: ServiceVolumeConfig[]): string[] {
 function longToShortSyntaxVolumes(
 	volumes: ServiceVolumeConfig[],
 	serviceName: string,
-): string[] {
+): { shortSyntaxVolumes: string[]; shortSyntaxTmpfs: string[] } {
 	const shortSyntaxVolumes: string[] = [];
+	const shortSyntaxTmpfs: string[] = [];
 
 	for (const v of volumes) {
 		// Ignore allowed bind mounts as they're converted to labels separately
@@ -611,12 +618,23 @@ function longToShortSyntaxVolumes(
 			);
 		}
 
-		shortSyntaxVolumes.push(
-			`${v.source}:${v.target}${v.read_only ? ':ro' : ''}`,
-		);
+		if (v.type === 'volume' && (!v.source || !v.target)) {
+			throw new ServiceError(
+				`service.volumes ${JSON.stringify(v)} must specify source and target`,
+				serviceName,
+			);
+		}
+
+		if (v.type === 'volume') {
+			shortSyntaxVolumes.push(
+				`${v.source}:${v.target}${v.read_only ? ':ro' : ''}`,
+			);
+		} else if (v.type === 'tmpfs' && v.target) {
+			shortSyntaxTmpfs.push(v.target);
+		}
 	}
 
-	return shortSyntaxVolumes;
+	return { shortSyntaxVolumes, shortSyntaxTmpfs };
 }
 
 export const NETWORK_CONFIG_DENY_LIST = ['attachable', 'external', 'name'];

@@ -1,0 +1,13 @@
+services:
+  main:
+    image: alpine:latest
+    command: sh -c "sleep infinity"
+    volumes:
+      - type: volume
+        source: my-volume
+        target: /tmp
+        volume:
+          nocopy: true
+
+volumes:
+  my-volume:
