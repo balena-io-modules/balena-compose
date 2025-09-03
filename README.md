@@ -53,16 +53,15 @@ function. The fields for these functions are `streamHook` and `progressHook`.
 ```typescript
 import { multibuild, parse } from '@balena/compose';
 
-const { Composition, normalize } = parse;
 const { splitBuildStream, performBuilds } = multibuild;
 
-// Get a tar stream and composition from somewhere
+// Get a tar stream from somewhere
 const stream = getBuildStream();
 const composeFile = getComposeFile();
 const docker = getDockerodeHandle();
 
-// Parse the compose file
-const comp = normalize(composeFile);
+// Parse the compose file(s)
+const comp = await parse([composeFileBase, composeFileOverride]);
 
 splitBuildStream(comp, stream)
 .then((tasks) => {
