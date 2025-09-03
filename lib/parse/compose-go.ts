@@ -384,6 +384,11 @@ function normalizeService(
 		}
 	}
 
+	// Add image as build tag if present
+	if (service.image && service.build) {
+		service.build.tags = [...(service.build.tags ?? []), service.image];
+	}
+
 	// Delete env_file, as compose-go adds env_file vars to service.environment
 	delete service.env_file;
 

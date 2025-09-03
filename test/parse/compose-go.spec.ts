@@ -995,6 +995,33 @@ describe('compose-go', () => {
 				);
 			}
 		});
+
+		it('should add image as build tag if present', async () => {
+			const composition = await parse(
+				'test/parse/fixtures/compose/services/image_build.yml',
+			);
+			expect(composition).to.deep.equal({
+				services: {
+					main: {
+						image: 'alpine:latest',
+						build: {
+							context: '.',
+							dockerfile: 'Dockerfile',
+							tags: ['alpine:latest'],
+						},
+						command: ['sh', '-c', 'sleep infinity'],
+						networks: {
+							default: null,
+						},
+					},
+				},
+				networks: {
+					default: {
+						ipam: {},
+					},
+				},
+			});
+		});
 	});
 
 	describe('service.build', () => {
