@@ -17,6 +17,7 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as semver from 'semver';
+import * as Compose from '@balena/compose-parser';
 
 import {
 	checkExists,
@@ -26,8 +27,6 @@ import {
 	TestBuildMetadata,
 	TEST_FILES_PATH,
 } from './build-utils';
-
-import * as Compose from '../../lib/parse';
 
 import type { BuildTask, LocalImage } from '../../lib/multibuild';
 import { splitBuildStream, BuildProcessError } from '../../lib/multibuild';
@@ -61,11 +60,11 @@ describe('Project building', () => {
 			.to.have.property('baseImageTags')
 			.that.is.an('array')
 			.that.has.length(1);
-		expect(image.baseImageTags[0]).to.be.deep.equal({
+		expect(image.baseImageTags![0]).to.be.deep.equal({
 			repo: 'alpine',
 			tag: 'latest',
 		});
-		await checkExists(image.name);
+		await checkExists(image.name!);
 	});
 
 	it('should correctly return an image with a build error', async () => {
@@ -88,13 +87,13 @@ describe('Project building', () => {
 			.to.have.property('baseImageTags')
 			.that.is.an('array')
 			.that.has.length(1);
-		expect(image.baseImageTags[0]).to.be.deep.equal({
+		expect(image.baseImageTags![0]).to.be.deep.equal({
 			repo: 'alpine',
 			tag: 'latest',
 		});
 		// tslint:disable-next-line:no-unused-expression
 		expect(image).to.have.property('error').that.is.not.null;
-		await checkExists(image.name);
+		await checkExists(image.name!);
 	});
 
 	it('should correctly return no layers or name when a base image cannot be downloaded', async () => {
@@ -116,7 +115,7 @@ describe('Project building', () => {
 			.to.have.property('baseImageTags')
 			.that.is.an('array')
 			.that.has.length(1);
-		expect(image.baseImageTags[0]).to.be.deep.equal({
+		expect(image.baseImageTags![0]).to.be.deep.equal({
 			repo: 'does-not-exist',
 			tag: 'latest',
 		});
@@ -210,7 +209,7 @@ describe('Resolved project building', () => {
 		})
 			.then((image) => {
 				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name);
+				return checkExists(image.name!);
 			})
 			.then((inspect: any) => {
 				expect(inspect).to.have.property('Architecture').that.equals('amd64');
@@ -249,13 +248,13 @@ describe('Resolved project building', () => {
 
 			// also test that a `platform: undefined` value in `task.dockerOpts`
 			// does not override a valid value in `task.dockerPlatform`
-			task.dockerOpts.platform = undefined;
+			task.dockerOpts!.platform = undefined;
 
 			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
 		})
 			.then((image) => {
 				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name);
+				return checkExists(image.name!);
 			})
 			.then((inspect: any) => {
 				expect(inspect).to.have.property('Architecture').that.equals('386');
@@ -290,7 +289,7 @@ describe('Resolved project building', () => {
 		})
 			.then((image) => {
 				expect(image).to.have.property('successful').that.equals(true);
-				return checkExists(image.name);
+				return checkExists(image.name!);
 			})
 			.then((inspect: any) => {
 				expect(inspect).to.have.property('Architecture').that.equals('386');
@@ -373,7 +372,7 @@ describe('Resolved project building', () => {
 			resolve(runBuildTask(newTask, docker, secretMap, buildVars));
 		}).then((image) => {
 			expect(image).to.have.property('successful').that.equals(true);
-			return checkExists(image.name);
+			return checkExists(image.name!);
 		});
 	});
 });
@@ -415,7 +414,7 @@ describe('External images', () => {
 			expect(image).to.have.property('successful').that.equals(true);
 			expect(image).to.have.property('startTime').that.is.a('number');
 			expect(image).to.have.property('endTime').that.is.a('number');
-			return checkExists(image.name);
+			return checkExists(image.name!);
 		});
 	});
 
@@ -471,17 +470,16 @@ describe('External images', () => {
 			expect(image).to.have.property('name').that.equals('alpine:latest');
 			expect(image).to.have.property('startTime').that.is.a('number');
 			expect(image).to.have.property('endTime').that.is.a('number');
-			return checkExists(image.name);
+			return checkExists(image.name!);
 		});
 	});
 });
 
 describe('Specifying a dockerfile', () => {
 	it('should allow specifying a dockerfile', async () => {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-specified-dockerfile.json'
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/stream/docker-compose-specified-dockerfile.yml`,
 		);
-		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
 			`${TEST_FILES_PATH}/stream/specified-dockerfile.tar`,
@@ -513,10 +511,9 @@ describe('Specifying a dockerfile', () => {
 	});
 
 	it('should allow specifying a dockerfile.template', async () => {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-specified-dockerfile-template.json'
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/stream/docker-compose-specified-dockerfile-template.yml`,
 		);
-		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
 			`${TEST_FILES_PATH}/stream/specified-dockerfile-template.tar`,
@@ -550,10 +547,9 @@ describe('Specifying a dockerfile', () => {
 
 describe('Specifying a dockerfile hook', () => {
 	it('should allow preprocessing of dockerfile', async () => {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-specified-dockerfile.json'
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/stream/docker-compose-specified-dockerfile.yml`,
 		);
-		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
 			`${TEST_FILES_PATH}/stream/specified-dockerfile.tar`,
@@ -600,15 +596,14 @@ describe('Specifying a dockerfile hook', () => {
 describe('Specifying build options', () => {
 	let comp: Compose.Composition;
 	before(async function () {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-build-options.json'
+		comp = await Compose.parse(
+			`${TEST_FILES_PATH}/stream/docker-compose-build-options.yml`,
 		);
-		comp = Compose.normalize(composeObj);
 	});
 
 	it('should correctly apply "extra_hosts" configuration', async () => {
 		const stream = fs.createReadStream(
-			'test/multibuild/test-files/buildOptionsProject.tar',
+			`${TEST_FILES_PATH}/buildOptionsProject.tar`,
 		);
 
 		const tasks = (await splitBuildStream(comp, stream)).filter(
@@ -661,7 +656,7 @@ describe('Specifying build options', () => {
 				.that.equals('stage1');
 
 			expect(image).to.not.have.property('error');
-			const imageInspectInfo = await checkExists(image.name);
+			const imageInspectInfo = await checkExists(image.name!);
 			expect(imageInspectInfo.Config.Env).to.include('stage=stage1');
 		});
 	});
