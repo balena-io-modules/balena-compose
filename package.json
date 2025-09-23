@@ -16,9 +16,7 @@
     "clean": "rimraf dist",
     "lint": "balena-lint -t ./tsconfig.test.json lib/ typings/ test/ && tsc --noEmit",
     "lint-fix": "balena-lint -t ./tsconfig.test.json --fix lib/ typings/ test/",
-    "copy": "npm run copy:secrets && npm run copy:schemas",
-    "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
-    "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
+    "copy": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
     "prepack": "npm run build"

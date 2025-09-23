@@ -1,0 +1,24 @@
+services:
+  s1:
+    build: ./
+    env_file:
+      - ./shared.env
+      - ./service1.env
+    environment:
+      - OVERWRITES=overwritten
+      - EMPTYOVERWRITE=
+  s2:
+    image: some/image
+    env_file:
+      - shared.env
+      - ./service2.env
+    environment:
+      - OVERWRITES=overwritten
+  s3:
+    image: some/image
+    env_file: ./shared.env
+    environment:
+      - OVERWRITES=overwritten
+  s4:
+    image: some/image
+    env_file: ./service4.env
