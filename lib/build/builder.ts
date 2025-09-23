@@ -137,12 +137,13 @@ export default class Builder {
 		// (in which case the stream is unpipe'd and destroy'ed), and yet the
 		// buildStream hook must be called in order for buildPromise to ever
 		// resolve (as the hook call consumes the `dup` stream).
-		Promise.all([
-			buildPromise,
-			// Call the buildStream handler with the docker daemon stream
-			this.callHook(hooks, 'buildStream', handler, dup),
-		])
-			.then(() => {
+		void (async () => {
+			try {
+				await Promise.all([
+					buildPromise,
+					// Call the buildStream handler with the docker daemon stream
+					this.callHook(hooks, 'buildStream', handler, dup),
+				]);
 				if (!streamError) {
 					// Build successful: call buildSuccess handler
 					return this.callHook(
@@ -154,8 +155,10 @@ export default class Builder {
 						fromTags,
 					);
 				}
-			})
-			.catch(failBuild);
+			} catch (err) {
+				void failBuild(err);
+			}
+		})();
 
 		return dup;
 	}

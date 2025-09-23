@@ -611,8 +611,8 @@ describe('Specifying build options', () => {
 			'test/multibuild/test-files/buildOptionsProject.tar',
 		);
 
-		const tasks = (await splitBuildStream(comp, stream)).filter((task) =>
-			task.serviceName === 'extra_hosts' ? true : false,
+		const tasks = (await splitBuildStream(comp, stream)).filter(
+			(task) => task.serviceName === 'extra_hosts',
 		);
 
 		expect(tasks).to.have.length(1);
@@ -640,8 +640,8 @@ describe('Specifying build options', () => {
 			`${TEST_FILES_PATH}/buildOptionsProject.tar`,
 		);
 
-		const tasks = (await splitBuildStream(comp, stream)).filter((task) =>
-			task.serviceName === 'target' ? true : false,
+		const tasks = (await splitBuildStream(comp, stream)).filter(
+			(task) => task.serviceName === 'target',
 		);
 
 		expect(tasks).to.have.length(1);
@@ -671,8 +671,8 @@ describe('Specifying build options', () => {
 			`${TEST_FILES_PATH}/buildOptionsProject.tar`,
 		);
 
-		const tasks = (await splitBuildStream(comp, stream)).filter((task) =>
-			task.serviceName === 'cache_from' ? true : false,
+		const tasks = (await splitBuildStream(comp, stream)).filter(
+			(task) => task.serviceName === 'cache_from',
 		);
 
 		expect(tasks).to.have.length(1);
