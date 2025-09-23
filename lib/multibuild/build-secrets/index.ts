@@ -187,7 +187,9 @@ export async function removeSecrets(
 		{
 			name: 'remove.json',
 		},
-		JSON.stringify(_.map(secrets, ({ tmpDirectory }) => tmpDirectory)),
+		JSON.stringify(
+			Object.values(secrets).map(({ tmpDirectory }) => tmpDirectory),
+		),
 	);
 	const dockerfileContent = dockerfileTemplate.process(
 		await fs.readFile(path.join(__dirname, 'Dockerfile.remove'), 'utf8'),

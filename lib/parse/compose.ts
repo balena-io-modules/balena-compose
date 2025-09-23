@@ -183,8 +183,8 @@ function normalizeObjectToComposition(
 			const volumeNames = Object.keys(c.volumes ?? {});
 			const networkNames = Object.keys(c.networks ?? {});
 
-			c.services = _(services)
-				.map((service, serviceName) => {
+			c.services = Object.fromEntries(
+				Object.entries(services).map(([serviceName, service]) => {
 					try {
 						const normalizedService = normalizeService(
 							service,
@@ -199,9 +199,8 @@ function normalizeObjectToComposition(
 						}
 						throw err;
 					}
-				})
-				.fromPairs()
-				.value();
+				}),
+			);
 		}
 	}
 
@@ -380,7 +379,7 @@ function normalizeServiceVolumes(
 		}
 	});
 	appliedBindMountsByLabel.forEach(([label, appliedBindMounts]) => {
-		if (_.every(appliedBindMounts, (m) => mounts.includes(m))) {
+		if (appliedBindMounts.every((m) => mounts.includes(m))) {
 			labels.push(label);
 		}
 	});
@@ -417,7 +416,7 @@ const appliedBindMountsByLabel: Array<[string, string[]]> = [
 	],
 ];
 
-const allowedBindMounts = _.flatMap(appliedBindMountsByLabel, (b) => b[1]);
+const allowedBindMounts = appliedBindMountsByLabel.flatMap((b) => b[1]);
 
 function normalizeServiceVolume(serviceVolume: any): VolumeRef {
 	let ref: VolumeRef = { type: 'volume', read_only: false };
@@ -583,7 +582,7 @@ function normalizeVolume(volume: Volume): Volume {
 }
 
 function normalizeExtraHostObject(extraHostsObject: Dict<string>): string[] {
-	return _.map(extraHostsObject, (ip, host) => `${host}:${ip}`);
+	return Object.entries(extraHostsObject).map(([host, ip]) => `${host}:${ip}`);
 }
 
 /**
@@ -596,7 +595,7 @@ export function parse(c: Composition): ImageDescriptor[] {
 	if (c.version !== DEFAULT_SCHEMA_VERSION) {
 		throw new Error('Unsupported composition version');
 	}
-	return _.toPairs(c.services).map(([name, service]) => {
+	return Object.entries(c.services).map(([name, service]) => {
 		return createImageDescriptor(name, service);
 	});
 }
@@ -667,24 +666,22 @@ function normalizeKeyValuePairs(obj?: ListOrDict, sep = '='): Dict<string> {
 		return {};
 	}
 	if (!Array.isArray(obj)) {
-		return _(obj)
-			.toPairs()
-			.map(([key, value]) => {
+		return Object.fromEntries(
+			Object.entries(obj).map(([key, value]) => {
 				return [key, value ? ('' + value).trim() : ''];
-			})
-			.fromPairs()
-			.value();
+			}),
+		);
 	}
-	return _(obj)
-		.map((val) => {
-			const parts = val.split(sep);
-			return [parts.shift()!, parts.join('=')];
-		})
-		.map(([key, value]) => {
-			return [key.trim(), value ? value.trim() : ''];
-		})
-		.fromPairs()
-		.value();
+	return Object.fromEntries(
+		obj
+			.map((val) => {
+				const parts = val.split(sep);
+				return [parts.shift()!, parts.join('=')];
+			})
+			.map(([key, value]) => {
+				return [key.trim(), value ? value.trim() : ''];
+			}),
+	);
 }
 
 function normalizeAndValidateFilePath(envFile: StringOrList): StringOrList {

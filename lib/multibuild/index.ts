@@ -153,11 +153,11 @@ export async function fromImageDescriptors(
 
 		extract.on('entry', entryFn);
 		extract.on('finish', () => {
-			_.each(tasks, (task) => {
+			for (const task of tasks) {
 				if (!task.external) {
 					task.buildStream!.finalize();
 				}
-			});
+			}
 			resolve(tasks);
 		});
 		extract.on('error', (e) => {
@@ -175,7 +175,7 @@ export function buildHasSecrets(tasks: BuildTask[]): boolean {
 
 	return !_.isEmpty(
 		generateSecretPopulationMap(
-			_.map(tasks, 'serviceName'),
+			tasks.map((s) => s.serviceName),
 			tasks[0].buildMetadata,
 			'/tmp',
 		),
