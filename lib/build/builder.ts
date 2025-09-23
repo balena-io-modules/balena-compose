@@ -183,7 +183,11 @@ export default class Builder {
 			files.map(async (file: string) => {
 				// Work out the relative path
 				const relPath = path.relative(path.resolve(dirPath), file);
-				return await Promise.all([relPath, fs.stat(file), fs.readFile(file)]);
+				const [stat, buf] = await Promise.all([
+					fs.stat(file),
+					fs.readFile(file),
+				]);
+				return [relPath, stat, buf] as const;
 			}),
 		);
 		await Promise.all(
