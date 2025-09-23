@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update dependencies
+      hash: aaf78d812733d2ae5803cbbdde6539cd271aaa3f
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.11
+  title: ""
+  date: 2025-09-23T17:08:14.700Z
+- commits:
     - subject: Allow pinejs-client-core ^8.0.0 on peerDependency
       hash: 36d40242dcfde2e665085163c0c83056cb8e09f7
       body: ""
