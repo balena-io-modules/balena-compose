@@ -1,7 +1,0 @@
-{
-  "version": "2.4",
-  "services": {
-    "s1": { "build": "./" },
-    "s2": { "image": "some/image" }
-  }
-}
