@@ -16,10 +16,11 @@
  */
 import { expect } from 'chai';
 import { fs } from 'mz';
+import * as Compose from '@balena/compose-parser';
+import * as os from 'os';
+import * as path from 'path';
 
-import * as jsYaml from 'js-yaml';
-
-import * as compose from '../../lib/parse';
+import { defaultComposition } from '../../lib/parse';
 
 import {
 	ContractValidationError,
@@ -29,25 +30,25 @@ import {
 
 import { TEST_FILES_PATH } from './build-utils';
 
-const defaultComposition = compose.normalize(
-	jsYaml.load(compose.defaultComposition()),
-);
-
-const multipleComposition = compose.normalize({
-	version: '2',
-	services: {
-		one: { build: './one' },
-		two: { build: './two' },
-	},
-});
-
 describe('Container contracts', () => {
+	let defaultCompositionPath: string;
+
+	before(async () => {
+		defaultCompositionPath = path.join(os.tmpdir(), 'default-composition.yml');
+		await fs.writeFile(defaultCompositionPath, defaultComposition());
+	});
+
+	after(async () => {
+		await fs.unlink(defaultCompositionPath);
+	});
+
 	it('should correctly extract container contracts', async () => {
+		const comp = await Compose.parse(defaultCompositionPath);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/simple-contract.tar`,
 		);
 
-		const buildTasks = await splitBuildStream(defaultComposition, tarStream);
+		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(1);
 		expect(buildTasks[0])
 			.to.have.property('contract')
@@ -64,12 +65,13 @@ describe('Container contracts', () => {
 			});
 	});
 
-	it('should throw an error when a build task has multiple contracts', () => {
+	it('should throw an error when a build task has multiple contracts', async () => {
+		const comp = await Compose.parse(defaultCompositionPath);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/excessive-contracts.tar`,
 		);
 
-		return splitBuildStream(defaultComposition, tarStream)
+		return splitBuildStream(comp, tarStream)
 			.then(() => {
 				throw new Error('No error thrown for multiple contract files');
 			})
@@ -79,11 +81,14 @@ describe('Container contracts', () => {
 	});
 
 	it('should correctly extract container contracts for multiple services', async () => {
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/contracts/multicontainer.yml`,
+		);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/multiple-contracts.tar`,
 		);
 
-		const buildTasks = await splitBuildStream(multipleComposition, tarStream);
+		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(2);
 		expect(buildTasks[0])
 			.to.have.property('contract')
@@ -114,31 +119,13 @@ describe('Container contracts', () => {
 	});
 
 	it('should correctly derive contracts from composition labels', async () => {
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/contracts/contract-labels.yml`,
+		);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/standardProject.tar`,
 		);
-		const buildTasks = await splitBuildStream(
-			compose.normalize({
-				version: '2',
-				services: {
-					one: {
-						build: './',
-						labels: {
-							'io.balena.features.requires.hw.device-type': 'raspberrypi3',
-							'io.balena.features.requires.sw.l4t': '<=5',
-						},
-					},
-					two: {
-						image: 'alpine:latest',
-						labels: {
-							'io.balena.features.requires.sw.supervisor': '>=16.1.0',
-							'io.balena.features.requires.arch.sw': 'amd64',
-						},
-					},
-				},
-			}),
-			tarStream,
-		);
+		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(2);
 		expect(buildTasks[0])
 			.to.have.property('contract')
@@ -160,37 +147,26 @@ describe('Container contracts', () => {
 				slug: 'contract-for-two',
 				requires: [
 					{
-						type: 'sw.supervisor',
-						version: '>=16.1.0',
-					},
-					{
 						type: 'arch.sw',
 						slug: 'amd64',
+					},
+					{
+						type: 'sw.supervisor',
+						version: '>=16.1.0',
 					},
 				],
 			});
 	});
 
 	it('should correctly combine container contracts with label contracts', async () => {
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/contracts/contract-labels-2.yml`,
+		);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/simple-contract.tar`,
 		);
 
-		const buildTasks = await splitBuildStream(
-			compose.normalize({
-				version: '2',
-				services: {
-					main: { build: './' },
-					other: {
-						image: 'alpine:latest',
-						labels: {
-							'io.balena.features.requires.hw.device-type': 'raspberrypi3',
-						},
-					},
-				},
-			}),
-			tarStream,
-		);
+		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(2);
 		expect(buildTasks[0])
 			.to.have.property('contract')
@@ -220,25 +196,14 @@ describe('Container contracts', () => {
 	});
 
 	it('should throw if contracts are defined both as a labels and in `contract.yml`', async () => {
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/contracts/contract-labels-3.yml`,
+		);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/multiple-contracts.tar`,
 		);
 
-		await splitBuildStream(
-			compose.normalize({
-				version: '2',
-				services: {
-					one: {
-						build: './one',
-						labels: {
-							'io.balena.features.requires.hw.device-type': 'raspberrypi3',
-						},
-					},
-					two: { build: './two' },
-				},
-			}),
-			tarStream,
-		)
+		await splitBuildStream(comp, tarStream)
 			.then(() => {
 				throw new Error('No error thrown for clashing contract definitions');
 			})
@@ -247,12 +212,13 @@ describe('Container contracts', () => {
 			});
 	});
 
-	it('should throw when a contract does not contain a name field', () => {
+	it('should throw when a contract does not contain a name field', async () => {
+		const comp = await Compose.parse(defaultCompositionPath);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/no-name-contract.tar`,
 		);
 
-		return splitBuildStream(defaultComposition, tarStream)
+		return splitBuildStream(comp, tarStream)
 			.then(() => {
 				throw new Error('No error thrown for contract without name');
 			})
@@ -262,12 +228,13 @@ describe('Container contracts', () => {
 			});
 	});
 
-	it('should throw when a contract does not contain a type field', () => {
+	it('should throw when a contract does not contain a type field', async () => {
+		const comp = await Compose.parse(defaultCompositionPath);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/no-type-contract.tar`,
 		);
 
-		return splitBuildStream(defaultComposition, tarStream)
+		return splitBuildStream(comp, tarStream)
 			.then(() => {
 				throw new Error('No error thrown for contract without type');
 			})
@@ -277,12 +244,13 @@ describe('Container contracts', () => {
 			});
 	});
 
-	it('should throw when a contract has the wrong type', () => {
+	it('should throw when a contract has the wrong type', async () => {
+		const comp = await Compose.parse(defaultCompositionPath);
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/wrong-type-contract.tar`,
 		);
 
-		return splitBuildStream(defaultComposition, tarStream)
+		return splitBuildStream(comp, tarStream)
 			.then(() => {
 				throw new Error('No error thrown for contract with incorrect type');
 			})

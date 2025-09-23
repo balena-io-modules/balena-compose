@@ -1,0 +1,8 @@
+services:
+  main:
+    build: ./
+  other:
+    image: alpine:latest
+    labels:
+      'io.balena.features.requires.hw.device-type': 'raspberrypi3'
+    
