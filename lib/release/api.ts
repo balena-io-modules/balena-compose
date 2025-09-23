@@ -1,5 +1,6 @@
 import * as pMap from 'p-map';
 import type { PinejsClientCore } from 'pinejs-client-core';
+import type { BalenaModel, PineClient as BalenaPineClient } from 'balena-sdk';
 import * as models from './models';
 import type { Dict } from './types';
 
@@ -31,13 +32,13 @@ export interface Request {
 	 * The ID of the user the release should belong to. The user authenticated via `client`
 	 * (see above) must match or be a collaborator of `user` for the given `application`.
 	 */
-	user: number;
+	user: NonNullable<BalenaModel['release']['Write']['is_created_by__user']>;
 
 	/**
 	 * The application ID this release is for. The client issuing the request
 	 * must have read access to this application.
 	 */
-	application: number;
+	application: BalenaModel['release']['Write']['belongs_to__application'];
 
 	/**
 	 * The composition to deploy; it should be a normalised structure whose schema
@@ -50,25 +51,25 @@ export interface Request {
 	/**
 	 * An identifier for the deploy's origin.
 	 */
-	source: string;
+	source: BalenaModel['release']['Write']['source'];
 
 	/**
 	 * The external identifier for the release.
 	 */
-	commit: string;
+	commit: BalenaModel['release']['Write']['commit'];
 
 	/**
 	 * Mark the created release as final/draft
 	 */
-	is_final?: boolean;
+	is_final?: BalenaModel['release']['Write']['is_final'];
 
 	/**
 	 * Release version string
 	 */
-	semver?: string;
+	semver?: BalenaModel['release']['Write']['semver'];
 
 	/** 'balena.yml' contract contents */
-	contract?: models.JsonType;
+	contract?: Dictionary<any>;
 
 	/**
 	 * List of image descriptors returned
@@ -78,8 +79,8 @@ export interface Request {
 }
 
 export interface Response {
-	release: models.ReleaseModel;
-	serviceImages: Dict<models.ImageModel>;
+	release: BalenaModel['release']['Read'];
+	serviceImages: Dict<BalenaModel['image']['Read']>;
 }
 
 /**
@@ -97,7 +98,8 @@ export async function create(req: Request) {
 	const release = await createRelease(api, {
 		is_created_by__user: user.id,
 		belongs_to__application: application.id,
-		composition: req.composition,
+		composition:
+			req.composition as any as BalenaModel['release']['Write']['composition'],
 		commit: req.commit,
 		status: 'running',
 		source: req.source,
@@ -108,7 +110,7 @@ export async function create(req: Request) {
 		...(!!req.semver && { semver: req.semver }),
 	});
 
-	const res = { release, serviceImages: {} } as Response;
+	const res: Response = { release, serviceImages: {} };
 
 	// Create services and associated image, labels and env vars
 	await pMap(
@@ -118,6 +120,10 @@ export async function create(req: Request) {
 				application: application.id,
 				service_name: serviceName,
 			});
+
+			if (service == null) {
+				throw new Error(`Could not create or retrieve service ${serviceName}`);
+			}
 
 			const imgDescriptor = req.imgDescriptors.find(
 				(d) => d.serviceName === serviceName,
@@ -151,10 +157,10 @@ export async function create(req: Request) {
 }
 
 export async function updateRelease(
-	api: PinejsClientCore,
+	api: BalenaPineClient,
 	id: number,
-	body: Partial<models.ReleaseAttributes>,
-): Promise<void> {
+	body: Partial<BalenaModel['release']['Write']>,
+) {
 	await api
 		.patch({
 			resource: 'release',
@@ -165,10 +171,10 @@ export async function updateRelease(
 }
 
 export async function updateImage(
-	api: PinejsClientCore,
+	api: BalenaPineClient,
 	id: number,
-	body: Partial<models.ImageAttributes>,
-): Promise<void> {
+	body: Partial<BalenaModel['image']['Write']>,
+) {
 	await api
 		.patch({
 			resource: 'image',
@@ -180,10 +186,7 @@ export async function updateImage(
 
 // Helpers
 
-async function getUser(
-	api: PinejsClientCore,
-	id: number,
-): Promise<models.UserModel> {
+async function getUser(api: BalenaPineClient, id: number) {
 	const user = await api
 		.get({
 			resource: 'user',
@@ -197,10 +200,7 @@ async function getUser(
 	return user;
 }
 
-async function getApplication(
-	api: PinejsClientCore,
-	id: number,
-): Promise<models.ApplicationModel> {
+async function getApplication(api: BalenaPineClient, id: number) {
 	const app = await api
 		.get({
 			resource: 'application',
@@ -215,10 +215,10 @@ async function getApplication(
 }
 
 async function getOrCreateService(
-	api: PinejsClientCore,
-	body: models.ServiceAttributes,
-): Promise<models.ServiceModel> {
-	return (await api
+	api: BalenaPineClient,
+	body: Partial<BalenaModel['service']['Write']>,
+) {
+	return await api
 		.getOrCreate({
 			resource: 'service',
 			id: {
@@ -227,36 +227,36 @@ async function getOrCreateService(
 			},
 			body,
 		} as const)
-		.catch(models.wrapResponseError)) as models.ServiceModel;
+		.catch(models.wrapResponseError);
 }
 
 async function createRelease(
-	api: PinejsClientCore,
-	body: models.ReleaseAttributes,
+	api: BalenaPineClient,
+	body: Partial<BalenaModel['release']['Write']>,
 ) {
-	return (await api
+	return await api
 		.post({
 			resource: 'release',
 			body,
 		})
-		.catch(models.wrapResponseError)) as models.ReleaseModel;
+		.catch(models.wrapResponseError);
 }
 
 async function createImage(
-	api: PinejsClientCore,
+	api: BalenaPineClient,
 	release: number,
 	labels: Dict<string> | undefined,
 	envvars: Dict<string> | undefined,
-	body: models.ImageAttributes,
-): Promise<models.ImageModel> {
-	const image = (await api
+	body: Partial<BalenaModel['image']['Write']>,
+) {
+	const image = await api
 		.post({
 			resource: 'image',
 			body,
 		} as const)
-		.catch(models.wrapResponseError)) as models.ImageModel;
+		.catch(models.wrapResponseError);
 
-	const releaseImage = (await api
+	const releaseImage = await api
 		.post({
 			resource: 'image__is_part_of__release',
 			body: {
@@ -264,7 +264,7 @@ async function createImage(
 				image: image.id,
 			},
 		} as const)
-		.catch(models.wrapResponseError)) as models.ReleaseImageModel;
+		.catch(models.wrapResponseError);
 
 	if (labels) {
 		await pMap(
