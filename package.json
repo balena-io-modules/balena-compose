@@ -62,6 +62,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@balena/compose-parser": "^0.1.0",
     "ajv": "^6.12.6",
     "docker-file-parser": "^1.0.7",
     "docker-progress": "^5.3.1",
