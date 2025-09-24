@@ -108,38 +108,54 @@ export async function fromImageDescriptors(
 			});
 
 			if (matchingTasks.length > 0) {
-				// Add the file to every matching context
-				TarUtils.streamToBuffer(entryStream)
-					.then((buf) => {
-						matchingTasks.forEach((task) => {
-							const relative = path.posix.relative(task.context!, header.name);
+				// Special handling for contract files - these needto be buffered
+				// because they require synchronous processing
+				const isContractFile = matchingTasks.some((task) => {
+					const relative = path.posix.relative(task.context!, header.name);
+					return contracts.isContractFile(relative);
+				});
 
-							// Contract is a special case, but we check
-							// here because we don't want to have to read
-							// the input stream again to find it
-							if (contracts.isContractFile(relative)) {
-								if (task.contract != null) {
-									throw new MultipleContractsForService(task.serviceName);
+				if (isContractFile) {
+					// Contract files still need to be buffered for processing
+					TarUtils.streamToBuffer(entryStream)
+						.then((buf) => {
+							matchingTasks.forEach((task) => {
+								const relative = path.posix.relative(
+									task.context!,
+									header.name,
+								);
+								if (contracts.isContractFile(relative)) {
+									if (task.contract != null) {
+										throw new MultipleContractsForService(task.serviceName);
+									}
+									task.contract = contracts.processContract(buf);
 								}
-								task.contract = contracts.processContract(buf);
+								const newHeader = _.cloneDeep(header);
+								newHeader.name = relative;
+								task.buildStream!.entry(newHeader, buf);
+							});
+						})
+						.then(() => {
+							next();
+							return null;
+						})
+						.catch((e) => {
+							if (e instanceof ContractError) {
+								reject(e);
+								return;
 							}
-
-							const newHeader = _.cloneDeep(header);
-							newHeader.name = relative;
-							task.buildStream!.entry(newHeader, buf);
+							reject(new TarError(e));
 						});
-					})
-					.then(() => {
-						next();
-						return null;
-					})
-					.catch((e) => {
-						if (e instanceof ContractError) {
-							reject(e);
-							return;
-						}
-						reject(new TarError(e));
-					});
+				} else {
+					// Stream processing for regular files
+					streamToMultipleTasks(matchingTasks, header, entryStream)
+						.then(() => {
+							next();
+						})
+						.catch((e) => {
+							reject(new TarError(e));
+						});
+				}
 			} else {
 				TarUtils.drainStream(entryStream)
 					.then(() => {
@@ -166,6 +182,77 @@ export async function fromImageDescriptors(
 
 		stream.pipeline(newStream, extract, _.noop);
 	});
+}
+
+// Helper function to stream data to multiple build tasks
+async function streamToMultipleTasks(
+	matchingTasks: BuildTask[],
+	header: tar.Headers,
+	entryStream: stream.Readable,
+): Promise<void> {
+	if (matchingTasks.length === 1) {
+		// Simple case - single destination
+		const task = matchingTasks[0];
+		const relative = path.posix.relative(task.context!, header.name);
+		const newHeader = _.cloneDeep(header);
+		newHeader.name = relative;
+
+		return new Promise((resolve, reject) => {
+			const entryWriteStream = task.buildStream!.entry(newHeader, (err) => {
+				if (err) {
+					reject(err);
+				} else {
+					resolve();
+				}
+			});
+
+			stream.pipeline(entryStream, entryWriteStream, (err) => {
+				if (err) {
+					reject(err);
+				}
+			});
+		});
+	} else {
+		// Multiple destinations - need to duplicate the stream
+		const destinations = matchingTasks.map((task) => {
+			const relative = path.posix.relative(task.context!, header.name);
+			const newHeader = _.cloneDeep(header);
+			newHeader.name = relative;
+
+			const passThrough = new stream.PassThrough();
+			const entryWriteStream = task.buildStream!.entry(newHeader);
+			stream.pipeline(passThrough, entryWriteStream, _.noop);
+
+			return passThrough;
+		});
+
+		// Pipe the source to all destinations
+		return new Promise((resolve, reject) => {
+			let completed = 0;
+			const total = destinations.length;
+
+			destinations.forEach((destination) => {
+				destination.on('finish', () => {
+					completed++;
+					if (completed === total) {
+						resolve();
+					}
+				});
+				destination.on('error', reject);
+			});
+
+			// Duplicate the stream to all destinations
+			entryStream.on('data', (chunk) => {
+				destinations.forEach((dest) => dest.write(chunk));
+			});
+
+			entryStream.on('end', () => {
+				destinations.forEach((dest) => dest.end());
+			});
+
+			entryStream.on('error', reject);
+		});
+	}
 }
 
 export function buildHasSecrets(tasks: BuildTask[]): boolean {
