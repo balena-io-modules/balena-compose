@@ -68,16 +68,18 @@ export class BuildMetadata {
 			header: tar.Headers,
 			stream: Stream.Readable,
 		) => {
-			const buffer = await TarUtils.streamToBuffer(stream);
-
 			const entryInformation = this.getMetadataRelativePath(header.name);
 
 			if (
 				entryInformation == null ||
 				entryInformation.relativePath === QEMU_BIN_NAME
 			) {
-				pack.entry(header, buffer);
+				// Non-metadata files: stream directly without buffering
+				await TarUtils.pipePromise(stream, pack.entry(header));
 			} else {
+				// Metadata files: buffer for processing (small config files)
+				const buffer = await TarUtils.streamToBuffer(stream);
+
 				// Keep track of the different metadata directories
 				// we've found, and if there is more than one, throw
 				// an error (for example both .balena and .resin)

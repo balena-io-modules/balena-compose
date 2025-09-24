@@ -108,38 +108,85 @@ export async function fromImageDescriptors(
 			});
 
 			if (matchingTasks.length > 0) {
-				// Add the file to every matching context
-				TarUtils.streamToBuffer(entryStream)
-					.then((buf) => {
-						matchingTasks.forEach((task) => {
-							const relative = path.posix.relative(task.context!, header.name);
+				// Check if any matching task needs this file as a contract
+				const contractTasks = matchingTasks.filter((task) => {
+					const relative = path.posix.relative(task.context!, header.name);
+					return contracts.isContractFile(relative);
+				});
 
-							// Contract is a special case, but we check
-							// here because we don't want to have to read
-							// the input stream again to find it
-							if (contracts.isContractFile(relative)) {
+				if (contractTasks.length > 0) {
+					// Contract files need to be buffered for processing
+					TarUtils.streamToBuffer(entryStream)
+						.then((buf) => {
+							// Process contracts first
+							contractTasks.forEach((task) => {
 								if (task.contract != null) {
 									throw new MultipleContractsForService(task.serviceName);
 								}
 								task.contract = contracts.processContract(buf);
-							}
+							});
 
-							const newHeader = _.cloneDeep(header);
-							newHeader.name = relative;
-							task.buildStream!.entry(newHeader, buf);
+							// Add file to all matching tasks
+							matchingTasks.forEach((task) => {
+								const relative = path.posix.relative(
+									task.context!,
+									header.name,
+								);
+								const newHeader = _.cloneDeep(header);
+								newHeader.name = relative;
+								task.buildStream!.entry(newHeader, buf);
+							});
+						})
+						.then(() => {
+							next();
+							return null;
+						})
+						.catch((e) => {
+							if (e instanceof ContractError) {
+								reject(e);
+								return;
+							}
+							reject(new TarError(e));
 						});
-					})
-					.then(() => {
-						next();
-						return null;
-					})
-					.catch((e) => {
-						if (e instanceof ContractError) {
-							reject(e);
-							return;
-						}
-						reject(new TarError(e));
-					});
+				} else {
+					// Non-contract files - stream if single task, buffer if multiple
+					if (matchingTasks.length === 1) {
+						// Single task: can stream directly without buffering
+						const task = matchingTasks[0];
+						const relative = path.posix.relative(task.context!, header.name);
+						const newHeader = _.cloneDeep(header);
+						newHeader.name = relative;
+						const destStream = task.buildStream!.entry(newHeader);
+
+						entryStream.pipe(destStream);
+						destStream.on('finish', () => {
+							next();
+						});
+						destStream.on('error', (e) => {
+							reject(new TarError(e));
+						});
+					} else {
+						// Multiple tasks: need to buffer to write to multiple destinations
+						TarUtils.streamToBuffer(entryStream)
+							.then((buf) => {
+								matchingTasks.forEach((task) => {
+									const relative = path.posix.relative(
+										task.context!,
+										header.name,
+									);
+									const newHeader = _.cloneDeep(header);
+									newHeader.name = relative;
+									task.buildStream!.entry(newHeader, buf);
+								});
+							})
+							.then(() => {
+								next();
+							})
+							.catch((e) => {
+								reject(new TarError(e));
+							});
+					}
+				}
 			} else {
 				TarUtils.drainStream(entryStream)
 					.then(() => {
