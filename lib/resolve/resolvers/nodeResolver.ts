@@ -15,8 +15,6 @@
  * limitations under the License.
  */
 import * as memoize from 'memoizee';
-
-import * as _ from 'lodash';
 import * as semver from 'semver';
 
 import type { Bundle, FileInfo, Resolver } from '../resolver';
@@ -113,11 +111,12 @@ export class NodeResolver implements Resolver {
 
 		this.hasScripts =
 			this.hasScripts ||
-			_(packageJson.scripts)
-				.pick('preinstall', 'install', 'postinstall')
-				.size() > 0;
+			Object.keys(packageJson.scripts).some(
+				(key) =>
+					key === 'preinstall' || key === 'install' || key === 'postinstall',
+			);
 
-		const nodeEngine: unknown = _.get(packageJson, 'engines.node');
+		const nodeEngine: unknown = packageJson.engines?.node;
 		if (nodeEngine == null) {
 			throw new Error('package.json: engines.node must be specified');
 		}

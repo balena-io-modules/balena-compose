@@ -122,10 +122,12 @@ const argsToString = (
 		}
 		return ret + '["' + args.join('","') + '"]';
 	} else if (args != null && typeof args === 'object') {
-		return _.map(args, (value: string, key: string) => {
-			const escapedValue = JSON.stringify(value);
-			return `${key}=${escapedValue}`;
-		}).join(' ');
+		return Object.entries(args)
+			.map(([key, value]) => {
+				const escapedValue = JSON.stringify(value);
+				return `${key}=${escapedValue}`;
+			})
+			.join(' ');
 	} else {
 		return args;
 	}

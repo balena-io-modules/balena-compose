@@ -16,7 +16,6 @@
  */
 
 import * as t from 'io-ts';
-import * as _ from 'lodash';
 
 type AcceptedVarList = VarList | string[];
 
@@ -30,7 +29,7 @@ const validate = (value: unknown): value is VarList => {
 	if (Array.isArray(value)) {
 		return validateStringArray(value);
 	} else if (value != null && typeof value === 'object') {
-		return _.every(value as Dictionary<unknown>, (v, k) => {
+		return Object.entries(value as Dictionary<unknown>).every(([k, v]) => {
 			return typeof v === 'string' && typeof k === 'string';
 		});
 	}
@@ -43,13 +42,13 @@ const convert = (value: unknown): VarList | undefined => {
 	}
 	if (Array.isArray(value)) {
 		const varList: VarList = {};
-		_.each(value as string[], (str) => {
+		for (const str of value) {
 			const match = str.match(stringRegex);
 			if (match == null) {
 				return;
 			}
 			varList[match[1]] = match[2];
-		});
+		}
 		return varList;
 	} else {
 		return value;
@@ -72,11 +71,11 @@ export const PermissiveVarList = new t.Type<VarList, AcceptedVarList, unknown>(
 );
 
 function validateStringArray(arr: unknown[]): boolean {
-	if (!_.every(arr, (a) => typeof a === 'string')) {
+	if (!arr.every((a) => typeof a === 'string')) {
 		return false;
 	}
 
 	// Perform a regex on every value to make sure it's in the
 	// correct format
-	return _.every(arr as string[], (a) => stringRegex.test(a));
+	return arr.every((a) => stringRegex.test(a));
 }
