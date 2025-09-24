@@ -1,4 +1,16 @@
 - commits:
+    - subject: Convert promise chains to async/await
+      hash: 33748e39a3db0befc8b2989c72c800c495aefd21
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.14
+  title: ""
+  date: 2025-09-24T11:30:57.992Z
+- commits:
     - subject: Reduce lodash usage
       hash: 21e3aad4f6b734adf3ea113ec50fdf222a7c64f5
       body: ""
