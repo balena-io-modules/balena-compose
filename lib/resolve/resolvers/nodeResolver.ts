@@ -28,7 +28,7 @@ const getDeviceTypeVersions = memoize(
 		let nextUrl: string | undefined =
 			`https://hub.docker.com/v2/repositories/resin/${deviceType}-node/tags/?page_size=100`;
 		while (nextUrl != null) {
-			const response = (await fetch(nextUrl).then((res) => res.json())) as {
+			const response = (await (await fetch(nextUrl)).json()) as {
 				results: Array<{ name: string }>;
 				next?: string;
 			};

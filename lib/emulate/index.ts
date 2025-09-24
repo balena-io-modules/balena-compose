@@ -181,26 +181,28 @@ const getTarEntryHandler = (
 ) => {
 	// eslint-disable-next-line @typescript-eslint/no-require-imports
 	const streamToPromise = require('stream-to-promise');
-	return (
+	return async (
 		header: tar.Headers,
 		stream: NodeJS.ReadableStream,
 		next: (err?: Error) => void,
 	) => {
-		streamToPromise(stream)
-			.then((buffer: Buffer) => {
-				const name = normalizeTarEntry(header.name);
-				if (name === dockerfileName) {
-					const newDockerfile = transpose(buffer.toString(), opts);
-					pack.entry({ name: dockerfileName }, newDockerfile);
-				} else {
-					if (name === opts.hostQemuPath && opts.qemuFileMode) {
-						header.mode = opts.qemuFileMode;
-					}
-					pack.entry(header, buffer);
+		try {
+			const buffer = await streamToPromise(stream);
+
+			const name = normalizeTarEntry(header.name);
+			if (name === dockerfileName) {
+				const newDockerfile = transpose(buffer.toString(), opts);
+				pack.entry({ name: dockerfileName }, newDockerfile);
+			} else {
+				if (name === opts.hostQemuPath && opts.qemuFileMode) {
+					header.mode = opts.qemuFileMode;
 				}
-				next();
-			})
-			.catch(next);
+				pack.entry(header, buffer);
+			}
+			next();
+		} catch (e) {
+			next(e);
+		}
 	};
 };
 

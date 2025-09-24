@@ -163,48 +163,42 @@ export async function runBuildTask(
 
 	// Workaround to deal with timing issues when resolution takes longer.
 	// Promise ensures that task is resolved before build process continues.
-	const taskResolved = task.resolvedPromise ?? Promise.resolve();
+	await task.resolvedPromise;
+
+	if (task.buildStream == null) {
+		throw new BuildProcessError('Null build stream on non-external image');
+	}
+
+	let dockerOpts = task.dockerOpts ?? {};
+	dockerOpts = _.merge(
+		dockerOpts,
+		generateBuildArgs(task, buildArgs),
+		generateLabels(task),
+	);
+
+	if (secrets != null && task.serviceName in secrets) {
+		dockerOpts.volumes ??= [];
+		dockerOpts.volumes.push(
+			`${secrets[task.serviceName].tmpDirectory}:/run/secrets:ro`,
+		);
+	}
+
+	if (task.tag != null) {
+		dockerOpts = _.merge(dockerOpts, { t: task.tag });
+	}
+
+	if (task.dockerfilePath != null) {
+		dockerOpts = _.merge(dockerOpts, {
+			dockerfile: task.dockerfilePath,
+		});
+	}
+
+	const builder = Builder.fromDockerode(docker);
 
 	return new Promise((resolve, reject) => {
-		// TODO: narrow the new Promise and properly await this in a follow-up.
-		// eslint-disable-next-line @typescript-eslint/no-floating-promises
-		taskResolved.then(() => {
-			if (task.buildStream == null) {
-				reject(
-					new BuildProcessError('Null build stream on non-external image'),
-				);
-				return;
-			}
+		const hooks = taskHooks(task, docker, resolve);
 
-			let dockerOpts = task.dockerOpts ?? {};
-			dockerOpts = _.merge(
-				dockerOpts,
-				generateBuildArgs(task, buildArgs),
-				generateLabels(task),
-			);
-
-			if (secrets != null && task.serviceName in secrets) {
-				dockerOpts.volumes ??= [];
-				dockerOpts.volumes.push(
-					`${secrets[task.serviceName].tmpDirectory}:/run/secrets:ro`,
-				);
-			}
-
-			if (task.tag != null) {
-				dockerOpts = _.merge(dockerOpts, { t: task.tag });
-			}
-
-			if (task.dockerfilePath != null) {
-				dockerOpts = _.merge(dockerOpts, {
-					dockerfile: task.dockerfilePath,
-				});
-			}
-
-			const builder = Builder.fromDockerode(docker);
-			const hooks = taskHooks(task, docker, resolve);
-
-			builder.createBuildStream(dockerOpts, hooks, reject);
-		});
+		builder.createBuildStream(dockerOpts, hooks, reject);
 	});
 }
 

@@ -134,10 +134,12 @@ export class LocalImage {
 	 *
 	 * @throws ImageRemovalError
 	 */
-	public deleteImage(): Promise<void> {
+	public async deleteImage(): Promise<void> {
 		const image = this.getImage();
-		return image.remove().catch((e) => {
+		try {
+			return await image.remove();
+		} catch (e) {
 			throw new ImageRemovalError(e);
-		});
+		}
 	}
 }

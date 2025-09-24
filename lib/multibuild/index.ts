@@ -94,64 +94,48 @@ export async function fromImageDescriptors(
 
 		const extract = tar.extract();
 
-		const entryFn = (
-			header: tar.Headers,
-			entryStream: stream.Readable,
-			next: () => void,
-		): void => {
-			// Find the build context that this file should belong to
-			const matchingTasks = tasks.filter((task) => {
-				if (task.external) {
-					return false;
-				}
-				return posixContains(task.context!, header.name);
-			});
+		extract.on('entry', async (header, entryStream, next) => {
+			try {
+				// Find the build context that this file should belong to
+				const matchingTasks = tasks.filter((task) => {
+					if (task.external) {
+						return false;
+					}
+					return posixContains(task.context!, header.name);
+				});
 
-			if (matchingTasks.length > 0) {
-				// Add the file to every matching context
-				TarUtils.streamToBuffer(entryStream)
-					.then((buf) => {
-						matchingTasks.forEach((task) => {
-							const relative = path.posix.relative(task.context!, header.name);
+				if (matchingTasks.length > 0) {
+					// Add the file to every matching context
+					const buf = await TarUtils.streamToBuffer(entryStream);
+					matchingTasks.forEach((task) => {
+						const relative = path.posix.relative(task.context!, header.name);
 
-							// Contract is a special case, but we check
-							// here because we don't want to have to read
-							// the input stream again to find it
-							if (contracts.isContractFile(relative)) {
-								if (task.contract != null) {
-									throw new MultipleContractsForService(task.serviceName);
-								}
-								task.contract = contracts.processContract(buf);
+						// Contract is a special case, but we check
+						// here because we don't want to have to read
+						// the input stream again to find it
+						if (contracts.isContractFile(relative)) {
+							if (task.contract != null) {
+								throw new MultipleContractsForService(task.serviceName);
 							}
-
-							const newHeader = _.cloneDeep(header);
-							newHeader.name = relative;
-							task.buildStream!.entry(newHeader, buf);
-						});
-					})
-					.then(() => {
-						next();
-						return null;
-					})
-					.catch((e) => {
-						if (e instanceof ContractError) {
-							reject(e);
-							return;
+							task.contract = contracts.processContract(buf);
 						}
-						reject(new TarError(e));
-					});
-			} else {
-				TarUtils.drainStream(entryStream)
-					.then(() => {
-						next();
-					})
-					.catch((e) => {
-						reject(new TarError(e));
-					});
-			}
-		};
 
-		extract.on('entry', entryFn);
+						const newHeader = _.cloneDeep(header);
+						newHeader.name = relative;
+						task.buildStream!.entry(newHeader, buf);
+					});
+				} else {
+					await TarUtils.drainStream(entryStream);
+				}
+				next();
+			} catch (e) {
+				if (e instanceof ContractError) {
+					reject(e);
+					return;
+				}
+				reject(new TarError(e));
+			}
+		});
 		extract.on('finish', () => {
 			for (const task of tasks) {
 				if (!task.external) {
