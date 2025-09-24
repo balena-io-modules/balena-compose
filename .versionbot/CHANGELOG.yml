@@ -1,4 +1,16 @@
 - commits:
+    - subject: Use balena-sdk model info to improve the typings
+      hash: 859e76526a079843379167b47bc4e0f7a5d09cbf
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.12
+  title: ""
+  date: 2025-09-24T08:52:27.722Z
+- commits:
     - subject: Update dependencies
       hash: aaf78d812733d2ae5803cbbdde6539cd271aaa3f
       body: ""
