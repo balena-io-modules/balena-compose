@@ -20,7 +20,7 @@ import * as duplexify from 'duplexify';
 import * as es from 'event-stream';
 import * as JSONStream from 'JSONStream';
 import * as _ from 'lodash';
-import * as fs from 'mz/fs';
+import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as stream from 'node:stream';
 import * as tar from 'tar-stream';
