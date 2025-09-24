@@ -1,4 +1,18 @@
 - commits:
+    - subject: Forward errors with extract stream to the `next` handler
+      hash: b8c269b84f6fad030fa9eb390b8190d475e0e471
+      body: |
+        This ensures the stream knows what's happened and can do any necessary
+        cleanup/handling/freeing of resources
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.15
+  title: ""
+  date: 2025-09-24T12:40:44.051Z
+- commits:
     - subject: Convert promise chains to async/await
       hash: 33748e39a3db0befc8b2989c72c800c495aefd21
       body: ""
