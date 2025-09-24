@@ -1,4 +1,16 @@
 - commits:
+    - subject: Reduce lodash usage
+      hash: 21e3aad4f6b734adf3ea113ec50fdf222a7c64f5
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.13
+  title: ""
+  date: 2025-09-24T11:07:18.068Z
+- commits:
     - subject: Use balena-sdk model info to improve the typings
       hash: 859e76526a079843379167b47bc4e0f7a5d09cbf
       body: ""
