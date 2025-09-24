@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { expect } from 'chai';
-import { fs } from 'mz';
+import * as fs from 'fs';
 import * as Compose from '@balena/compose-parser';
 import * as os from 'os';
 import * as path from 'path';
@@ -35,11 +35,11 @@ describe('Container contracts', () => {
 
 	before(async () => {
 		defaultCompositionPath = path.join(os.tmpdir(), 'default-composition.yml');
-		await fs.writeFile(defaultCompositionPath, defaultComposition());
+		await fs.promises.writeFile(defaultCompositionPath, defaultComposition());
 	});
 
 	after(async () => {
-		await fs.unlink(defaultCompositionPath);
+		await fs.promises.unlink(defaultCompositionPath);
 	});
 
 	it('should correctly extract container contracts', async () => {
