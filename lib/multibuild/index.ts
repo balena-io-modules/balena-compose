@@ -129,11 +129,10 @@ export async function fromImageDescriptors(
 				}
 				next();
 			} catch (e) {
-				if (e instanceof ContractError) {
-					reject(e);
-					return;
-				}
-				reject(new TarError(e));
+				const err = e instanceof ContractError ? e : new TarError(e);
+				reject(err);
+				// Also make sure the stream errors/finishes draining/frees memory
+				next(err);
 			}
 		});
 		extract.on('finish', () => {
