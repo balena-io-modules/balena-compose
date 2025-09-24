@@ -1,4 +1,51 @@
 - commits:
+    - subject: Make use of `throughTarStream` to avoid buffering memory
+      hash: d36c80c625a35054fc78274489d79e210790a86f
+      body: |
+        Update tar-utils from 3.0.3 to 3.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested:
+        - commits:
+            - subject: Add a `throughTarStream` helper that can be used without buffering
+                memory
+              hash: 71097226c3a1672ca453f7d61201aa7833052930
+              body: ""
+              footer:
+                Change-type: minor
+                change-type: minor
+              author: Pagan Gazzard
+          version: node-tar-utils-3.1.0
+          title: ""
+          date: 2025-09-24T15:48:15.342Z
+        - commits:
+            - subject: "`cloneTarStream`: stream entries directly to the pack where possible"
+              hash: 7317113a6000351683eacddcc39582e876e0adc5
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: node-tar-utils-3.0.5
+          title: ""
+          date: 2025-09-24T13:38:04.396Z
+        - commits:
+            - subject: Update dev dependencies
+              hash: 4d67b1857344799c98500585f55c55e5e8078182
+              body: ""
+              footer:
+                Change-type: patch
+                change-type: patch
+              author: Pagan Gazzard
+          version: node-tar-utils-3.0.4
+          title: ""
+          date: 2025-09-24T13:12:44.510Z
+  version: 7.0.16
+  title: ""
+  date: 2025-09-24T16:08:58.218Z
+- commits:
     - subject: Forward errors with extract stream to the `next` handler
       hash: b8c269b84f6fad030fa9eb390b8190d475e0e471
       body: |
