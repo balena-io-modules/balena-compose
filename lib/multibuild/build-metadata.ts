@@ -23,7 +23,6 @@ import * as jsYaml from 'js-yaml';
 import * as _ from 'lodash';
 import * as Path from 'path';
 import type * as Stream from 'stream';
-import type * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 
 import type { BalenaYml, ParsedBalenaYml } from './build-secrets';
@@ -55,45 +54,40 @@ export class BuildMetadata {
 
 	public constructor(protected metadataDirectories: string[]) {}
 
-	public async extractMetadata(
-		tarStream: Stream.Readable,
-	): Promise<Stream.Readable> {
+	public extractMetadata(tarStream: Stream.Readable): Stream.Readable {
 		let foundMetadataDirectory: string | null = null;
 		// Run the tar file through the extraction stream, removing
 		// anything that is a child of the metadata directory
 		// and storing it, otherwise forwarding the other files to
 		// a tar insertion stream, which is then returned.
-		const onEntry = async (
-			pack: tar.Pack,
-			header: tar.Headers,
-			stream: Stream.Readable,
-		) => {
-			const buffer = await TarUtils.streamToBuffer(stream);
+		const [extract, pack] = TarUtils.throughTarStream(
+			async ($pack, header, stream, next) => {
+				const entryInformation = this.getMetadataRelativePath(header.name);
 
-			const entryInformation = this.getMetadataRelativePath(header.name);
-
-			if (
-				entryInformation == null ||
-				entryInformation.relativePath === QEMU_BIN_NAME
-			) {
-				pack.entry(header, buffer);
-			} else {
-				// Keep track of the different metadata directories
-				// we've found, and if there is more than one, throw
-				// an error (for example both .balena and .resin)
 				if (
-					foundMetadataDirectory != null &&
-					foundMetadataDirectory !== entryInformation.metadataDirectory
+					entryInformation == null ||
+					entryInformation.relativePath === QEMU_BIN_NAME
 				) {
-					throw new MultipleMetadataDirectoryError();
+					stream.pipe($pack.entry(header, next));
+				} else {
+					// Keep track of the different metadata directories
+					// we've found, and if there is more than one, throw
+					// an error (for example both .balena and .resin)
+					if (
+						foundMetadataDirectory != null &&
+						foundMetadataDirectory !== entryInformation.metadataDirectory
+					) {
+						throw new MultipleMetadataDirectoryError();
+					}
+					foundMetadataDirectory = entryInformation.metadataDirectory;
+					const buffer = await TarUtils.streamToBuffer(stream);
+					this.addMetadataFile(entryInformation.relativePath, buffer);
+					next();
 				}
-				foundMetadataDirectory = entryInformation.metadataDirectory;
-				this.addMetadataFile(entryInformation.relativePath, buffer);
-			}
-		};
-		return (await TarUtils.cloneTarStream(tarStream, {
-			onEntry,
-		})) as Stream.Readable;
+			},
+		);
+		tarStream.pipe(extract);
+		return pack;
 	}
 
 	public getBalenaYml() {

@@ -1,1 +1,4 @@
 type: 'node'
+upstream:
+  - repo: 'tar-utils'
+    url: 'https://github.com/balena-io-modules/node-tar-utils'

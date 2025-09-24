@@ -40,6 +40,7 @@ import {
 	BuildProcessError,
 	ContractError,
 	MultipleContractsForService,
+	MultipleMetadataDirectoryError,
 	SecretRemovalError,
 	TarError,
 } from './errors';
@@ -86,7 +87,7 @@ export async function fromImageDescriptors(
 ): Promise<BuildTask[]> {
 	const buildMetadata = new BuildMetadata(metadataDirectories);
 
-	const newStream = await buildMetadata.extractMetadata(buildStream);
+	const newStream = buildMetadata.extractMetadata(buildStream);
 
 	return new Promise<BuildTask[]>((resolve, reject) => {
 		// Firstly create a list of BuildTasks based on the composition
@@ -129,10 +130,8 @@ export async function fromImageDescriptors(
 				}
 				next();
 			} catch (e) {
-				const err = e instanceof ContractError ? e : new TarError(e);
-				reject(err);
-				// Also make sure the stream errors/finishes draining/frees memory
-				next(err);
+				// Make sure the stream errors/finishes draining/frees memory
+				next(e);
 			}
 		});
 		extract.on('finish', () => {
@@ -144,7 +143,15 @@ export async function fromImageDescriptors(
 			resolve(tasks);
 		});
 		extract.on('error', (e) => {
-			reject(new TarError(e));
+			if (
+				e instanceof ContractError ||
+				e instanceof MultipleContractsForService ||
+				e instanceof MultipleMetadataDirectoryError
+			) {
+				reject(e);
+			} else {
+				reject(new TarError(e));
+			}
 		});
 
 		stream.pipeline(newStream, extract, _.noop);
