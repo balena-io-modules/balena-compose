@@ -45,7 +45,7 @@ describe('performBuilds()', () => {
 		const outParser = new StreamOutputParser();
 		const tarFilename = `${TEST_FILES_PATH}/build-secrets-1.tar`;
 		const buildMetadata = new BuildMetadata(['.balena', '.resin']);
-		await buildMetadata.extractMetadata(fs.createReadStream(tarFilename));
+		buildMetadata.extractMetadata(fs.createReadStream(tarFilename)).resume();
 
 		const task: BuildTask = {
 			buildMetadata,
