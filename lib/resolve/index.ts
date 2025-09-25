@@ -16,7 +16,7 @@
  */
 import * as _ from 'lodash';
 import type { Readable } from 'stream';
-import { pipeline } from 'stream';
+import { Stream, pipeline } from 'stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 
@@ -165,7 +165,7 @@ async function resolveTarStreamOnEntry(
 		// Note: a tar-stream limitation requires a single pack.entry stream
 		// pipe operation to take place at a time, so we await for it:
 		// https://github.com/mafintosh/tar-stream/issues/24#issuecomment-54120650
-		await TarUtils.pipePromise(stream, pack.entry(header));
+		await Stream.promises.pipeline(stream, pack.entry(header));
 	}
 }
 
