@@ -1,4 +1,16 @@
 - commits:
+    - subject: Switch to using nodejs stream.promises.pipeline for awaiting a pipe
+      hash: 04fbbd1f64da996e8bc3e40b8ce1e564c792ffc6
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.17
+  title: ""
+  date: 2025-09-25T13:54:00.220Z
+- commits:
     - subject: Make use of `throughTarStream` to avoid buffering memory
       hash: d36c80c625a35054fc78274489d79e210790a86f
       body: |
