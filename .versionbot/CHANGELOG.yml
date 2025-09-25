@@ -1,4 +1,16 @@
 - commits:
+    - subject: Update `transposeTarStream` to use `throughTarStream`
+      hash: 1f7773e8676cbea19d3f3de3092223b4b2fb8c4a
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.18
+  title: ""
+  date: 2025-09-25T14:49:48.104Z
+- commits:
     - subject: Switch to using nodejs stream.promises.pipeline for awaiting a pipe
       hash: 04fbbd1f64da996e8bc3e40b8ce1e564c792ffc6
       body: ""
