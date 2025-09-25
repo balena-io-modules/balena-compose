@@ -18,9 +18,8 @@
 import * as parser from 'docker-file-parser';
 import * as jsesc from 'jsesc';
 import * as _ from 'lodash';
-import { pipeline } from 'node:stream';
-import * as tar from 'tar-stream';
-import { normalizeTarEntry } from 'tar-utils';
+import { Stream, pipeline } from 'node:stream';
+import { normalizeTarEntry, streamToBuffer, throughTarStream } from 'tar-utils';
 
 /**
  * TransposeOptions:
@@ -175,19 +174,12 @@ export function transpose(
 }
 
 const getTarEntryHandler = (
-	pack: tar.Pack,
 	dockerfileName: string,
 	opts: TransposeOptions,
-) => {
-	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	const streamToPromise = require('stream-to-promise');
-	return async (
-		header: tar.Headers,
-		stream: NodeJS.ReadableStream,
-		next: (err?: Error) => void,
-	) => {
+): Parameters<typeof throughTarStream>[0] => {
+	return async (pack, header, stream, next) => {
 		try {
-			const buffer = await streamToPromise(stream);
+			const buffer = await streamToBuffer(stream);
 
 			const name = normalizeTarEntry(header.name);
 			if (name === dockerfileName) {
@@ -212,26 +204,16 @@ const getTarEntryHandler = (
  * and then re-tar the original contents and the new Dockerfile, and
  * return a new tarStream
  */
-export function transposeTarStream(
+export async function transposeTarStream(
 	tarStream: NodeJS.ReadableStream,
 	options: TransposeOptions,
 	dockerfileName = 'Dockerfile',
 ) {
-	const extract = tar.extract();
-	const pack = tar.pack();
-
-	return new Promise<NodeJS.ReadableStream>((resolve, reject) => {
-		pack.on('error', reject);
-		extract.on('error', reject);
-		extract.on('entry', getTarEntryHandler(pack, dockerfileName, options));
-
-		extract.on('finish', () => {
-			pack.finalize();
-			resolve(pack);
-		});
-
-		pipeline(tarStream, extract, _.noop);
-	});
+	const [extract, pack] = throughTarStream(
+		getTarEntryHandler(dockerfileName, options),
+	);
+	await Stream.promises.pipeline(tarStream, extract);
+	return pack;
 }
 
 /**
