@@ -106,25 +106,53 @@ export async function fromImageDescriptors(
 				});
 
 				if (matchingTasks.length > 0) {
-					// Add the file to every matching context
-					const buf = await TarUtils.streamToBuffer(entryStream);
-					matchingTasks.forEach((task) => {
+					const isContractFile = matchingTasks.some((task) => {
 						const relative = path.posix.relative(task.context!, header.name);
+						return contracts.isContractFile(relative);
+					});
+					const shouldStreamDirectly =
+						matchingTasks.length === 1 && !isContractFile;
 
-						// Contract is a special case, but we check
-						// here because we don't want to have to read
-						// the input stream again to find it
-						if (contracts.isContractFile(relative)) {
-							if (task.contract != null) {
-								throw new MultipleContractsForService(task.serviceName);
-							}
-							task.contract = contracts.processContract(buf);
-						}
-
+					if (shouldStreamDirectly) {
+						const task = matchingTasks[0];
+						const relative = path.posix.relative(task.context!, header.name);
 						const newHeader = _.cloneDeep(header);
 						newHeader.name = relative;
-						task.buildStream!.entry(newHeader, buf);
-					});
+						const destStream = task.buildStream!.entry(newHeader);
+						entryStream.on('data', (chunk) => {
+							destStream.write(chunk);
+						});
+						entryStream.on('end', () => {
+							destStream.end();
+							next();
+						});
+						entryStream.on('error', (e) => {
+							reject(new TarError(e));
+						});
+						destStream.on('error', (e) => {
+							reject(new TarError(e));
+						});
+					} else {
+						// Add the file to every matching context
+						const buf = await TarUtils.streamToBuffer(entryStream);
+						matchingTasks.forEach((task) => {
+							const relative = path.posix.relative(task.context!, header.name);
+
+							// Contract is a special case, but we check
+							// here because we don't want to have to read
+							// the input stream again to find it
+							if (contracts.isContractFile(relative)) {
+								if (task.contract != null) {
+									throw new MultipleContractsForService(task.serviceName);
+								}
+								task.contract = contracts.processContract(buf);
+							}
+
+							const newHeader = _.cloneDeep(header);
+							newHeader.name = relative;
+							task.buildStream!.entry(newHeader, buf);
+						});
+					}
 				} else {
 					await TarUtils.drainStream(entryStream);
 				}
