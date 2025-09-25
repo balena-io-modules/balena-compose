@@ -21,6 +21,8 @@ import * as path from 'path';
 import * as stream from 'node:stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
+import * as fs from 'fs';
+import * as os from 'os';
 
 import * as Compose from '../parse';
 
@@ -75,15 +77,22 @@ export { CANONICAL_HUB_URL } from './constants';
 export function splitBuildStream(
 	composition: Compose.Composition,
 	buildStream: stream.Readable,
+	diskThreshold = 0,
 ): Promise<BuildTask[]> {
 	const images = Compose.parse(composition);
-	return fromImageDescriptors(images, buildStream);
+	return fromImageDescriptors(
+		images,
+		buildStream,
+		['.balena/', '.resin/'],
+		diskThreshold,
+	);
 }
 
 export async function fromImageDescriptors(
 	images: Compose.ImageDescriptor[],
 	buildStream: stream.Readable,
 	metadataDirectories = ['.balena/', '.resin/'],
+	diskThreshold = 0,
 ): Promise<BuildTask[]> {
 	const buildMetadata = new BuildMetadata(metadataDirectories);
 
@@ -106,25 +115,79 @@ export async function fromImageDescriptors(
 				});
 
 				if (matchingTasks.length > 0) {
-					// Add the file to every matching context
-					const buf = await TarUtils.streamToBuffer(entryStream);
-					matchingTasks.forEach((task) => {
+					const fileSize = header.size ?? 0;
+					const shouldUseDisk =
+						diskThreshold > 0 &&
+						fileSize > diskThreshold &&
+						matchingTasks.length === 1;
+
+					const hasContractFile = matchingTasks.some((task) => {
+						const relative = path.posix.relative(task.context!, header.name);
+						return contracts.isContractFile(relative);
+					});
+
+					if (shouldUseDisk && !hasContractFile) {
+						const task = matchingTasks[0];
 						const relative = path.posix.relative(task.context!, header.name);
 
-						// Contract is a special case, but we check
-						// here because we don't want to have to read
-						// the input stream again to find it
-						if (contracts.isContractFile(relative)) {
-							if (task.contract != null) {
-								throw new MultipleContractsForService(task.serviceName);
-							}
-							task.contract = contracts.processContract(buf);
-						}
+						const tempPath = path.join(
+							os.tmpdir(),
+							`balena-compose-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+						);
 
-						const newHeader = _.cloneDeep(header);
-						newHeader.name = relative;
-						task.buildStream!.entry(newHeader, buf);
-					});
+						const writeStream = fs.createWriteStream(tempPath);
+
+						await new Promise<void>((writeResolve, writeReject) => {
+							writeStream.on('error', writeReject);
+							writeStream.on('finish', () => {
+								const readStream = fs.createReadStream(tempPath);
+								const newHeader = _.cloneDeep(header);
+								newHeader.name = relative;
+
+								const buildEntry = task.buildStream!.entry(newHeader, (err) => {
+									fs.unlink(tempPath, () => {
+										console.error('Error deleting tempPath');
+									});
+									if (err) {
+										writeReject(err);
+									} else {
+										writeResolve();
+									}
+								});
+
+								buildEntry.on('error', (err) => {
+									fs.unlink(tempPath, () => {
+										console.error('Error deleting tempPath');
+									});
+									writeReject(err);
+								});
+
+								readStream.pipe(buildEntry);
+							});
+
+							entryStream.pipe(writeStream);
+						});
+					} else {
+						// Use traditional memory buffering for small files, contracts, or multi-task files
+						const buf = await TarUtils.streamToBuffer(entryStream);
+						matchingTasks.forEach((task) => {
+							const relative = path.posix.relative(task.context!, header.name);
+
+							// Contract is a special case, but we check
+							// here because we don't want to have to read
+							// the input stream again to find it
+							if (contracts.isContractFile(relative)) {
+								if (task.contract != null) {
+									throw new MultipleContractsForService(task.serviceName);
+								}
+								task.contract = contracts.processContract(buf);
+							}
+
+							const newHeader = _.cloneDeep(header);
+							newHeader.name = relative;
+							task.buildStream!.entry(newHeader, buf);
+						});
+					}
 				} else {
 					await TarUtils.drainStream(entryStream);
 				}
