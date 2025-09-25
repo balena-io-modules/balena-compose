@@ -17,7 +17,7 @@
 import * as _ from 'lodash';
 import type { Readable } from 'stream';
 import { Stream, pipeline } from 'stream';
-import * as tar from 'tar-stream';
+import type * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 
 import Bundle from './bundle';
@@ -75,8 +75,23 @@ export function resolveInput(
 	dockerfile?: string,
 	additionalTemplateVars?: Dictionary<string>,
 ): tar.Pack {
-	const extract = tar.extract();
-	const pack = tar.pack();
+	if (dockerfile != null) {
+		// Ensure that this will match the entry in the tar archive
+		dockerfile = TarUtils.normalizeTarEntry(dockerfile);
+	}
+
+	const [extract, pack] = TarUtils.throughTarStream(
+		async ($pack, header, stream, next) => {
+			await resolveTarStreamOnEntry(
+				header,
+				stream,
+				resolvers,
+				$pack,
+				dockerfile,
+			);
+			next();
+		},
+	);
 	for (const event of Object.keys(resolveListeners) as Array<
 		keyof ResolveListeners
 	>) {
@@ -85,30 +100,9 @@ export function resolveInput(
 		}
 	}
 
-	if (dockerfile != null) {
-		// Ensure that this will match the entry in the tar archive
-		dockerfile = TarUtils.normalizeTarEntry(dockerfile);
-	}
-
-	extract.on('error', (error: Error) => pack.emit('error', error));
-	extract.on(
-		'entry',
-		async (header: tar.Headers, stream: Readable, next: () => void) => {
-			try {
-				await resolveTarStreamOnEntry(
-					header,
-					stream,
-					resolvers,
-					pack,
-					dockerfile,
-				);
-				next();
-			} catch (error) {
-				pack.emit('error', error);
-			}
-		},
-	);
-
+	// We need to override the default 'finish' handler installed by throughTarStream,
+	// so that we can add a final resolve file at the end before finalizing the pack stream
+	extract.removeAllListeners('finish');
 	extract.once('finish', async () => {
 		try {
 			await resolveTarStreamOnFinish(
@@ -118,10 +112,9 @@ export function resolveInput(
 				dockerfile,
 				additionalTemplateVars,
 			);
+			pack.finalize();
 		} catch (error) {
 			pack.emit('error', error);
-		} finally {
-			pack.finalize();
 		}
 	});
 
