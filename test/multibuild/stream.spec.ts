@@ -19,8 +19,7 @@ import * as fs from 'fs';
 import * as _ from 'lodash';
 import type * as Stream from 'stream';
 import * as tar from 'tar-stream';
-
-import * as Compose from '../../lib/parse';
+import * as Compose from '@balena/compose-parser';
 
 import { splitBuildStream } from '../../lib/multibuild';
 
@@ -55,8 +54,9 @@ const checkIsInStream = (
 
 describe('Stream splitting', () => {
 	it('should correctly split a stream', async () => {
-		const composeObj = await import('./test-files/stream/docker-compose');
-		const comp = Compose.normalize(composeObj);
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/stream/docker-compose.yml`,
+		);
 
 		const stream = fs.createReadStream(`${TEST_FILES_PATH}/stream/project.tar`);
 
@@ -64,7 +64,7 @@ describe('Stream splitting', () => {
 			expect(tasks).to.have.length(2);
 			return Promise.all(
 				tasks.map((task) => {
-					return checkIsInStream(task.buildStream, 'Dockerfile').then(
+					return checkIsInStream(task.buildStream!, 'Dockerfile').then(
 						(found) => {
 							expect(found).to.equal(true);
 						},
@@ -75,10 +75,9 @@ describe('Stream splitting', () => {
 	});
 
 	it('should allow the sharing of build contexts', async () => {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-shared.json'
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/stream/docker-compose-shared.yml`,
 		);
-		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(`${TEST_FILES_PATH}/stream/project.tar`);
 
@@ -86,7 +85,7 @@ describe('Stream splitting', () => {
 			expect(tasks).to.have.length(2);
 			return Promise.all(
 				tasks.map((task) => {
-					return checkIsInStream(task.buildStream, 'Dockerfile').then(
+					return checkIsInStream(task.buildStream!, 'Dockerfile').then(
 						(found) => {
 							expect(found).to.equal(true);
 						},
@@ -97,10 +96,9 @@ describe('Stream splitting', () => {
 	});
 
 	it('should allow the sharing of the root build context', async () => {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-shared-root'
+		const comp = await Compose.parse(
+			`${TEST_FILES_PATH}/stream/docker-compose-shared-root.yml`,
 		);
-		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
 			`${TEST_FILES_PATH}/stream/shared-root-context.tar`,
@@ -112,12 +110,12 @@ describe('Stream splitting', () => {
 			return Promise.all(
 				tasks.map((task) => {
 					if (task.context === './') {
-						return checkIsInStream(task.buildStream, [
+						return checkIsInStream(task.buildStream!, [
 							'Dockerfile',
 							'test1/Dockerfile',
 						]).then((found) => expect(found).to.equal(true));
 					} else {
-						return checkIsInStream(task.buildStream, 'Dockerfile').then(
+						return checkIsInStream(task.buildStream!, 'Dockerfile').then(
 							(found) => expect(found).to.equal(true),
 						);
 					}
@@ -128,10 +126,9 @@ describe('Stream splitting', () => {
 
 	describe('Specifying a Dockerfile', () => {
 		it('should throw an error when a build object does not contain a context and dockerfile', async () => {
-			const composeObj = await import(
-				'./test-files/stream/docker-compose-specified-dockerfile-no-context.json'
+			const comp = await Compose.parse(
+				`${TEST_FILES_PATH}/stream/docker-compose-specified-dockerfile-no-context.yml`,
 			);
-			const comp = Compose.normalize(composeObj);
 
 			const stream = fs.createReadStream(
 				`${TEST_FILES_PATH}/stream/specified-dockerfile.tar`,
@@ -146,10 +143,9 @@ describe('Stream splitting', () => {
 		});
 
 		it('should allow specifying a dockerfile in the composition', async () => {
-			const composeObj = await import(
-				'./test-files/stream/docker-compose-specified-dockerfile.json'
+			const comp = await Compose.parse(
+				`${TEST_FILES_PATH}/stream/docker-compose-specified-dockerfile.yml`,
 			);
-			const comp = Compose.normalize(composeObj);
 
 			const stream = fs.createReadStream(
 				`${TEST_FILES_PATH}/stream/specified-dockerfile.tar`,

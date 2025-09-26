@@ -148,6 +148,16 @@ export async function runBuildTask(
 		);
 	}
 
+	// Transform dockerOpts.extrahosts from host=ip to host:ip.
+	// The compose-go parser outputs composition extra_hosts with host=ip
+	// syntax, but the Docker Builder API expects host:ip syntax.
+	// See: https://github.com/compose-spec/compose-go/blob/9a11fcb1e36231b74c211d92a14fe1e5491338d8/types/hostList.go#L76-L80
+	if (task.dockerOpts?.extrahosts) {
+		task.dockerOpts.extrahosts = task.dockerOpts.extrahosts.map(
+			(host: string) => host.replace('=', ':'),
+		);
+	}
+
 	task.dockerOpts = _.merge(
 		usePlatformOption ? { platform: task.dockerPlatform } : {},
 		task.dockerOpts,
