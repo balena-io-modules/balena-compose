@@ -108,7 +108,7 @@ export async function fromImageDescriptors(
 				if (matchingTasks.length > 0) {
 					// Add the file to every matching context
 					const buf = await TarUtils.streamToBuffer(entryStream);
-					matchingTasks.forEach((task) => {
+					for (const task of matchingTasks) {
 						const relative = path.posix.relative(task.context!, header.name);
 
 						// Contract is a special case, but we check
@@ -121,10 +121,11 @@ export async function fromImageDescriptors(
 							task.contract = contracts.processContract(buf);
 						}
 
-						const newHeader = _.cloneDeep(header);
-						newHeader.name = relative;
+						const newHeader =
+							header.name !== relative ? { ...header, name: relative } : header;
+
 						task.buildStream!.entry(newHeader, buf);
-					});
+					}
 				} else {
 					await TarUtils.drainStream(entryStream);
 				}
