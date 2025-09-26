@@ -131,7 +131,7 @@ async function resolveTarStreamOnEntry(
 ): Promise<void> {
 	const name = header.name ? TarUtils.normalizeTarEntry(header.name) : '';
 	if (!name) {
-		await TarUtils.drainStream(stream);
+		stream.resume();
 		return;
 	}
 	const candidates = resolvers.filter((r) =>
