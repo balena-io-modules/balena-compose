@@ -130,7 +130,7 @@ export async function fromImageDescriptors(
 						task.buildStream!.entry(newHeader, buf);
 					}
 				} else {
-					await TarUtils.drainStream(entryStream);
+					entryStream.resume();
 				}
 				next();
 			} catch (e) {
