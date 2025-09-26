@@ -108,6 +108,7 @@ export async function fromImageDescriptors(
 				if (matchingTasks.length > 0) {
 					// Add the file to every matching context
 					const buf = await TarUtils.streamToBuffer(entryStream);
+					let contract: Dictionary<unknown> | undefined;
 					for (const task of matchingTasks) {
 						const relative = path.posix.relative(task.context!, header.name);
 
@@ -118,7 +119,9 @@ export async function fromImageDescriptors(
 							if (task.contract != null) {
 								throw new MultipleContractsForService(task.serviceName);
 							}
-							task.contract = contracts.processContract(buf);
+							// Avoid re-processing the same contract if multiple tasks use it
+							contract ??= contracts.processContract(buf);
+							task.contract = contract;
 						}
 
 						const newHeader =
