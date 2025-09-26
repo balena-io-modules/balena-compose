@@ -1,4 +1,33 @@
 - commits:
+    - subject: Switch to `stream.resume()` for draining streams
+      hash: 0812b3f193052546d5a0c811387d93f5f5391ce3
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "fromImageDescriptors: avoid reprocessing a contract when used in
+        multiple tasks"
+      hash: 96fa87f40d4213329574147615ad2fa000b3a5ba
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: "fromImageDescriptors: avoid cloning the header when possible"
+      hash: 9e7305ab084e9c5d284a7d3dda5110e09034259c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.20
+  title: ""
+  date: 2025-09-26T16:09:50.766Z
+- commits:
     - subject: Change `resolveInput` to use `throughTarStream`
       hash: 6f208c0d0814088923d44ea7d00931f80196cdcd
       body: ""
