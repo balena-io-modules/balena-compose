@@ -21,6 +21,7 @@ import * as path from 'path';
 import * as stream from 'node:stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
+import * as crypto from 'crypto';
 
 import * as Compose from '../parse';
 
@@ -50,6 +51,7 @@ import { posixContains } from './path-utils';
 import type { RegistrySecrets } from './registry-secrets';
 import { ResolveListeners, resolveTask } from './resolve';
 import * as Utils from './utils';
+import { fs } from 'mz';
 
 export { QEMU_BIN_NAME } from './build-metadata';
 export * from './build-task';
@@ -62,6 +64,112 @@ export { BalenaYml, ParsedBalenaYml };
 export { PathUtils };
 export { ResolveListeners };
 export { CANONICAL_HUB_URL } from './constants';
+
+export function splitBuildStreamOnDisk(
+	composition: Compose.Composition,
+	buildStream: stream.Readable,
+	outputDir: string,
+) {
+	const images = Compose.parse(composition);
+	return fromImageDescriptorsOnDisk(images, buildStream, outputDir);
+}
+
+// Take the incoming stream and split it into tasks, then write each tasks contents to a separate tar on disk
+async function fromImageDescriptorsOnDisk(
+	images: Compose.ImageDescriptor[],
+	buildStream: stream.Readable,
+	outputDir = '/tmp',
+	metadataDirectories = ['.balena/', '.resin/'],
+): Promise<BuildTask[]> {
+	const buildMetadata = new BuildMetadata(metadataDirectories);
+
+	const newStream = buildMetadata.extractMetadata(buildStream);
+
+	return new Promise<BuildTask[]>((resolve, reject) => {
+		// Firstly create a list of BuildTasks based on the composition
+		const tasks = Utils.generateBuildTasks(images, buildMetadata);
+		const extract = tar.extract();
+
+		// Prepare output tars for each task
+		const taskPacks: { [serviceName: string]: tar.Pack } = {};
+		for (const task of tasks) {
+			if (!task.external) {
+				taskPacks[task.serviceName] = tar.pack();
+			}
+		}
+
+		extract.on('entry', async (header, entryStream, next) => {
+			try {
+				// Find the build context that this file should belong to
+				const matchingTasks = tasks.filter((task) => {
+					if (task.external) {
+						return false;
+					}
+					return posixContains(task.context!, header.name);
+				});
+
+				if (matchingTasks.length > 0) {
+					// Add the file to every matching context
+					// const buf = await TarUtils.streamToBuffer(entryStream);
+					for (const task of matchingTasks) {
+						const relative = path.posix.relative(task.context!, header.name);
+
+						// Keep contracts in memory
+						if (contracts.isContractFile(relative)) {
+							if (task.contract != null) {
+								throw new MultipleContractsForService(task.serviceName);
+							}
+							task.contract = contracts.processContract(
+								await TarUtils.streamToBuffer(entryStream),
+							);
+						}
+
+						// Every file required for the task should be stored in its tar
+						const newHeader = _.cloneDeep(header);
+						newHeader.name = relative;
+						entryStream.pipe(
+							taskPacks[task.serviceName].entry(newHeader, next),
+						);
+					}
+				} else {
+					await TarUtils.drainStream(entryStream);
+				}
+				next();
+			} catch (e) {
+				// Make sure the stream errors/finishes draining/frees memory
+				next(e);
+			}
+		});
+		extract.on('finish', () => {
+			for (const task of tasks) {
+				if (taskPacks[task.serviceName]) {
+					// Generate randomized filename to avoid collisions
+					const randomSuffix = crypto.randomBytes(8).toString('hex');
+					task.tarPath = path.join(outputDir, `${task.serviceName}-${randomSuffix}.tar`);
+					taskPacks[task.serviceName].finalize();
+					taskPacks[task.serviceName].pipe(fs.createWriteStream(task.tarPath));
+				}
+				if (!task.external) {
+					task.buildStream!.finalize();
+				}
+			}
+			resolve(tasks);
+		});
+		extract.on('error', (e) => {
+			if (
+				e instanceof ContractError ||
+				e instanceof MultipleContractsForService ||
+				e instanceof MultipleMetadataDirectoryError
+			) {
+				reject(e);
+			} else {
+				reject(new TarError(e));
+			}
+		});
+
+		stream.pipeline(newStream, extract, _.noop);
+	});
+}
 
 /**
  * Given a composition and stream which will output a valid tar archive,

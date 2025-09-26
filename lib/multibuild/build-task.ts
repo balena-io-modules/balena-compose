@@ -147,6 +147,9 @@ export interface BuildTask {
 
 	/** Logger to be used for events related to this build task */
 	logger?: Logger;
+
+	/** Resulting output tar path */
+	tarPath?: string;
 }
 
 export interface Logger {
