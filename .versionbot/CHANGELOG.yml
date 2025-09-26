@@ -1,4 +1,16 @@
 - commits:
+    - subject: Change `resolveInput` to use `throughTarStream`
+      hash: 6f208c0d0814088923d44ea7d00931f80196cdcd
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.0.19
+  title: ""
+  date: 2025-09-26T14:41:44.228Z
+- commits:
     - subject: Update `transposeTarStream` to use `throughTarStream`
       hash: 1f7773e8676cbea19d3f3de3092223b4b2fb8c4a
       body: ""
