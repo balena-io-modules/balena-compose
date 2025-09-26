@@ -63,6 +63,90 @@ export { PathUtils };
 export { ResolveListeners };
 export { CANONICAL_HUB_URL } from './constants';
 
+export function generateTasks(
+	composition: Compose.Composition,
+	buildStream: stream.Readable,
+	metadataDirectories = ['.balena/', '.resin/'],
+): { tasks: BuildTask[]; strippedStream: stream.Readable } {
+	const images = Compose.parse(composition);
+	const buildMetadata = new BuildMetadata(metadataDirectories);
+
+	const strippedStream = buildMetadata.extractMetadata(buildStream);
+
+	// Firstly create a list of BuildTasks based on the composition
+	const tasks = Utils.generateBuildTasks(images, buildMetadata);
+
+	return { tasks, strippedStream };
+}
+
+export async function populateTaskBuildStream(
+	task: BuildTask,
+	strippedStream: stream.Readable,
+): Promise<BuildTask> {
+	if (task.external) {
+		return task;
+	}
+	if (task.buildStream != null) {
+		throw new Error('Task build stream already exists');
+	}
+
+	task.buildStream = tar.pack();
+	await new Promise<void>((resolve, reject) => {
+		const extract = tar.extract();
+
+		extract.on('entry', async (header, entryStream, next) => {
+			try {
+				// Check if this file belongs in the build context
+				if (posixContains(task.context!, header.name)) {
+					// Add the file to every matching context
+					const buf = await TarUtils.streamToBuffer(entryStream);
+
+					const relative = path.posix.relative(task.context!, header.name);
+
+					// Contract is a special case, but we check
+					// here because we don't want to have to read
+					// the input stream again to find it
+					if (contracts.isContractFile(relative)) {
+						if (task.contract != null) {
+							throw new MultipleContractsForService(task.serviceName);
+						}
+						task.contract = contracts.processContract(buf);
+					}
+
+					const newHeader =
+						header.name !== relative ? { ...header, name: relative } : header;
+
+					task.buildStream!.entry(newHeader, buf);
+				} else {
+					entryStream.resume();
+				}
+				next();
+			} catch (e) {
+				// Make sure the stream errors/finishes draining/frees memory
+				next(e);
+			}
+		});
+		extract.on('finish', () => {
+			task.buildStream!.finalize();
+			resolve();
+		});
+		extract.on('error', (e) => {
+			if (
+				e instanceof ContractError ||
+				e instanceof MultipleContractsForService ||
+				e instanceof MultipleMetadataDirectoryError
+			) {
+				reject(e);
+			} else {
+				reject(new TarError(e));
+			}
+		});
+
+		stream.pipeline(strippedStream, extract, _.noop);
+	});
+	return task;
+}
+
 /**
  * Given a composition and stream which will output a valid tar archive,
  * split this stream into it's constiuent tasks, which may be a docker build,
@@ -92,6 +176,11 @@ export async function fromImageDescriptors(
 	return new Promise<BuildTask[]>((resolve, reject) => {
 		// Firstly create a list of BuildTasks based on the composition
 		const tasks = Utils.generateBuildTasks(images, buildMetadata);
+		for (const task of tasks) {
+			if (!task.external) {
+				task.buildStream = tar.pack();
+			}
+		}
 
 		const extract = tar.extract();
 
