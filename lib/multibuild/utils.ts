@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import * as tar from 'tar-stream';
 
 import type { ImageDescriptor } from '../parse';
 
@@ -66,7 +65,6 @@ export function generateBuildTasks(
 				{
 					external: false,
 					serviceName: img.serviceName,
-					buildStream: tar.pack(),
 					resolved: false,
 					buildMetadata,
 				},
