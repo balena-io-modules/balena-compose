@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import * as _ from 'lodash';
-import type * as Stream from 'stream';
 
 import * as Resolve from '../resolve';
 import { ResolveListeners } from '../resolve';
@@ -73,7 +72,7 @@ export function resolveTask(
 	};
 
 	const bundle = new Resolve.Bundle(
-		task.buildStream as Stream.Readable,
+		task.buildStream!,
 		deviceType,
 		architecture,
 		dockerfileHook,

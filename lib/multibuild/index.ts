@@ -116,7 +116,7 @@ export async function populateTaskBuildStream(
 					const newHeader =
 						header.name !== relative ? { ...header, name: relative } : header;
 
-					task.buildStream!.entry(newHeader, buf);
+					(task.buildStream as tar.Pack).entry(newHeader, buf);
 				} else {
 					entryStream.resume();
 				}
@@ -127,7 +127,7 @@ export async function populateTaskBuildStream(
 			}
 		});
 		extract.on('finish', () => {
-			task.buildStream!.finalize();
+			(task.buildStream as tar.Pack).finalize();
 			resolve();
 		});
 		extract.on('error', (e) => {
@@ -216,7 +216,7 @@ export async function fromImageDescriptors(
 						const newHeader =
 							header.name !== relative ? { ...header, name: relative } : header;
 
-						task.buildStream!.entry(newHeader, buf);
+						(task.buildStream as tar.Pack).entry(newHeader, buf);
 					}
 				} else {
 					entryStream.resume();
@@ -230,7 +230,7 @@ export async function fromImageDescriptors(
 		extract.on('finish', () => {
 			for (const task of tasks) {
 				if (!task.external) {
-					task.buildStream!.finalize();
+					(task.buildStream as tar.Pack).finalize();
 				}
 			}
 			resolve(tasks);

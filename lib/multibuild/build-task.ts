@@ -16,7 +16,6 @@
  */
 import type { ProgressCallback } from 'docker-progress';
 import type * as Stream from 'stream';
-import type * as tar from 'tar-stream';
 import type BuildMetadata from './build-metadata';
 
 /**
@@ -80,7 +79,7 @@ export interface BuildTask {
 	 *
 	 * If this task is an external image pull, this field will be null.
 	 */
-	buildStream?: tar.Pack;
+	buildStream?: Stream.Readable;
 	/**
 	 * This function should be provided by the caller. It is a hook which will
 	 * be called with the docker build output.
