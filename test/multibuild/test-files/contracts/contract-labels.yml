@@ -1,0 +1,11 @@
+services:
+  one:
+    build: './'
+    labels:
+      'io.balena.features.requires.hw.device-type': 'raspberrypi3'
+      'io.balena.features.requires.sw.l4t': '<=5'
+  two:
+    image: 'alpine:latest'
+    labels:
+      'io.balena.features.requires.sw.supervisor': '>=16.1.0'
+      'io.balena.features.requires.arch.sw': 'amd64'

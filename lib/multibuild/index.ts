@@ -22,7 +22,7 @@ import * as stream from 'node:stream';
 import * as tar from 'tar-stream';
 import * as TarUtils from 'tar-utils';
 
-import * as Compose from '../parse';
+import * as Compose from '@balena/compose-parser';
 
 import { runBuildTask } from './build';
 import BuildMetadata from './build-metadata';
@@ -76,7 +76,7 @@ export function splitBuildStream(
 	composition: Compose.Composition,
 	buildStream: stream.Readable,
 ): Promise<BuildTask[]> {
-	const images = Compose.parse(composition);
+	const images = Compose.toImageDescriptors(composition);
 	return fromImageDescriptors(images, buildStream);
 }
 
