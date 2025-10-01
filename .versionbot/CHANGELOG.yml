@@ -1,4 +1,24 @@
 - commits:
+    - subject: Loosen the `buildStream` typing slightly to a generic `Stream.Readable`
+      hash: 4d7725156cfbf584018a8fd86273d67a1ef4f69d
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Allow generating tasks and their build streams separately
+      hash: 1a9a4d445d950b9e4855f8f492f2eacdc10b2f63
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 7.1.0
+  title: ""
+  date: 2025-10-01T23:16:30.583Z
+- commits:
     - subject: Switch to `stream.resume()` for draining streams
       hash: 0812b3f193052546d5a0c811387d93f5f5391ce3
       body: ""
