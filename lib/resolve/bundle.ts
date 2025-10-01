@@ -1,9 +1,11 @@
+import type { Stream } from 'node:stream';
+
 const emptyHook = (): Promise<void> => {
 	return Promise.resolve();
 };
 
 export class Bundle {
-	public tarStream: NodeJS.ReadableStream;
+	public tarStream: Stream.Readable;
 
 	/**
 	 * deviceType: The slug of the device type that this bundle has been created
@@ -44,7 +46,7 @@ export class Bundle {
 	 *  The architecture that this resin bundle is currently targeting
 	 */
 	public constructor(
-		tarStream: NodeJS.ReadableStream,
+		tarStream: Stream.Readable,
 		deviceType: string,
 		architecture: string,
 		hook: Bundle['dockerfileHook'] = emptyHook,
