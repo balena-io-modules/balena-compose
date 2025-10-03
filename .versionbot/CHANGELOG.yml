@@ -1,4 +1,32 @@
 - commits:
+    - subject: Switch from `es.join` to a native `Transform` stream
+      hash: 01d6102163455bb1fae9d2891accdee677a741ae
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch from `es.mapSync` to a native `Transform` stream
+      hash: d397859307ee891c259a2d3186539055ef6268a4
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+    - subject: Switch from `es.through` to a native `Transform` stream
+      hash: 07e39ff77ccdfd77282338558898f2cebcb657eb
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.1.2
+  title: ""
+  date: 2025-10-03T17:01:37.559Z
+- commits:
     - subject: Replace `duplexify` with native equivalent
       hash: 54396b28e72740fe2a167cbbf29a4f71d5adc4c5
       body: ""
