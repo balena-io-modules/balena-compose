@@ -16,7 +16,6 @@
  */
 
 import * as Dockerode from 'dockerode';
-import * as duplexify from 'duplexify';
 import * as es from 'event-stream';
 import * as JSONStream from 'JSONStream';
 import * as _ from 'lodash';
@@ -70,19 +69,14 @@ export default class Builder {
 		const layers: string[] = [];
 		const fromTags: Utils.FromTagInfo[] = [];
 
-		// Create a stream to be passed into the docker daemon
-		const inputStream = es.through<stream.Duplex>();
-
 		// Create a bi-directional stream
-		const dup = duplexify();
-
-		// Connect the input stream to the rw stream
-		dup.setWritable(inputStream);
+		const [external, internal] = stream.duplexPair();
 
 		let streamError: Error | undefined;
 		const failBuild = _.once((err: Error) => {
 			streamError = err;
-			dup.destroy(err);
+			internal.destroy(err);
+			external.destroy(err);
 			return this.callHook(
 				hooks,
 				'buildFailure',
@@ -93,8 +87,8 @@ export default class Builder {
 			);
 		});
 
-		inputStream.on('error', failBuild);
-		dup.on('error', failBuild);
+		internal.on('error', failBuild);
+		external.on('error', failBuild);
 
 		// If buildOpts includes any volumes, JSON serialize them before passing
 		// them to the engine
@@ -103,7 +97,7 @@ export default class Builder {
 		}
 
 		const buildPromise = (async () => {
-			const daemonStream = await this.docker.buildImage(inputStream, buildOpts);
+			const daemonStream = await this.docker.buildImage(internal, buildOpts);
 
 			await new Promise<void>((resolve, reject) => {
 				const outputStream = getDockerDaemonBuildOutputParserStream(
@@ -128,7 +122,7 @@ export default class Builder {
 					},
 				);
 				// Connect the output of the docker daemon to the duplex stream
-				dup.setReadable(outputStream);
+				stream.pipeline(outputStream, internal, _.noop);
 			});
 		})(); // no .catch() here, but rejection is captured by Promise.all() below
 
@@ -142,7 +136,7 @@ export default class Builder {
 				await Promise.all([
 					buildPromise,
 					// Call the buildStream handler with the docker daemon stream
-					this.callHook(hooks, 'buildStream', handler, dup),
+					this.callHook(hooks, 'buildStream', handler, external),
 				]);
 				if (!streamError) {
 					// Build successful: call buildSuccess handler
@@ -160,7 +154,7 @@ export default class Builder {
 			}
 		})();
 
-		return dup;
+		return external;
 	}
 
 	/**
@@ -278,7 +272,7 @@ function getDockerDaemonBuildOutputParserStream(
 			try {
 				if (data.error) {
 					throw new Error(data.error);
-				} else {
+				} else if (data.stream != null) {
 					// Store image layers, so that they can be
 					// deleted by the caller if necessary
 					const sha = Utils.extractLayer(data.stream);
