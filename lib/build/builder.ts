@@ -16,7 +16,6 @@
  */
 
 import * as Dockerode from 'dockerode';
-import * as es from 'event-stream';
 import * as JSONStream from 'JSONStream';
 import * as _ from 'lodash';
 import * as fs from 'mz/fs';
@@ -261,39 +260,49 @@ function getDockerDaemonBuildOutputParserStream(
 		daemonStream,
 		// parse the docker daemon's output json objects
 		JSONStream.parse(undefined),
-		// Don't use fat-arrow syntax here, to capture 'this' from es
-		es.through<stream.Duplex>(function (data: {
-			stream: string;
-			error: string;
-		}) {
-			if (data == null) {
-				return;
-			}
-			try {
-				if (data.error) {
-					throw new Error(data.error);
-				} else if (data.stream != null) {
-					// Store image layers, so that they can be
-					// deleted by the caller if necessary
-					const sha = Utils.extractLayer(data.stream);
-					if (sha !== undefined) {
-						layers.push(sha);
+		new stream.Transform({
+			objectMode: true,
+			transform(
+				data: {
+					stream?: string;
+					error?: string;
+				},
+				_encoding,
+				cb,
+			) {
+				try {
+					if (data == null) {
+						cb();
+						return;
 					}
-					const fromTag = Utils.extractFromTag(data.stream);
-					if (fromTag !== undefined) {
-						if (!fromAliases.has(fromTag.repo)) {
-							fromImageTags.push(fromTag);
-						}
-						if (fromTag.alias) {
-							fromAliases.add(fromTag.alias);
-						}
+					if (data.error) {
+						throw new Error(data.error);
 					}
-					this.emit('data', data.stream);
+					if (data.stream != null) {
+						// Store image layers, so that they can be
+						// deleted by the caller if necessary
+						const sha = Utils.extractLayer(data.stream);
+						if (sha !== undefined) {
+							layers.push(sha);
+						}
+						const fromTag = Utils.extractFromTag(data.stream);
+						if (fromTag !== undefined) {
+							if (!fromAliases.has(fromTag.repo)) {
+								fromImageTags.push(fromTag);
+							}
+							if (fromTag.alias) {
+								fromAliases.add(fromTag.alias);
+							}
+						}
+						this.push(data.stream);
+					}
+					cb();
+				} catch (error) {
+					daemonStream.unpipe();
+					onError(error);
+					cb(error);
 				}
-			} catch (error) {
-				daemonStream.unpipe();
-				onError(error);
-			}
+			},
 		}),
 		_.noop,
 	);
