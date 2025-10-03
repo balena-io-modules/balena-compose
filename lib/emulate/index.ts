@@ -18,7 +18,7 @@
 import * as parser from 'docker-file-parser';
 import * as jsesc from 'jsesc';
 import * as _ from 'lodash';
-import { Stream, pipeline } from 'node:stream';
+import { Stream } from 'node:stream';
 import { normalizeTarEntry, streamToBuffer, throughTarStream } from 'tar-utils';
 
 /**
@@ -227,8 +227,6 @@ export async function transposeTarStream(
 export function getBuildThroughStream(
 	opts: TransposeOptions,
 ): NodeJS.ReadWriteStream {
-	// eslint-disable-next-line @typescript-eslint/no-require-imports
-	const es = require('event-stream');
 	// Regex to match against 'Step 1/5:', 'Step 1/5 :' 'Step 1:' 'Step 1 :'
 	// and all lower case versions.
 	const stepLineRegex = /^(?:step)\s\d+(?:\/\d+)?\s?:/i;
@@ -259,25 +257,21 @@ export function getBuildThroughStream(
 		return data.replace(replaceRegex, '');
 	};
 
-	return pipeline(
-		new Stream.Transform({
-			objectMode: true,
-			transform(data: string | Buffer, _encoding, cb) {
-				try {
-					data = data.toString();
-					if (
-						isStepLine(data) &&
-						getStepCommand(stripStepPrefix(data)) === 'RUN'
-					) {
-						data = replaceQemuLine(data);
-					}
-					cb(null, data);
-				} catch (err) {
-					cb(err);
+	return new Stream.Transform({
+		objectMode: true,
+		transform(data: string | Buffer, _encoding, cb) {
+			try {
+				data = data.toString();
+				if (
+					isStepLine(data) &&
+					getStepCommand(stripStepPrefix(data)) === 'RUN'
+				) {
+					data = replaceQemuLine(data);
 				}
-			},
-		}),
-		es.join('\n'),
-		_.noop,
-	);
+				cb(null, data + '\n');
+			} catch (err) {
+				cb(err);
+			}
+		},
+	});
 }
