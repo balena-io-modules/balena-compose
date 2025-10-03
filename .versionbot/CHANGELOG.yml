@@ -1,4 +1,16 @@
 - commits:
+    - subject: Replace `duplexify` with native equivalent
+      hash: 54396b28e72740fe2a167cbbf29a4f71d5adc4c5
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.1.1
+  title: ""
+  date: 2025-10-03T16:47:01.695Z
+- commits:
     - subject: Loosen the `buildStream` typing slightly to a generic `Stream.Readable`
       hash: 4d7725156cfbf584018a8fd86273d67a1ef4f69d
       body: ""
