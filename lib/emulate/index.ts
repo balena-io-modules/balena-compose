@@ -260,13 +260,22 @@ export function getBuildThroughStream(
 	};
 
 	return pipeline(
-		es.mapSync(function (data: string | Buffer) {
-			data = data.toString();
-
-			if (isStepLine(data) && getStepCommand(stripStepPrefix(data)) === 'RUN') {
-				data = replaceQemuLine(data);
-			}
-			return data;
+		new Stream.Transform({
+			objectMode: true,
+			transform(data: string | Buffer, _encoding, cb) {
+				try {
+					data = data.toString();
+					if (
+						isStepLine(data) &&
+						getStepCommand(stripStepPrefix(data)) === 'RUN'
+					) {
+						data = replaceQemuLine(data);
+					}
+					cb(null, data);
+				} catch (err) {
+					cb(err);
+				}
+			},
 		}),
 		es.join('\n'),
 		_.noop,
