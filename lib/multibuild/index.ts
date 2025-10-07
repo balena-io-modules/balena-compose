@@ -99,28 +99,32 @@ export async function populateTaskBuildStream(
 				// Check if this file belongs in the build context
 				if (posixContains(task.context!, header.name)) {
 					// Add the file to every matching context
-					const buf = await TarUtils.streamToBuffer(entryStream);
 
 					const relative = path.posix.relative(task.context!, header.name);
+
+					const newHeader =
+						header.name !== relative ? { ...header, name: relative } : header;
 
 					// Contract is a special case, but we check
 					// here because we don't want to have to read
 					// the input stream again to find it
 					if (contracts.isContractFile(relative)) {
 						if (task.contract != null) {
+							entryStream.resume();
 							throw new MultipleContractsForService(task.serviceName);
 						}
+						const buf = await TarUtils.streamToBuffer(entryStream);
 						task.contract = contracts.processContract(buf);
+						(task.buildStream as tar.Pack).entry(newHeader, buf, next);
+					} else {
+						entryStream.pipe(
+							(task.buildStream as tar.Pack).entry(newHeader, next),
+						);
 					}
-
-					const newHeader =
-						header.name !== relative ? { ...header, name: relative } : header;
-
-					(task.buildStream as tar.Pack).entry(newHeader, buf);
 				} else {
 					entryStream.resume();
+					next();
 				}
-				next();
 			} catch (e) {
 				// Make sure the stream errors/finishes draining/frees memory
 				next(e);
