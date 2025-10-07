@@ -115,14 +115,16 @@ export async function populateTaskBuildStream(
 						}
 						const buf = await TarUtils.streamToBuffer(entryStream);
 						task.contract = contracts.processContract(buf);
-						(task.buildStream as tar.Pack).entry(newHeader, buf);
+						(task.buildStream as tar.Pack).entry(newHeader, buf, next);
 					} else {
-						entryStream.pipe((task.buildStream as tar.Pack).entry(newHeader));
+						entryStream.pipe(
+							(task.buildStream as tar.Pack).entry(newHeader, next),
+						);
 					}
 				} else {
 					entryStream.resume();
+					next();
 				}
-				next();
 			} catch (e) {
 				// Make sure the stream errors/finishes draining/frees memory
 				next(e);
