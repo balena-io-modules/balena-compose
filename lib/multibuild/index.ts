@@ -79,10 +79,24 @@ export function generateTasks(
 	return { tasks, strippedStream };
 }
 
+/**
+ * @deprecated This function buffers the entire build stream into memory, using `populateStreamingTaskBuildStream`
+ * is preferred as it streams the data and is more memory efficient.
+ */
 export async function populateTaskBuildStream(
 	task: BuildTask,
 	strippedStream: stream.Readable,
 ): Promise<BuildTask> {
+	populateStreamingTaskBuildStream(task, strippedStream);
+	if (task.buildStream != null) {
+		task.buildStream = await TarUtils.cloneTarStream(task.buildStream);
+	}
+	return task;
+}
+export function populateStreamingTaskBuildStream(
+	task: BuildTask,
+	strippedStream: stream.Readable,
+): BuildTask {
 	if (task.external) {
 		return task;
 	}
@@ -90,60 +104,41 @@ export async function populateTaskBuildStream(
 		throw new Error('Task build stream already exists');
 	}
 
-	task.buildStream = tar.pack();
-	await new Promise<void>((resolve, reject) => {
-		const extract = tar.extract();
+	const [extract, pack] = TarUtils.throughTarStream(
+		async ($pack, header, entryStream, next) => {
+			// Check if this file belongs in the build context
+			if (posixContains(task.context!, header.name)) {
+				// Add the file to every matching context
 
-		extract.on('entry', async (header, entryStream, next) => {
-			try {
-				// Check if this file belongs in the build context
-				if (posixContains(task.context!, header.name)) {
-					// Add the file to every matching context
-					const buf = await TarUtils.streamToBuffer(entryStream);
+				const relative = path.posix.relative(task.context!, header.name);
 
-					const relative = path.posix.relative(task.context!, header.name);
+				const newHeader =
+					header.name !== relative ? { ...header, name: relative } : header;
 
-					// Contract is a special case, but we check
-					// here because we don't want to have to read
-					// the input stream again to find it
-					if (contracts.isContractFile(relative)) {
-						if (task.contract != null) {
-							throw new MultipleContractsForService(task.serviceName);
-						}
-						task.contract = contracts.processContract(buf);
+				// Contract is a special case, but we check
+				// here because we don't want to have to read
+				// the input stream again to find it
+				if (contracts.isContractFile(relative)) {
+					if (task.contract != null) {
+						entryStream.resume();
+						throw new MultipleContractsForService(task.serviceName);
 					}
-
-					const newHeader =
-						header.name !== relative ? { ...header, name: relative } : header;
-
-					(task.buildStream as tar.Pack).entry(newHeader, buf);
+					const buf = await TarUtils.streamToBuffer(entryStream);
+					task.contract = contracts.processContract(buf);
+					$pack.entry(newHeader, buf, next);
 				} else {
-					entryStream.resume();
+					entryStream.pipe($pack.entry(newHeader, next));
 				}
-				next();
-			} catch (e) {
-				// Make sure the stream errors/finishes draining/frees memory
-				next(e);
-			}
-		});
-		extract.on('finish', () => {
-			(task.buildStream as tar.Pack).finalize();
-			resolve();
-		});
-		extract.on('error', (e) => {
-			if (
-				e instanceof ContractError ||
-				e instanceof MultipleContractsForService ||
-				e instanceof MultipleMetadataDirectoryError
-			) {
-				reject(e);
 			} else {
-				reject(new TarError(e));
+				entryStream.resume();
+				next();
 			}
-		});
+		},
+	);
 
-		stream.pipeline(strippedStream, extract, _.noop);
-	});
+	task.buildStream = pack;
+
+	stream.pipeline(strippedStream, extract, _.noop);
 	return task;
 }
 
