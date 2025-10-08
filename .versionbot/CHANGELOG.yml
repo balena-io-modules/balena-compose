@@ -1,4 +1,17 @@
 - commits:
+    - subject: Add a `populateStreamingTaskBuildStream` variant that does not buffer
+        everything into memory
+      hash: 5eaf6b46136004a35c0218671ad877e2f815869c
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+  version: 7.2.0
+  title: ""
+  date: 2025-10-08T12:30:51.316Z
+- commits:
     - subject: "Revert: Only buffer contract files when populating the task build
         stream"
       hash: 23e429475df5e27c1a725073e160a82621a7cf94
