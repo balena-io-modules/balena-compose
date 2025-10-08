@@ -1,4 +1,17 @@
 - commits:
+    - subject: "Revert: Only buffer contract files when populating the task build
+        stream"
+      hash: 23e429475df5e27c1a725073e160a82621a7cf94
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.1.4
+  title: ""
+  date: 2025-10-08T02:11:27.074Z
+- commits:
     - subject: Only buffer contract files when populating the task build stream
       hash: 3d7fa0d7b96264b0c1905f5a0a35d1f6fcf124c2
       body: ""
