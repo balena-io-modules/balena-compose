@@ -17,8 +17,6 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as Compose from '@balena/compose-parser';
-import * as os from 'os';
-import * as path from 'path';
 
 import { defaultComposition } from '../../lib/parse';
 
@@ -31,19 +29,8 @@ import {
 import { TEST_FILES_PATH } from './build-utils';
 
 describe('Container contracts', () => {
-	let defaultCompositionPath: string;
-
-	before(async () => {
-		defaultCompositionPath = path.join(os.tmpdir(), 'default-composition.yml');
-		await fs.promises.writeFile(defaultCompositionPath, defaultComposition());
-	});
-
-	after(async () => {
-		await fs.promises.unlink(defaultCompositionPath);
-	});
-
 	it('should correctly extract container contracts', async () => {
-		const comp = await Compose.parse(defaultCompositionPath);
+		const comp = defaultComposition();
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/simple-contract.tar`,
 		);
@@ -67,7 +54,7 @@ describe('Container contracts', () => {
 	});
 
 	it('should throw an error when a build task has multiple contracts', async () => {
-		const comp = await Compose.parse(defaultCompositionPath);
+		const comp = defaultComposition();
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/excessive-contracts.tar`,
 		);
@@ -235,7 +222,7 @@ describe('Container contracts', () => {
 	});
 
 	it('should throw when a contract does not contain a name field', async () => {
-		const comp = await Compose.parse(defaultCompositionPath);
+		const comp = defaultComposition();
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/no-name-contract.tar`,
 		);
@@ -251,7 +238,7 @@ describe('Container contracts', () => {
 	});
 
 	it('should throw when a contract does not contain a type field', async () => {
-		const comp = await Compose.parse(defaultCompositionPath);
+		const comp = defaultComposition();
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/no-type-contract.tar`,
 		);
@@ -267,7 +254,7 @@ describe('Container contracts', () => {
 	});
 
 	it('should throw when a contract has the wrong type', async () => {
-		const comp = await Compose.parse(defaultCompositionPath);
+		const comp = defaultComposition();
 		const tarStream = fs.createReadStream(
 			`${TEST_FILES_PATH}/wrong-type-contract.tar`,
 		);
