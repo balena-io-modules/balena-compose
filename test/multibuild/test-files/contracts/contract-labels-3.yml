@@ -1,0 +1,7 @@
+services:
+  one:
+    build: ./one
+    labels:
+      'io.balena.features.requires.hw.device-type': 'raspberrypi3'
+  two:
+    build: ./two

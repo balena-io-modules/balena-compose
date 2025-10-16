@@ -16,9 +16,7 @@
     "clean": "rimraf dist",
     "lint": "balena-lint -t ./tsconfig.test.json lib/ typings/ test/ && tsc --noEmit",
     "lint-fix": "balena-lint -t ./tsconfig.test.json --fix lib/ typings/ test/",
-    "copy": "npm run copy:secrets && npm run copy:schemas",
-    "copy:schemas": "ncp lib/parse/schemas dist/parse/schemas --filter='schemas($|.*\\.json)'",
-    "copy:secrets": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
+    "copy": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
     "prepack": "npm run build"
@@ -44,7 +42,6 @@
     "@types/lodash": "^4.17.20",
     "@types/memoizee": "^0.4.12",
     "@types/mocha": "^10.0.10",
-    "@types/mz": "^2.7.9",
     "@types/node": "^20.19.17",
     "@types/proxyquire": "^1.3.31",
     "@types/semver": "^7.7.1",
@@ -61,6 +58,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
+    "@balena/compose-parser": "^0.0.15",
     "ajv": "^6.12.6",
     "balena-sdk": "^22.1.3",
     "docker-file-parser": "^1.0.7",
@@ -76,7 +74,6 @@
     "klaw": "^4.1.0",
     "lodash": "^4.17.21",
     "memoizee": "^0.4.17",
-    "mz": "^2.7.0",
     "p-map": "^4.0.0",
     "semver": "^7.7.2",
     "tar-stream": "^3.1.7",
