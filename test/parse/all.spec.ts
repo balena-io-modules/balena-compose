@@ -20,20 +20,8 @@ async function safeUnlink(p: string) {
 }
 
 describe('default composition', () => {
-	let tmpPath: string;
-	beforeEach(() => {
-		tmpPath = path.join(os.tmpdir(), 'compose.yml');
-	});
-
-	afterEach(async () => {
-		await safeUnlink(tmpPath);
-	});
-
-	it('with build context', async () => {
-		const composeStr = defaultComposition();
-		await fs.writeFile(tmpPath, composeStr);
-
-		const composition = await Compose.parse(tmpPath);
+	it('with build context', () => {
+		const composition = defaultComposition();
 		const imageDescriptors = Compose.toImageDescriptors(composition);
 
 		expect(imageDescriptors).to.deep.equal([
@@ -44,11 +32,8 @@ describe('default composition', () => {
 		]);
 	});
 
-	it('with build dockerfile name', async () => {
-		const composeStr = defaultComposition(undefined, 'MyDockerfile');
-		await fs.writeFile(tmpPath, composeStr);
-
-		const composition = await Compose.parse(tmpPath);
+	it('with build dockerfile name', () => {
+		const composition = defaultComposition(undefined, 'MyDockerfile');
 		const imageDescriptors = Compose.toImageDescriptors(composition);
 
 		expect(imageDescriptors).to.deep.equal([
@@ -59,11 +44,8 @@ describe('default composition', () => {
 		]);
 	});
 
-	it('with image', async () => {
-		const composeStr = defaultComposition('some/image');
-		await fs.writeFile(tmpPath, composeStr);
-
-		const composition = await Compose.parse(tmpPath);
+	it('with image', () => {
+		const composition = defaultComposition('some/image');
 		const imageDescriptors = Compose.toImageDescriptors(composition);
 
 		expect(imageDescriptors).to.deep.equal([

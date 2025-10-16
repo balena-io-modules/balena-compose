@@ -1,37 +1,46 @@
+import type { Composition } from '@balena/compose-parser';
+
 export function defaultComposition(
 	image?: string,
 	dockerfile?: string,
-): string {
-	let context: string;
+): Composition {
+	const composition: Composition = {
+		networks: {},
+		volumes: {
+			'resin-data': {},
+		},
+		services: {
+			main: {
+				privileged: true,
+				tty: true,
+				restart: 'always',
+				network_mode: 'host',
+				volumes: ['resin-data:/data'],
+				labels: {
+					'io.resin.features.kernel-modules': '1',
+					'io.resin.features.firmware': '1',
+					'io.resin.features.dbus': '1',
+					'io.resin.features.supervisor-api': '1',
+					'io.resin.features.resin-api': '1',
+				},
+			},
+		},
+	};
+
 	if (image) {
-		context = `image: ${image}`;
+		composition.services.main.image = image;
 	} else {
 		if (dockerfile) {
-			context = `build: {context: ".", dockerfile: "${dockerfile}"}`;
+			composition.services.main.build = {
+				context: '.',
+				dockerfile,
+			};
 		} else {
-			context = 'build: "."';
+			composition.services.main.build = {
+				context: '.',
+			};
 		}
 	}
-	return `# This file has been auto-generated.
-networks: {}
-volumes:
-  resin-data: {}
-services:
-  main:
-    ${context}
-    privileged: true
-    tty: true
-    restart: always
-    network_mode: host
-    volumes:
-      - type: volume
-        source: resin-data
-        target: /data
-    labels:
-      io.resin.features.kernel-modules: 1
-      io.resin.features.firmware: 1
-      io.resin.features.dbus: 1
-      io.resin.features.supervisor-api: 1
-      io.resin.features.resin-api: 1
-`;
+
+	return composition;
 }
