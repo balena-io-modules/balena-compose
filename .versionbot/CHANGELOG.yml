@@ -1,4 +1,16 @@
 - commits:
+    - subject: Drop unused `bluebird-lru-cache` from typings
+      hash: 1f8fcc15f8c89326274882d6da9ff1275bdd412c
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Otavio Jacobi
+      nested: []
+  version: 7.2.1
+  title: ""
+  date: 2025-10-16T17:57:10.127Z
+- commits:
     - subject: Add a `populateStreamingTaskBuildStream` variant that does not buffer
         everything into memory
       hash: 5eaf6b46136004a35c0218671ad877e2f815869c
