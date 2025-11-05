@@ -20,8 +20,7 @@
  */
 import { expect } from 'chai';
 import * as fs from 'fs';
-
-import { normalize } from '../../lib/parse';
+import * as Compose from '@balena/compose-parser';
 
 import type { RegistrySecrets } from '../../lib/multibuild';
 import {
@@ -129,14 +128,10 @@ describe('RegistrySecretValidator.addCanonicalDockerHubEntry', () => {
 
 describe('Registry secret extraction', () => {
 	it('should correctly extract the registry secrets from the metadata directory', async () => {
-		const composition = normalize({
-			version: '2',
-			services: {
-				main: {
-					build: { context: '.' },
-				},
-			},
-		});
+		const composition = await Compose.parse(
+			`${TEST_FILES_PATH}/registry-secrets.yml`,
+		);
+
 		const tasks = await splitBuildStream(
 			composition,
 			fs.createReadStream(`${TEST_FILES_PATH}/registry-secrets.tar`),

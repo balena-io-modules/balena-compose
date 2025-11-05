@@ -18,7 +18,7 @@ import * as crypto from 'crypto';
 import type * as Dockerode from 'dockerode';
 import * as t from 'io-ts';
 import * as _ from 'lodash';
-import { fs } from 'mz';
+import { promises as fs } from 'fs';
 import * as path from 'path';
 import * as tar from 'tar-stream';
 

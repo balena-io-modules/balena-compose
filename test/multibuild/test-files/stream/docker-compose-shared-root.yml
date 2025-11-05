@@ -1,0 +1,5 @@
+services:
+  test1:
+    build: ./
+  test2:
+    build: ./test1

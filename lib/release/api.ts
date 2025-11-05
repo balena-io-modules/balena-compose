@@ -1,10 +1,9 @@
 import * as pMap from 'p-map';
 import type { PinejsClientCore } from 'pinejs-client-core';
 import type { BalenaModel, PineClient as BalenaPineClient } from 'balena-sdk';
+import type { Composition, ImageDescriptor } from '@balena/compose-parser';
 import * as models from './models';
 import type { Dict } from './types';
-
-import type { Composition, ImageDescriptor } from '../../lib/parse';
 
 const MAX_CONCURRENT_REQUESTS = 5;
 

@@ -1,34 +1,46 @@
-import { defaultComposition, normalize, parse } from './compose';
-import { ServiceError, ValidationError } from './errors';
-import {
-	DEFAULT_SCHEMA_VERSION,
-	SchemaError,
-	SchemaVersion,
-	validate,
-} from './schemas';
-import {
-	BuildConfig,
-	Composition,
-	ImageDescriptor,
-	Network,
-	Service,
-	Volume,
-} from './types';
+import type { Composition } from '@balena/compose-parser';
 
-export {
-	defaultComposition,
-	normalize,
-	parse,
-	BuildConfig,
-	Composition,
-	DEFAULT_SCHEMA_VERSION,
-	ImageDescriptor,
-	Network,
-	SchemaError,
-	SchemaVersion,
-	Service,
-	ServiceError,
-	validate,
-	ValidationError,
-	Volume,
-};
+export function defaultComposition(
+	image?: string,
+	dockerfile?: string,
+): Composition {
+	const composition: Composition = {
+		networks: {},
+		volumes: {
+			'resin-data': {},
+		},
+		services: {
+			main: {
+				privileged: true,
+				tty: true,
+				restart: 'always',
+				network_mode: 'host',
+				volumes: ['resin-data:/data'],
+				labels: {
+					'io.resin.features.kernel-modules': '1',
+					'io.resin.features.firmware': '1',
+					'io.resin.features.dbus': '1',
+					'io.resin.features.supervisor-api': '1',
+					'io.resin.features.resin-api': '1',
+				},
+			},
+		},
+	};
+
+	if (image) {
+		composition.services.main.image = image;
+	} else {
+		if (dockerfile) {
+			composition.services.main.build = {
+				context: '.',
+				dockerfile,
+			};
+		} else {
+			composition.services.main.build = {
+				context: '.',
+			};
+		}
+	}
+
+	return composition;
+}
