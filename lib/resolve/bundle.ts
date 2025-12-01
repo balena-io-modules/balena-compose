@@ -32,7 +32,7 @@ export class Bundle {
 	private dockerfileHook: (
 		content: string,
 		// eslint-disable-next-line @typescript-eslint/no-invalid-void-type
-	) => void | undefined | string | PromiseLike<undefined | void | string>;
+	) => void | string | PromiseLike<void | string>;
 
 	/**
 	 * constructor: Initialise a resin-bundle with a tar archive stream

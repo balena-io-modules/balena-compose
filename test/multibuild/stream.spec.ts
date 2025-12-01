@@ -75,9 +75,8 @@ describe('Stream splitting', () => {
 	});
 
 	it('should allow the sharing of build contexts', async () => {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-shared.json'
-		);
+		const composeObj =
+			await import('./test-files/stream/docker-compose-shared.json');
 		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(`${TEST_FILES_PATH}/stream/project.tar`);
@@ -97,9 +96,8 @@ describe('Stream splitting', () => {
 	});
 
 	it('should allow the sharing of the root build context', async () => {
-		const composeObj = await import(
-			'./test-files/stream/docker-compose-shared-root'
-		);
+		const composeObj =
+			await import('./test-files/stream/docker-compose-shared-root');
 		const comp = Compose.normalize(composeObj);
 
 		const stream = fs.createReadStream(
@@ -128,9 +126,8 @@ describe('Stream splitting', () => {
 
 	describe('Specifying a Dockerfile', () => {
 		it('should throw an error when a build object does not contain a context and dockerfile', async () => {
-			const composeObj = await import(
-				'./test-files/stream/docker-compose-specified-dockerfile-no-context.json'
-			);
+			const composeObj =
+				await import('./test-files/stream/docker-compose-specified-dockerfile-no-context.json');
 			const comp = Compose.normalize(composeObj);
 
 			const stream = fs.createReadStream(
@@ -146,9 +143,8 @@ describe('Stream splitting', () => {
 		});
 
 		it('should allow specifying a dockerfile in the composition', async () => {
-			const composeObj = await import(
-				'./test-files/stream/docker-compose-specified-dockerfile.json'
-			);
+			const composeObj =
+				await import('./test-files/stream/docker-compose-specified-dockerfile.json');
 			const comp = Compose.normalize(composeObj);
 
 			const stream = fs.createReadStream(

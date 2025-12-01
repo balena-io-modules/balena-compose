@@ -28,11 +28,6 @@ const hasImageTag = (name: string): boolean => {
 	return tagRegex.test(name);
 };
 
-interface RegistrySecret {
-	username: string;
-	password: string;
-}
-
 export async function pullExternal(
 	task: BuildTask,
 	docker: Dockerode,
@@ -52,10 +47,9 @@ export async function pullExternal(
 	}
 
 	const opts = task.dockerOpts ?? {};
-	let authConfig: RegistrySecret | object = {};
-	if (opts.registryconfig) {
-		authConfig = getAuthConfigObj(imageName, opts.registryconfig);
-	}
+	const authConfig = opts.registryconfig
+		? getAuthConfigObj(imageName, opts.registryconfig)
+		: {};
 
 	const startTime = Date.now();
 	try {
