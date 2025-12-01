@@ -296,7 +296,7 @@ function normalizeService(
 		}
 		if (labels.length > 0) {
 			service.labels = {
-				...labels.reduce((o, l) => ({ ...o, [l]: 1 }), {}),
+				...labels.reduce((o, l) => ({ ...o, [l]: '1' }), {}),
 				...service.labels,
 			};
 		}
