@@ -58,6 +58,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
@@ -94,6 +95,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
@@ -107,6 +109,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
@@ -201,6 +204,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
