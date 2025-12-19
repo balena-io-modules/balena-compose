@@ -169,13 +169,13 @@ describe('normalization', () => {
 	it('should normalize well-known bind mounts to labels', (done) => {
 		expect(c.services.s4.volumes).to.deep.equal([]);
 		expect(c.services.s4.labels).to.deep.equal({
-			'io.balena.features.balena-socket': 1,
-			'io.balena.features.dbus': 1,
-			'io.balena.features.sysfs': 1,
-			'io.balena.features.procfs': 1,
-			'io.balena.features.kernel-modules': 1,
-			'io.balena.features.firmware': 1,
-			'io.balena.features.journal-logs': 1,
+			'io.balena.features.balena-socket': '1',
+			'io.balena.features.dbus': '1',
+			'io.balena.features.sysfs': '1',
+			'io.balena.features.procfs': '1',
+			'io.balena.features.kernel-modules': '1',
+			'io.balena.features.firmware': '1',
+			'io.balena.features.journal-logs': '1',
 		});
 		done();
 	});
