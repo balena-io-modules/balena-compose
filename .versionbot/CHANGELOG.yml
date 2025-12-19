@@ -1,4 +1,38 @@
 - commits:
+    - subject: Support sw.os and sw.kernel contract requirement variants, allow
+        multiple variants
+      hash: 20e8c29485c5d337bc806b4bc7077761f55c90a5
+      body: >
+        This allows users to specify an OS slug as a contract requirement, for
+        example
+
+        io.balena.features.requires.sw.balena-os:>VERSION, which transforms to
+
+        {type:'sw.os',slug:'balena-os',version:'>VERSION'}. Similarly,
+
+        io.balena.features.requires.sw.linux:>VERSION transforms to
+
+        {type:'sw.kernel',slug:'linux',version:'>VERSION'}. This allows for
+
+        eventual flexibility in OS and kernel requirements for a container.
+
+
+        Currently we only support the 'balena-os' sw.os variant and the
+
+        'linux' sw.kernel variant.
+      footer:
+        See: https://balena.fibery.io/Work/Project/Add-kernel-and-OS-version-to-container-contracts-1916
+        see: https://balena.fibery.io/Work/Project/Add-kernel-and-OS-version-to-container-contracts-1916
+        Change-type: minor
+        change-type: minor
+        Signed-off-by: Christina Ying Wang <christina@balena.io>
+        signed-off-by: Christina Ying Wang <christina@balena.io>
+      author: Christina Ying Wang
+      nested: []
+  version: 7.3.0
+  title: ""
+  date: 2025-12-19T20:37:30.004Z
+- commits:
     - subject: Drop unused `bluebird-lru-cache` from typings
       hash: 1f8fcc15f8c89326274882d6da9ff1275bdd412c
       body: ""
