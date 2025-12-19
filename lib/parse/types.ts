@@ -219,8 +219,11 @@ export type ContractObject = {
 	type: string;
 } & { [key: string]: any };
 
+// TODO: This should go in @balena/contrato
+export type ContractWithChildren = ContractObject | { or: ContractObject[] };
+
 export interface ImageDescriptor {
 	serviceName: string;
 	image: string | BuildConfig;
-	contract?: ContractObject;
+	contract?: ContractWithChildren;
 }

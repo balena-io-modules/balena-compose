@@ -20,6 +20,7 @@ import { fs } from 'mz';
 import * as jsYaml from 'js-yaml';
 
 import * as compose from '../../lib/parse';
+import { createContractFromLabels } from '../../lib/parse/compose';
 
 import {
 	ContractValidationError,
@@ -58,6 +59,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
@@ -94,6 +96,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
@@ -107,6 +110,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
@@ -126,6 +130,7 @@ describe('Container contracts', () => {
 						labels: {
 							'io.balena.features.requires.hw.device-type': 'raspberrypi3',
 							'io.balena.features.requires.sw.l4t': '<=5',
+							'io.balena.features.requires.sw.linux': '>=6.1.0',
 						},
 					},
 					two: {
@@ -133,6 +138,7 @@ describe('Container contracts', () => {
 						labels: {
 							'io.balena.features.requires.sw.supervisor': '>=16.1.0',
 							'io.balena.features.requires.arch.sw': 'amd64',
+							'io.balena.features.requires.sw.balena-os': '>=3.0.0',
 						},
 					},
 				},
@@ -151,6 +157,15 @@ describe('Container contracts', () => {
 						slug: 'raspberrypi3',
 					},
 					{ type: 'sw.l4t', version: '<=5' },
+					{
+						or: [
+							{
+								type: 'sw.kernel',
+								slug: 'linux',
+								version: '>=6.1.0',
+							},
+						],
+					},
 				],
 			});
 		expect(buildTasks[1])
@@ -166,6 +181,15 @@ describe('Container contracts', () => {
 					{
 						type: 'arch.sw',
 						slug: 'amd64',
+					},
+					{
+						or: [
+							{
+								type: 'sw.os',
+								slug: 'balena-os',
+								version: '>=3.0.0',
+							},
+						],
 					},
 				],
 			});
@@ -201,6 +225,7 @@ describe('Container contracts', () => {
 				requires: [
 					{
 						type: 'sw.os',
+						slug: 'balena-os',
 						version: '>2.0.0',
 					},
 				],
@@ -292,5 +317,152 @@ describe('Container contracts', () => {
 					'Container contract must have a type of sw.container',
 				);
 			});
+	});
+});
+
+describe('createContractFromLabels', () => {
+	it('should correctly create a contract from labels', () => {
+		const contract = createContractFromLabels('my-service', {
+			'io.balena.features.requires.sw.supervisor': '>=16.1.0',
+			'io.balena.features.requires.arch.sw': 'amd64',
+			'io.balena.features.requires.hw.device-type': 'raspberrypi3',
+			'io.balena.features.requires.sw.l4t': '<=5',
+		});
+		expect(contract).to.deep.equal({
+			type: 'sw.container',
+			slug: 'contract-for-my-service',
+			requires: [
+				{
+					type: 'sw.supervisor',
+					version: '>=16.1.0',
+				},
+				{
+					type: 'arch.sw',
+					slug: 'amd64',
+				},
+				{
+					type: 'hw.device-type',
+					slug: 'raspberrypi3',
+				},
+				{
+					type: 'sw.l4t',
+					version: '<=5',
+				},
+			],
+		});
+	});
+
+	it('should support sw.os and sw.kernel label types', () => {
+		const contract = createContractFromLabels('my-service', {
+			'io.balena.features.requires.sw.balena-os': '>=3.0.0',
+			'io.balena.features.requires.sw.linux': '>=6.1.0',
+		});
+		expect(contract).to.deep.equal({
+			type: 'sw.container',
+			slug: 'contract-for-my-service',
+			requires: [
+				{
+					or: [
+						{
+							type: 'sw.os',
+							slug: 'balena-os',
+							version: '>=3.0.0',
+						},
+					],
+				},
+				{
+					or: [
+						{
+							type: 'sw.kernel',
+							slug: 'linux',
+							version: '>=6.1.0',
+						},
+					],
+				},
+			],
+		});
+	});
+
+	it('should support multiple sw.os and sw.kernel label types by combining them under an "or" clause', () => {
+		// We only support one sw.os and one sw.kernel label type at the moment,
+		// but we can pass in a fake parser that supports multiple OS and kernel types.
+		const mockContractParser = {
+			'sw.balena-os': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.os', slug: 'balena-os', version: value };
+				},
+			},
+			'sw.ubuntu': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.os', slug: 'ubuntu', version: value };
+				},
+			},
+			'sw.linux': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.kernel', slug: 'linux', version: value };
+				},
+			},
+			'sw.freebsd': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.kernel', slug: 'freebsd', version: value };
+				},
+			},
+		};
+		const contract = createContractFromLabels(
+			'my-service',
+			{
+				'io.balena.features.requires.sw.balena-os': '>=3.0.0',
+				'io.balena.features.requires.sw.ubuntu': '>=20.04',
+				'io.balena.features.requires.sw.linux': '>=6.1.0',
+				'io.balena.features.requires.sw.freebsd': '>=14.0.0',
+			},
+			mockContractParser,
+		);
+		expect(contract).to.deep.equal({
+			type: 'sw.container',
+			slug: 'contract-for-my-service',
+			requires: [
+				{
+					or: [
+						{
+							type: 'sw.os',
+							slug: 'balena-os',
+							version: '>=3.0.0',
+						},
+						{
+							type: 'sw.os',
+							slug: 'ubuntu',
+							version: '>=20.04',
+						},
+					],
+				},
+				{
+					or: [
+						{
+							type: 'sw.kernel',
+							slug: 'linux',
+							version: '>=6.1.0',
+						},
+						{
+							type: 'sw.kernel',
+							slug: 'freebsd',
+							version: '>=14.0.0',
+						},
+					],
+				},
+			],
+		});
 	});
 });

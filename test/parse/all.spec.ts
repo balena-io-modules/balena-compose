@@ -6,6 +6,7 @@ import * as path from 'path';
 import { Readable } from 'stream';
 
 import * as compose from '../../lib/parse';
+import { validateLabels } from '../../lib/parse/compose';
 
 const { DEFAULT_SCHEMA_VERSION, ServiceError, ValidationError } = compose;
 
@@ -512,6 +513,130 @@ describe('validation', () => {
 			ValidationError,
 			"Invalid value for label 'io.balena.features.requires.arch.sw'. Expected a valid architecture string got 'not-valid'",
 		);
+	});
+
+	it('should throw if label `io.balena.features.requires.sw.balena-os` uses a wrong version range', () => {
+		const f = () => {
+			compose.normalize({
+				version: '2.4',
+				services: {
+					main: {
+						build: '.',
+						labels: {
+							'io.balena.features.requires.sw.balena-os': 'not-valid',
+						},
+					},
+				},
+			});
+		};
+		expect(f).to.throw(
+			ValidationError,
+			"Invalid value for label 'io.balena.features.requires.sw.balena-os'. Expected a valid semver range; got 'not-valid'",
+		);
+	});
+
+	it('should throw if label `io.balena.features.requires.sw.linux` uses a wrong version range', () => {
+		const f = () => {
+			compose.normalize({
+				version: '2.4',
+				services: {
+					main: {
+						build: '.',
+						labels: {
+							'io.balena.features.requires.sw.linux': 'not-valid',
+						},
+					},
+				},
+			});
+		};
+		expect(f).to.throw(
+			ValidationError,
+			"Invalid value for label 'io.balena.features.requires.sw.linux'. Expected a valid semver range; got 'not-valid'",
+		);
+	});
+
+	it('should not throw if multiple sw.os type labels are specified', () => {
+		// Mock contract parser with multiple OS types to simulate the duplicate detection
+		const mockContractParser = {
+			'sw.ubuntu': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.os', slug: 'ubuntu', version: value };
+				},
+			},
+			'sw.balena-os': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.os', slug: 'balena-os', version: value };
+				},
+			},
+		};
+
+		const f = () => {
+			validateLabels(
+				{
+					'io.balena.features.requires.sw.ubuntu': '>=2.24.0',
+					'io.balena.features.requires.sw.balena-os': '>=6.5.0',
+				},
+				mockContractParser,
+			);
+		};
+		expect(f).to.not.throw();
+	});
+
+	it('should not throw if multiple sw.kernel type labels are specified', () => {
+		// Mock contract parser with multiple kernel types to simulate the duplicate detection
+		const mockContractParser = {
+			'sw.bsd': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.kernel', slug: 'bsd', version: value };
+				},
+			},
+			'sw.linux': {
+				validate() {
+					// no-op for testing
+				},
+				transform(value: string) {
+					return { type: 'sw.kernel', slug: 'linux', version: value };
+				},
+			},
+		};
+
+		const f = () => {
+			validateLabels(
+				{
+					'io.balena.features.requires.sw.bsd': '>=1.15',
+					'io.balena.features.requires.sw.linux': '>=5.15',
+				},
+				mockContractParser,
+			);
+		};
+		expect(f).to.not.throw();
+	});
+
+	it('should allow sw.os and sw.kernel labels together', () => {
+		const f = () => {
+			compose.normalize({
+				version: '2.4',
+				services: {
+					main: {
+						build: '.',
+						labels: {
+							'io.balena.features.requires.sw.balena-os': '>=6.5.0',
+							'io.balena.features.requires.sw.linux': '>=5.15',
+						},
+					},
+				},
+			});
+		};
+		expect(f).to.not.throw();
 	});
 });
 

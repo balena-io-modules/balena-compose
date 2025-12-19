@@ -25,6 +25,7 @@ import type {
 	Service,
 	StringOrList,
 	Volume,
+	ContractWithChildren,
 } from './types';
 
 export function defaultComposition(
@@ -504,6 +505,13 @@ function validateVersionRange(value: string, label: string) {
 }
 
 const contractRequirementLabelPrefix = 'io.balena.features.requires.';
+
+// Supported OS slugs that map to sw.os contract type
+const supportedOsSlugs = ['balena-os'];
+
+// Supported kernel slugs that map to sw.kernel contract type
+const supportedKernelSlugs = ['linux'];
+
 const supportedContractRequirementLabels: Dict<ContractParser> = {
 	'sw.supervisor': {
 		validate(value, label) {
@@ -544,9 +552,40 @@ const supportedContractRequirementLabels: Dict<ContractParser> = {
 			return { type: 'arch.sw', slug: value };
 		},
 	},
+	// Generate sw.os slug variants
+	...Object.fromEntries(
+		supportedOsSlugs.map((slug) => [
+			`sw.${slug}`,
+			{
+				validate(value: string, label: string) {
+					validateVersionRange(value, label);
+				},
+				transform(value: string) {
+					return { type: 'sw.os', slug, version: value };
+				},
+			},
+		]),
+	),
+	// Generate sw.kernel slug variants
+	...Object.fromEntries(
+		supportedKernelSlugs.map((slug) => [
+			`sw.${slug}`,
+			{
+				validate(value: string, label: string) {
+					validateVersionRange(value, label);
+				},
+				transform(value: string) {
+					return { type: 'sw.kernel', slug, version: value };
+				},
+			},
+		]),
+	),
 };
 
-function validateLabels(labels: Dict<string>) {
+export function validateLabels(
+	labels: Dict<string>,
+	contractParser: Dict<ContractParser> = supportedContractRequirementLabels,
+) {
 	Object.entries(labels ?? {}).forEach(([name, value]) => {
 		if (!/^[a-zA-Z0-9.-]+$/.test(name)) {
 			throw new ValidationError(
@@ -557,9 +596,9 @@ function validateLabels(labels: Dict<string>) {
 		}
 
 		if (name.startsWith(contractRequirementLabelPrefix)) {
-			const ctype = name.replace(contractRequirementLabelPrefix, '');
-			if (ctype in supportedContractRequirementLabels) {
-				supportedContractRequirementLabels[ctype].validate(value, name);
+			const contract = name.replace(contractRequirementLabelPrefix, '');
+			if (contract in contractParser) {
+				contractParser[contract].validate(value, name);
 			}
 		}
 	});
@@ -600,27 +639,49 @@ export function parse(c: Composition): ImageDescriptor[] {
 	});
 }
 
-function createContractFromLabels(
+export function createContractFromLabels(
 	serviceName: string,
 	labels?: Dict<string>,
-): ContractObject | null {
-	const requires = Object.entries(labels ?? {}).flatMap(([key, value]) => {
+	contractParser: Dict<ContractParser> = supportedContractRequirementLabels,
+): ContractWithChildren | null {
+	// sw.os and sw.kernel support multiple types, to be combined into an "or" clause
+	const osRequires: ContractObject[] = [];
+	const kernelRequires: ContractObject[] = [];
+	const otherRequires: ContractObject[] = [];
+	Object.entries(labels ?? {}).forEach(([key, value]) => {
 		if (!key.startsWith(contractRequirementLabelPrefix)) {
-			return [];
+			return;
 		}
 
 		key = key.replace(contractRequirementLabelPrefix, '');
-		if (!(key in supportedContractRequirementLabels)) {
-			return [];
+		if (!(key in contractParser)) {
+			return;
 		}
 
-		const parser = supportedContractRequirementLabels[key];
-		return [parser.transform(value)];
+		const parser = contractParser[key];
+		const transformed = parser.transform(value);
+		if (transformed.type === 'sw.os') {
+			osRequires.push(transformed);
+		} else if (transformed.type === 'sw.kernel') {
+			kernelRequires.push(transformed);
+		} else {
+			otherRequires.push(transformed);
+		}
 	});
 
-	if (requires.length === 0) {
+	if (
+		otherRequires.length === 0 &&
+		osRequires.length === 0 &&
+		kernelRequires.length === 0
+	) {
 		return null;
 	}
+
+	const requires: ContractWithChildren[] = [
+		...otherRequires,
+		...(osRequires.length > 0 ? [{ or: osRequires }] : []),
+		...(kernelRequires.length > 0 ? [{ or: kernelRequires }] : []),
+	];
 
 	return {
 		type: 'sw.container',
