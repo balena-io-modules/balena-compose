@@ -1,4 +1,19 @@
 - commits:
+    - subject: Set label values to stringified number
+      hash: dd653b1275db15261bbcaa075d547ab6e41e8d2f
+      body: |
+        ImageLabel.value needs to be a string and not a number.
+        Currently our builder fails due to the API throwing a DB
+        error due to the type mismatch.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 7.3.1
+  title: ""
+  date: 2026-01-06T22:38:31.440Z
+- commits:
     - subject: Support sw.os and sw.kernel contract requirement variants, allow
         multiple variants
       hash: 20e8c29485c5d337bc806b4bc7077761f55c90a5
