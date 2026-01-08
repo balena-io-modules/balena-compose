@@ -1,4 +1,25 @@
 - commits:
+    - subject: Add ts-node to dev deps
+      hash: f606cf1c36742956f7c6a1223eb08e3fc2ce79df
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+    - subject: Update dependency ts-mocha to v11
+      hash: 5917cf2dd766eed8d045b0368d26d128b2afbce7
+      body: |
+        Update ts-mocha from 10.1.0 to 11.1.0
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 7.3.2
+  title: ""
+  date: 2026-01-08T08:44:38.199Z
+- commits:
     - subject: Set label values to stringified number
       hash: dd653b1275db15261bbcaa075d547ab6e41e8d2f
       body: |
