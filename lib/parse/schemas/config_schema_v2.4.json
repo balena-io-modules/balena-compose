@@ -300,7 +300,8 @@
         "volumes": {"$ref": "#/definitions/volumes"},
         "volume_driver": {"type": "string"},
         "volumes_from": {"type": "array", "items": {"type": "string"}, "uniqueItems": true},
-        "working_dir": {"type": "string"}
+        "working_dir": {"type": "string"},
+        "profiles": {"type": "array", "items": {"type": "string"}, "uniqueItems": true}
       },
 
       "dependencies": {
