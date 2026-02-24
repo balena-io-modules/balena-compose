@@ -12,6 +12,11 @@ on:
       - 'main'
       - 'master'
 
+permissions:
+  id-token: write
+  contents: read
+  packages: read
+
 jobs:
   flowzone:
     name: Flowzone
@@ -26,8 +31,3 @@ jobs:
         github.event_name == 'pull_request_target'
       )
     secrets: inherit
-    with:
-      runs_on: >
-        [
-          "self-hosted", "X64"
-        ]
