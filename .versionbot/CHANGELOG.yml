@@ -1,4 +1,18 @@
 - commits:
+    - subject: "Add id-token: write permission for NPM OIDC publishing"
+      hash: 5376c3909a496d76b354e65d9b0c975f63b87790
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Kyle Harding <kyle@balena.io>
+        signed-off-by: Kyle Harding <kyle@balena.io>
+      author: Kyle Harding
+      nested: []
+  version: 7.3.3
+  title: ""
+  date: 2026-02-24T14:19:35.297Z
+- commits:
     - subject: Add ts-node to dev deps
       hash: f606cf1c36742956f7c6a1223eb08e3fc2ce79df
       body: ""
