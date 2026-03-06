@@ -1,4 +1,24 @@
 - commits:
+    - subject: Mark balena-sdk v23 as supported
+      hash: 50276caa4d2c6113898817aa7e317b9e50611a37
+      body: ""
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Pagan Gazzard
+      nested: []
+    - subject: Mark balena-sdk to the peer dependency it is
+      hash: 35cc16acc072f6e89bed91a7bf8b23f1bb23e250
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 7.4.0
+  title: ""
+  date: 2026-03-06T17:54:09.332Z
+- commits:
     - subject: "Add id-token: write permission for NPM OIDC publishing"
       hash: 5376c3909a496d76b354e65d9b0c975f63b87790
       body: ""
