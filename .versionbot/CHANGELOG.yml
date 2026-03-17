@@ -1,4 +1,18 @@
 - commits:
+    - subject: "tests: Stop using url.parse"
+      hash: 8ce057e4fda7cd40e29db0b20a01378f667e7206
+      body: ""
+      footer:
+        Change-type: patch
+        change-type: patch
+        See: https://balena.fibery.io/Work/Project/2258
+        see: https://balena.fibery.io/Work/Project/2258
+      author: Thodoris Greasidis
+      nested: []
+  version: 7.4.1
+  title: ""
+  date: 2026-03-17T15:46:47.096Z
+- commits:
     - subject: Mark balena-sdk v23 as supported
       hash: 50276caa4d2c6113898817aa7e317b9e50611a37
       body: ""
