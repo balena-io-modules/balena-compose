@@ -19,7 +19,6 @@ import 'mocha';
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
 import * as path from 'path';
-import * as url from 'url';
 
 import * as proxyquire from 'proxyquire';
 
@@ -39,7 +38,7 @@ if (process.env.CIRCLECI != null) {
 		path.join(process.env.DOCKER_CERT_PATH, f),
 	);
 	const [ca, cert, key] = certs.map((c) => fs.readFileSync(c));
-	const parsed = url.parse(process.env.DOCKER_HOST);
+	const parsed = new URL(process.env.DOCKER_HOST);
 
 	dockerOpts = {
 		host: 'https://' + parsed.hostname,
