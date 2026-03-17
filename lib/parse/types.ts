@@ -165,6 +165,8 @@ export interface Service {
 	volumes_from?: ListOfUniqueItems<string>;
 
 	working_dir?: string;
+
+	profiles?: ListOfUniqueItems<string>;
 }
 
 export interface Network {
