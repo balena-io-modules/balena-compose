@@ -55,7 +55,7 @@ const convert = (value: unknown): VarList | undefined => {
 	}
 };
 
-export const PermissiveVarList = new t.Type<VarList, AcceptedVarList, unknown>(
+export const PermissiveVarList = new t.Type<VarList, AcceptedVarList>(
 	'VarList',
 	validate,
 	(u, ctx) => {
