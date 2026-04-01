@@ -1,4 +1,37 @@
 - commits:
+    - subject: Output Composition object from defaultComposition
+      hash: 07d052a6e32c9520630d3d28912ebe9e3bf45ad8
+      body: >
+        defaultComposition originally outputted a YAML string as
+
+        parse.normalize is able to receive YAML strings, but
+        balena-compose-parser
+
+        only receives filepaths. Therefore, outputting a Composition object will
+        reduce
+
+        complexity.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Signed-off-by: Christina Ying Wang <christina@balena.io>
+        signed-off-by: Christina Ying Wang <christina@balena.io>
+      author: Christina Ying Wang
+      nested: []
+    - subject: Replace compose parsing functionality with @balena/compose-parser
+      hash: dae995f61288e2cf3576f9b97a4e66f0a7d762c7
+      body: ""
+      footer:
+        Change-type: major
+        change-type: major
+        Signed-off-by: Christina Ying Wang <christina@balena.io>
+        signed-off-by: Christina Ying Wang <christina@balena.io>
+      author: Christina Ying Wang
+      nested: []
+  version: 8.0.0
+  title: ""
+  date: 2026-04-01T19:41:54.897Z
+- commits:
     - subject: "tests: Stop using url.parse"
       hash: 8ce057e4fda7cd40e29db0b20a01378f667e7206
       body: ""
