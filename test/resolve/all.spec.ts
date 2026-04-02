@@ -265,6 +265,18 @@ describe('Resolvers', () => {
 		});
 	});
 
+	it('should prioritize device type over dockerfile templates', () => {
+		return testResolveInput({
+			architecture: 'armv7hf',
+			deviceType: 'raspberry-pi2',
+			dockerfileContentMatcher: (contents) => contents === 'raspberry-pi2',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: undefined,
+			tarFilePath: './test-files/DeviceTypePriority/archive.tar',
+		});
+	});
+
 	it('should handle incorrect template variables', () => {
 		const resolvers = defaultResolvers();
 		const stream = fs.createReadStream(
@@ -496,6 +508,83 @@ describe('Specifying dockerfiles', () => {
 		expect(errorMessage).to.equal(
 			'Could not find a Dockerfile for this service',
 		);
+	});
+});
+
+describe('Default dockerfile path', () => {
+	// compose-go always injects `dockerfile: "Dockerfile"` even when not
+	// explicitly set in the compose file. These tests verify that the resolvers
+	// behave the same whether specifiedDockerfilePath is undefined or "Dockerfile".
+
+	it('should resolve a standard Dockerfile project', () => {
+		return testResolveInput({
+			dockerfileContentMatcher: (contents) =>
+				contents === `FROM debian:jessie\n\nRUN apt-get update`,
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Standard Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/Dockerfile/archive.tar',
+		});
+	});
+
+	it('should resolve a Dockerfile.template correctly', () => {
+		const deviceType = 'device-type-test';
+		const arch = 'architecture-test';
+		return testResolveInput({
+			architecture: arch,
+			deviceType,
+			dockerfileContentMatcher: (contents) =>
+				contents === `FROM resin/${deviceType}-node:slim\nRUN echo ${arch}`,
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Dockerfile.template',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/DockerfileTemplate/archive.tar',
+		});
+	});
+
+	it('should resolve an architecture specific dockerfile', () => {
+		return testResolveInput({
+			architecture: 'i386',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/ArchitectureDockerfile/archive.tar',
+		});
+	});
+
+	it('should prioritize architecture dockerfiles over dockerfile templates', () => {
+		return testResolveInput({
+			architecture: 'i386',
+			dockerfileContentMatcher: (contents) => contents === 'i386',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/ArchPriority/archive.tar',
+		});
+	});
+
+	it('should prioritize device type over architecture dockerfiles', () => {
+		return testResolveInput({
+			architecture: 'armv7hf',
+			deviceType: 'raspberry-pi2',
+			dockerfileContentMatcher: (contents) => contents === 'raspberry-pi2',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/ArchPriority/archive.tar',
+		});
+	});
+
+	it('should prioritize device type over dockerfile templates', () => {
+		return testResolveInput({
+			architecture: 'armv7hf',
+			deviceType: 'raspberry-pi2',
+			dockerfileContentMatcher: (contents) => contents === 'raspberry-pi2',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/DeviceTypePriority/archive.tar',
+		});
 	});
 });
 

@@ -43,18 +43,23 @@ export class DockerfileTemplateResolver implements Resolver {
 		// Note that both `entryPath` and `specifiedDockerfilePath` are normalized through
 		// `TarUtils.normalizeTarEntry()` before the call this method, so they won't have
 		// leading or trailing slashes or redundant path components.
-		// Consider two cases:
-		// * If a `specifiedDockeriflePath` was specified, say `'service/MyDockerfile.template'`,
-		//   then this method will only match a tar entry whose full path is identical to that
-		//   (`entryPath.unparsed === specifiedDockerfilePath`), and provided that the
-		//   `specifiedDockeriflePath` has a `'.template'` file extension.
+		// Consider three cases:
+		// * If a `specifiedDockerfilePath` was specified with a `'.template'` extension,
+		//   say `'service/MyDockerfile.template'`, then this method will only match a tar
+		//   entry whose full path is identical to that
+		//   (`entryPath.unparsed === specifiedDockerfilePath`).
+		// * If a `specifiedDockerfilePath` was specified without a `'.template'` extension,
+		//   say `'Dockerfile'` or `'service/MyDockerfile'`, then this method will match a
+		//   tar entry that is the template version of that path
+		//   (`entryPath.minusExt === specifiedDockerfilePath`).
 		// * Otherwise, it will match `Dockerfile.template` at the root of the project directory
 		//   tree, as `entryPath.minusExt` is the full entry path minus the file extension, which
 		//   must be exactly `'Dockerfile'`.
 		return (
 			entryPath.ext === '.template' &&
 			(specifiedDockerfilePath
-				? entryPath.unparsed === specifiedDockerfilePath
+				? entryPath.unparsed === specifiedDockerfilePath ||
+					entryPath.minusExt === specifiedDockerfilePath
 				: entryPath.minusExt === 'Dockerfile')
 		);
 	}

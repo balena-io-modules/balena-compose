@@ -60,7 +60,8 @@ export class ArchDockerfileResolver implements Resolver {
 		//   file extension, which must be exactly `'Dockerfile'`.
 
 		const nameMatches = specifiedDockerfilePath
-			? entryPath.unparsed === specifiedDockerfilePath
+			? entryPath.unparsed === specifiedDockerfilePath ||
+				entryPath.minusExt === specifiedDockerfilePath
 			: entryPath.minusExt === 'Dockerfile';
 
 		return nameMatches && !!entryPath.ext && entryPath.ext !== '.template';
