@@ -1,4 +1,39 @@
 - commits:
+    - subject: Fix Dockerfile.template and arch-specific Dockerfile resolution
+      hash: 70351cdd33d00bdb4fea475ec31dc4df7dbf32db
+      body: |
+        Previously, when a dockerfile path was explicitly specified (e.g.
+        "Dockerfile"), the resolver required an exact filename match against
+        tar stream entries. This meant that "Dockerfile.template" and
+        architecture-specific variants like "Dockerfile.armv7hf" were not
+        recognized as candidates, since their filenames didn't exactly match
+        the specified path.
+
+        This was not an issue before because the dockerfile path was only set
+        when explicitly provided in the compose file. However, compose-go
+        (used by @balena/compose-parser) always injects a default dockerfile
+        path of "Dockerfile", even when none is specified. This causes the
+        resolver to always use exact matching, breaking template and
+        arch-specific Dockerfile discovery.
+
+        The fix allows the resolver to also match entries whose filename,
+        minus extension, equals the specified path. Also added tests for default
+        dockerfile path resolution and dockerfile type priority ordering.
+
+        As before, the expected resolution priority from highest to lowest is:
+        1. Device-type-specific Dockerfile (Dockerfile.raspberry-pi2)
+        2. Architecture-specific Dockerfile (Dockerfile.armv7hf)
+        3. Dockerfile.template
+        4. Standard Dockerfile
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Christina Ying Wang
+      nested: []
+  version: 8.0.1
+  title: ""
+  date: 2026-04-02T12:18:38.980Z
+- commits:
     - subject: Output Composition object from defaultComposition
       hash: 07d052a6e32c9520630d3d28912ebe9e3bf45ad8
       body: >
