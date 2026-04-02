@@ -61,7 +61,7 @@
   },
   "dependencies": {
     "@balena/compose-parser": "^0.2.0",
-    "ajv": "^6.12.6",
+    "ajv": "^7.0.0",
     "docker-file-parser": "^1.0.7",
     "docker-progress": "^5.3.1",
     "dockerfile-ast": "^0.7.1",
