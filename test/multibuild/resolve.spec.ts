@@ -1,6 +1,5 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
-import type { Pack } from 'tar-stream';
 
 import BuildMetadata from '../../lib/multibuild/build-metadata';
 import type { BuildTask } from '../../lib/multibuild';
@@ -21,7 +20,7 @@ describe('Project resolution', () => {
 			resolved: false,
 			buildStream: fs.createReadStream(
 				`${TEST_FILES_PATH}/templateProject.tar`,
-			) as any as Pack,
+			),
 			serviceName: 'test',
 			buildMetadata,
 		};
@@ -51,9 +50,7 @@ describe('Project resolution', () => {
 			external: false,
 			resolved: false,
 			serviceName: 'test',
-			buildStream: fs.createReadStream(
-				`${TEST_FILES_PATH}/failedProject.tar`,
-			) as any as Pack,
+			buildStream: fs.createReadStream(`${TEST_FILES_PATH}/failedProject.tar`),
 			buildMetadata,
 		};
 
@@ -77,7 +74,7 @@ describe('Project resolution', () => {
 			resolved: false,
 			buildStream: fs.createReadStream(
 				`${TEST_FILES_PATH}/additional-template-vars.tar`,
-			) as any as Pack,
+			),
 			serviceName: 'test',
 			buildMetadata,
 		};
@@ -111,7 +108,7 @@ describe('Project resolution', () => {
 			resolved: false,
 			buildStream: fs.createReadStream(
 				`${TEST_FILES_PATH}/templateProject.tar`,
-			) as any as Pack,
+			),
 			serviceName: 'test',
 			buildMetadata,
 		};
