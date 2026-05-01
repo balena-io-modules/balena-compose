@@ -73,7 +73,7 @@ export function getManifest(
 	return new Promise<DockerImageManifest>((resolve, reject) => {
 		modem.dial(optsf, (err: unknown, data: DockerImageManifest) => {
 			if (err) {
-				reject(err as Error);
+				reject(err instanceof Error ? err : new Error(String(err)));
 				return;
 			}
 			resolve(data);
