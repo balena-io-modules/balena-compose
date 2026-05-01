@@ -1,4 +1,18 @@
 - commits:
+    - subject: Bump @balena/compose-parser to 0.2.1
+      hash: 8a46af45ca76fb26eea13cc3b785ae38a8b5fb66
+      body: |
+        This brings in the upstream container contract change
+        from sw.compose to sw.spec.
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Christina Ying Wang
+      nested: []
+  version: 8.0.2
+  title: ""
+  date: 2026-05-01T05:07:33.695Z
+- commits:
     - subject: Fix Dockerfile.template and arch-specific Dockerfile resolution
       hash: 70351cdd33d00bdb4fea475ec31dc4df7dbf32db
       body: |
