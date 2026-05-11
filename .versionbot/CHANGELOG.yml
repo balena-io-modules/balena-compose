@@ -1,4 +1,22 @@
 - commits:
+    - subject: Bump @balena/compose-parser to 0.2.4
+      hash: 8251a59347b262298e2b39b1cdce69c1f33009d4
+      body: |
+        This bump adds upstream patches to handle binary
+        paths with a space, and coerces null/undefined
+        env var values to empty string as the API does
+        not accept null/undefined env var values.
+      footer:
+        See: https://github.com/balena-io-modules/balena-compose-parser/pull/25
+        see: https://github.com/balena-io-modules/balena-compose-parser/pull/25
+        Change-type: patch
+        change-type: patch
+      author: Christina Ying Wang
+      nested: []
+  version: 8.0.3
+  title: ""
+  date: 2026-05-11T19:16:55.420Z
+- commits:
     - subject: Bump @balena/compose-parser to 0.2.1
       hash: 8a46af45ca76fb26eea13cc3b785ae38a8b5fb66
       body: |
