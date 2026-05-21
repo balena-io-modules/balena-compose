@@ -144,8 +144,22 @@ export function populateStreamingTaskBuildStream(
 
 /**
  * Given a composition and stream which will output a valid tar archive,
- * split this stream into it's constiuent tasks, which may be a docker build,
- * or import of external image using docker pull.
+ * split this stream into its constituent tasks, which may be a docker build
+ * or import of an external image using docker pull.
+ *
+ * The returned tasks are populated synchronously; the tar archive is then
+ * streamed through into each task's `buildStream` in the background. Callers
+ * must attach a consumer to `task.buildStream` (e.g. via `performBuilds`) to
+ * drive the pipeline — without a downstream consumer the pack will fill its
+ * internal buffers and stall, which is the same constraint that
+ * `populateStreamingTaskBuildStream` already imposes.
+ *
+ * Errors encountered while extracting (e.g. `MultipleContractsForService`,
+ * `ContractError`, `MultipleMetadataDirectoryError`, malformed tar) are
+ * surfaced as `'error'` events on every non-external `task.buildStream`. Post-
+ * extraction state on the task (such as `task.contract` and entries on
+ * `task.buildMetadata`) is populated as the buildStream is drained, so
+ * callers that need to read it should wait for the buildStream to end.
  *
  * @param composition An object representing a parsed composition
  * @param buildStream A stream which will output a valid tar archive when read
@@ -159,91 +173,124 @@ export function splitBuildStream(
 	return fromImageDescriptors(images, buildStream);
 }
 
-export async function fromImageDescriptors(
+export function fromImageDescriptors(
 	images: Compose.ImageDescriptor[],
 	buildStream: stream.Readable,
 	metadataDirectories = ['.balena/', '.resin/'],
 ): Promise<BuildTask[]> {
 	const buildMetadata = new BuildMetadata(metadataDirectories);
-
 	const newStream = buildMetadata.extractMetadata(buildStream);
 
-	return new Promise<BuildTask[]>((resolve, reject) => {
-		// Firstly create a list of BuildTasks based on the composition
-		const tasks = Utils.generateBuildTasks(images, buildMetadata);
+	const tasks = Utils.generateBuildTasks(images, buildMetadata);
+	for (const task of tasks) {
+		if (!task.external) {
+			task.buildStream = tar.pack();
+		}
+	}
+
+	const destroyAll = (e: Error) => {
 		for (const task of tasks) {
-			if (!task.external) {
-				task.buildStream = tar.pack();
+			if (!task.external && task.buildStream != null) {
+				(task.buildStream as tar.Pack).destroy(e);
 			}
 		}
+	};
 
-		const extract = tar.extract();
+	const extract = tar.extract();
 
-		extract.on('entry', async (header, entryStream, next) => {
-			try {
-				// Find the build context that this file should belong to
-				const matchingTasks = tasks.filter((task) => {
+	extract.on('entry', async (header, entryStream, next) => {
+		let matchingTasks: Array<{
+			task: BuildTask;
+			relative: string;
+			newHeader: tar.Headers;
+		}>;
+		try {
+			// Find the build contexts that this file should belong to,
+			// computing the per-task relative path and rewritten header up
+			// front so we don't need to revisit `header` below.
+			matchingTasks = tasks
+				.filter((task) => {
 					if (task.external) {
 						return false;
 					}
 					return posixContains(task.context!, header.name);
+				})
+				.map((task) => {
+					const relative = path.posix.relative(task.context!, header.name);
+					const newHeader =
+						header.name !== relative ? { ...header, name: relative } : header;
+					return { task, relative, newHeader };
 				});
+		} catch (e) {
+			next(e);
+			return;
+		}
 
-				if (matchingTasks.length > 0) {
-					// Add the file to every matching context
-					const buf = await TarUtils.streamToBuffer(entryStream);
-					let contract: Dictionary<unknown> | undefined;
-					for (const task of matchingTasks) {
-						const relative = path.posix.relative(task.context!, header.name);
+		if (matchingTasks.length === 0) {
+			entryStream.resume();
+			next();
+			return;
+		}
 
-						// Contract is a special case, but we check
-						// here because we don't want to have to read
-						// the input stream again to find it
-						if (contracts.isContractFile(relative)) {
-							if (task.contract != null) {
-								throw new MultipleContractsForService(task.serviceName);
-							}
-							// Avoid re-processing the same contract if multiple tasks use it
-							contract ??= contracts.processContract(buf);
-							task.contract = contract;
-						}
+		// Buffer only when we must: contract files (we need the bytes to
+		// parse the contract) or when more than one task shares the same
+		// source entry (tar-stream entry streams are single-consumer, so
+		// we have to materialise the bytes to fan them out). Everything
+		// else streams straight from extract into the per-task pack,
+		// keeping memory bounded for multi-GB entries.
+		const isContract = matchingTasks.some(({ relative }) =>
+			contracts.isContractFile(relative),
+		);
+		const mustBuffer = isContract || matchingTasks.length > 1;
 
-						const newHeader =
-							header.name !== relative ? { ...header, name: relative } : header;
+		if (!mustBuffer) {
+			const { task, newHeader } = matchingTasks[0];
+			entryStream.pipe((task.buildStream as tar.Pack).entry(newHeader, next));
+			return;
+		}
 
-						(task.buildStream as tar.Pack).entry(newHeader, buf);
+		try {
+			const buf = await TarUtils.streamToBuffer(entryStream);
+			let contract: Dictionary<unknown> | undefined;
+			for (const { task, relative, newHeader } of matchingTasks) {
+				if (contracts.isContractFile(relative)) {
+					if (task.contract != null) {
+						throw new MultipleContractsForService(task.serviceName);
 					}
-				} else {
-					entryStream.resume();
+					// Avoid re-processing the same contract if multiple tasks use it
+					contract ??= contracts.processContract(buf);
+					task.contract = contract;
 				}
-				next();
-			} catch (e) {
-				// Make sure the stream errors/finishes draining/frees memory
-				next(e);
+				(task.buildStream as tar.Pack).entry(newHeader, buf);
 			}
-		});
-		extract.on('finish', () => {
-			for (const task of tasks) {
-				if (!task.external) {
-					(task.buildStream as tar.Pack).finalize();
-				}
-			}
-			resolve(tasks);
-		});
-		extract.on('error', (e) => {
-			if (
-				e instanceof ContractError ||
-				e instanceof MultipleContractsForService ||
-				e instanceof MultipleMetadataDirectoryError
-			) {
-				reject(e);
-			} else {
-				reject(new TarError(e));
-			}
-		});
-
-		stream.pipeline(newStream, extract, _.noop);
+			next();
+		} catch (e) {
+			// Make sure the stream errors/finishes draining/frees memory
+			next(e);
+		}
 	});
+
+	extract.on('finish', () => {
+		for (const task of tasks) {
+			if (!task.external) {
+				(task.buildStream as tar.Pack).finalize();
+			}
+		}
+	});
+
+	extract.on('error', (e) => {
+		const mapped =
+			e instanceof ContractError ||
+			e instanceof MultipleContractsForService ||
+			e instanceof MultipleMetadataDirectoryError
+				? e
+				: new TarError(e);
+		destroyAll(mapped);
+	});
+
+	stream.pipeline(newStream, extract, _.noop);
+
+	return Promise.resolve(tasks);
 }
 
 export function buildHasSecrets(tasks: BuildTask[]): boolean {

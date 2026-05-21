@@ -17,11 +17,13 @@
 import { expect } from 'chai';
 import * as fs from 'fs';
 import * as _ from 'lodash';
-import type * as Stream from 'stream';
+import * as Stream from 'stream';
 import * as tar from 'tar-stream';
+import * as TarUtils from 'tar-utils';
 import * as Compose from '@balena/compose-parser';
 
 import { splitBuildStream } from '../../lib/multibuild';
+import { defaultComposition } from '../../lib/parse';
 
 import { TEST_FILES_PATH } from './build-utils';
 
@@ -121,6 +123,111 @@ describe('Stream splitting', () => {
 					}
 				}),
 			);
+		});
+	});
+
+	describe('Streaming behaviour', () => {
+		// fromImageDescriptors used to await streamToBuffer on every tar entry
+		// before forwarding it, which blew up on multi-GB build contexts
+		// (EINVAL writev to the docker daemon socket, or ERR_INVALID_ARG_VALUE
+		// past Buffer.MAX_LENGTH). It now pipes non-contract single-task
+		// entries straight through, so memory stays bounded as long as the
+		// caller is draining buildStream — which performBuilds does.
+		it('does not buffer non-contract entries when only one task matches', async () => {
+			const original = TarUtils.streamToBuffer;
+			let streamToBufferCalls = 0;
+			(
+				TarUtils as { streamToBuffer: typeof TarUtils.streamToBuffer }
+			).streamToBuffer = async (s) => {
+				streamToBufferCalls++;
+				return original(s);
+			};
+
+			try {
+				const sourceTar = tar.pack();
+				sourceTar.entry({ name: 'Dockerfile' }, 'FROM scratch\n');
+				sourceTar.entry({ name: 'src/blob.bin' }, Buffer.alloc(1024));
+				sourceTar.finalize();
+
+				const tasks = await splitBuildStream(defaultComposition(), sourceTar);
+				expect(tasks).to.have.length(1);
+
+				const found = await checkIsInStream(tasks[0].buildStream!, [
+					'Dockerfile',
+					'src/blob.bin',
+				]);
+				expect(found).to.equal(true);
+				expect(streamToBufferCalls).to.equal(0);
+			} finally {
+				(
+					TarUtils as { streamToBuffer: typeof TarUtils.streamToBuffer }
+				).streamToBuffer = original;
+			}
+		});
+
+		// Multi-MB entry exercises the actual backpressure path: the pack's
+		// default highWaterMark is 16 KB, so anything that exceeded it used
+		// to deadlock with the streaming pipe unless splitBuildStream had
+		// already resolved and a consumer was draining concurrently. This
+		// would hang under the original Promise-wrapped implementation that
+		// resolved on extract.finish; it passes once splitBuildStream returns
+		// tasks synchronously.
+		it('streams large non-contract entries without deadlocking', async () => {
+			const sourceTar = tar.pack();
+			sourceTar.entry({ name: 'Dockerfile' }, 'FROM scratch\n');
+			const bigEntry = sourceTar.entry({
+				name: 'src/blob.bin',
+				size: 4 * 1024 * 1024,
+			});
+			const chunk = Buffer.alloc(64 * 1024);
+			for (let i = 0; i < 64; i++) {
+				bigEntry.write(chunk);
+			}
+			bigEntry.end();
+			sourceTar.finalize();
+
+			const tasks = await splitBuildStream(defaultComposition(), sourceTar);
+			expect(tasks).to.have.length(1);
+
+			const found = await checkIsInStream(tasks[0].buildStream!, [
+				'Dockerfile',
+				'src/blob.bin',
+			]);
+			expect(found).to.equal(true);
+		});
+
+		// Errors used to come back as a Promise rejection from splitBuildStream
+		// itself; with the streaming refactor extract runs in the background
+		// so errors surface on each task.buildStream once a consumer drains.
+		it('surfaces tar errors on task.buildStream rather than the split promise', async () => {
+			const sourceTar = tar.pack();
+			sourceTar.entry({ name: 'Dockerfile' }, 'FROM scratch\n');
+			sourceTar.finalize();
+
+			// Corrupt the source by inserting non-tar bytes; the metadata
+			// extract should reject this with a TarError mapped onto the
+			// task's buildStream.
+			const corrupted = new Stream.PassThrough();
+			sourceTar.on('data', (data) => corrupted.write(data));
+			sourceTar.on('end', () => {
+				corrupted.write(Buffer.from('not a tar entry header at all'));
+				corrupted.end();
+			});
+
+			const tasks = await splitBuildStream(defaultComposition(), corrupted);
+			expect(tasks).to.have.length(1);
+
+			try {
+				await new Promise<void>((resolve, reject) => {
+					tasks[0]
+						.buildStream!.on('end', resolve)
+						.on('error', reject)
+						.on('data', () => undefined);
+				});
+				throw new Error('Expected an error on buildStream');
+			} catch (e) {
+				expect(e).to.be.instanceOf(Error);
+			}
 		});
 	});
 

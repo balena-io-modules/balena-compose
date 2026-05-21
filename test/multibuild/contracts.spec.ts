@@ -26,7 +26,7 @@ import {
 	splitBuildStream,
 } from '../../lib/multibuild';
 
-import { TEST_FILES_PATH } from './build-utils';
+import { drainTasks, TEST_FILES_PATH } from './build-utils';
 
 describe('Container contracts', () => {
 	it('should correctly extract container contracts', async () => {
@@ -37,6 +37,7 @@ describe('Container contracts', () => {
 
 		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(1);
+		await drainTasks(buildTasks);
 		expect(buildTasks[0])
 			.to.have.property('contract')
 			.that.deep.equals({
@@ -59,13 +60,13 @@ describe('Container contracts', () => {
 			`${TEST_FILES_PATH}/excessive-contracts.tar`,
 		);
 
-		return splitBuildStream(comp, tarStream)
-			.then(() => {
-				throw new Error('No error thrown for multiple contract files');
-			})
-			.catch((e) => {
-				expect(e).to.be.instanceOf(MultipleContractsForService);
-			});
+		const buildTasks = await splitBuildStream(comp, tarStream);
+		try {
+			await drainTasks(buildTasks);
+			throw new Error('No error thrown for multiple contract files');
+		} catch (e) {
+			expect(e).to.be.instanceOf(MultipleContractsForService);
+		}
 	});
 
 	it('should correctly extract container contracts for multiple services', async () => {
@@ -78,6 +79,7 @@ describe('Container contracts', () => {
 
 		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(2);
+		await drainTasks(buildTasks);
 		expect(buildTasks[0])
 			.to.have.property('contract')
 			.that.deep.equals({
@@ -117,6 +119,7 @@ describe('Container contracts', () => {
 		);
 		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(2);
+		await drainTasks(buildTasks);
 		expect(buildTasks[0])
 			.to.have.property('contract')
 			.that.deep.equals({
@@ -176,6 +179,7 @@ describe('Container contracts', () => {
 
 		const buildTasks = await splitBuildStream(comp, tarStream);
 		expect(buildTasks).to.have.length(2);
+		await drainTasks(buildTasks);
 		expect(buildTasks[0])
 			.to.have.property('contract')
 			.that.deep.equals({
@@ -212,13 +216,13 @@ describe('Container contracts', () => {
 			`${TEST_FILES_PATH}/multiple-contracts.tar`,
 		);
 
-		await splitBuildStream(comp, tarStream)
-			.then(() => {
-				throw new Error('No error thrown for clashing contract definitions');
-			})
-			.catch((e) => {
-				expect(e).to.be.instanceOf(MultipleContractsForService);
-			});
+		const buildTasks = await splitBuildStream(comp, tarStream);
+		try {
+			await drainTasks(buildTasks);
+			throw new Error('No error thrown for clashing contract definitions');
+		} catch (e) {
+			expect(e).to.be.instanceOf(MultipleContractsForService);
+		}
 	});
 
 	it('should throw when a contract does not contain a name field', async () => {
@@ -227,14 +231,16 @@ describe('Container contracts', () => {
 			`${TEST_FILES_PATH}/no-name-contract.tar`,
 		);
 
-		return splitBuildStream(comp, tarStream)
-			.then(() => {
-				throw new Error('No error thrown for contract without name');
-			})
-			.catch((e) => {
-				expect(e).to.be.instanceOf(ContractValidationError);
-				expect(e.message).to.equal('Container contract must have a name field');
-			});
+		const buildTasks = await splitBuildStream(comp, tarStream);
+		try {
+			await drainTasks(buildTasks);
+			throw new Error('No error thrown for contract without name');
+		} catch (e) {
+			expect(e).to.be.instanceOf(ContractValidationError);
+			expect((e as Error).message).to.equal(
+				'Container contract must have a name field',
+			);
+		}
 	});
 
 	it('should throw when a contract does not contain a type field', async () => {
@@ -243,14 +249,16 @@ describe('Container contracts', () => {
 			`${TEST_FILES_PATH}/no-type-contract.tar`,
 		);
 
-		return splitBuildStream(comp, tarStream)
-			.then(() => {
-				throw new Error('No error thrown for contract without type');
-			})
-			.catch((e) => {
-				expect(e).to.be.instanceOf(ContractValidationError);
-				expect(e.message).to.equal('Container contract must have a type field');
-			});
+		const buildTasks = await splitBuildStream(comp, tarStream);
+		try {
+			await drainTasks(buildTasks);
+			throw new Error('No error thrown for contract without type');
+		} catch (e) {
+			expect(e).to.be.instanceOf(ContractValidationError);
+			expect((e as Error).message).to.equal(
+				'Container contract must have a type field',
+			);
+		}
 	});
 
 	it('should throw when a contract has the wrong type', async () => {
@@ -259,15 +267,15 @@ describe('Container contracts', () => {
 			`${TEST_FILES_PATH}/wrong-type-contract.tar`,
 		);
 
-		return splitBuildStream(comp, tarStream)
-			.then(() => {
-				throw new Error('No error thrown for contract with incorrect type');
-			})
-			.catch((e) => {
-				expect(e).to.be.instanceOf(ContractValidationError);
-				expect(e.message).to.equal(
-					'Container contract must have a type of sw.container',
-				);
-			});
+		const buildTasks = await splitBuildStream(comp, tarStream);
+		try {
+			await drainTasks(buildTasks);
+			throw new Error('No error thrown for contract with incorrect type');
+		} catch (e) {
+			expect(e).to.be.instanceOf(ContractValidationError);
+			expect((e as Error).message).to.equal(
+				'Container contract must have a type of sw.container',
+			);
+		}
 	});
 });

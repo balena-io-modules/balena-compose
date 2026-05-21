@@ -17,12 +17,14 @@
 
 import * as Dockerode from 'dockerode';
 import * as fs from 'fs';
+import * as _ from 'lodash';
 import * as Path from 'path';
 import type * as Stream from 'stream';
 import type * as tar from 'tar-stream';
 import * as Url from 'url';
 
 import BuildMetadata from '../../lib/multibuild/build-metadata';
+import type { BuildTask } from '../../lib/multibuild/build-task';
 import type { BalenaYml } from '../../lib/multibuild/build-secrets';
 
 export const TEST_FILES_PATH = 'test/multibuild/test-files';
@@ -93,4 +95,26 @@ export class TestBuildMetadata extends BuildMetadata {
 		super(metadataDirectories);
 		this.balenaYml = balenaYml;
 	}
+}
+
+/**
+ * Drain a Readable until 'end' or 'error'. splitBuildStream now returns tasks
+ * synchronously, with extract running in the background — post-extraction
+ * state (contracts, buildMetadata) and any extract errors are only observable
+ * after the buildStream has been consumed.
+ */
+export function drainStream(s: Stream.Readable): Promise<void> {
+	return new Promise<void>((resolve, reject) => {
+		s.on('end', resolve);
+		s.on('error', reject);
+		s.on('data', _.noop);
+	});
+}
+
+export async function drainTasks(tasks: BuildTask[]): Promise<void> {
+	await Promise.all(
+		tasks
+			.filter((t) => !t.external && t.buildStream != null)
+			.map((t) => drainStream(t.buildStream!)),
+	);
 }

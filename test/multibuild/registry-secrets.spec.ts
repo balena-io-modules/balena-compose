@@ -30,7 +30,7 @@ import {
 	splitBuildStream,
 } from '../../lib/multibuild';
 
-import { TEST_FILES_PATH } from './build-utils';
+import { drainTasks, TEST_FILES_PATH } from './build-utils';
 
 describe('Registry secret JSON validation', () => {
 	const validator = new RegistrySecretValidator();
@@ -139,6 +139,9 @@ describe('Registry secret extraction', () => {
 
 		expect(tasks).to.have.length(1);
 		expect(tasks[0]).to.have.property('buildMetadata');
+		// Drain so the background metadata extract has finished populating
+		// buildMetadata before we parse it.
+		await drainTasks(tasks);
 		const metadata = tasks[0].buildMetadata;
 		// Force a parse without having to build
 		metadata.parseMetadata();
