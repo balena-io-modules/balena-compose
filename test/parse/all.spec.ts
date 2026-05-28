@@ -107,8 +107,8 @@ describe('normalization', () => {
 	});
 
 	it('should parse composition extra_hosts from objects or arrays', () => {
-		expect(c.services.s2.extra_hosts).to.deep.equal(['foo=127.0.0.1']);
-		expect(c.services.s3.extra_hosts).to.deep.equal(['bar=8.8.8.8']);
+		expect(c.services.s2.extra_hosts).to.deep.equal(['foo:127.0.0.1']);
+		expect(c.services.s3.extra_hosts).to.deep.equal(['bar:8.8.8.8']);
 	});
 
 	it('should parse composition networks and add on default network', () => {
