@@ -1,4 +1,18 @@
 - commits:
+    - subject: Bump @balena/compose-parser to 0.2.6
+      hash: 12e96156935611225537b7ba3654ac0e1711c6ca
+      body: |
+        - Convert extra_hosts separator from = to :
+        - Support apparmor=unconfined, seccomp=unconfined for security_opt
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Christina Ying Wang
+      nested: []
+  version: 8.0.4
+  title: ""
+  date: 2026-05-28T21:46:49.398Z
+- commits:
     - subject: Bump @balena/compose-parser to 0.2.4
       hash: 8251a59347b262298e2b39b1cdce69c1f33009d4
       body: |
