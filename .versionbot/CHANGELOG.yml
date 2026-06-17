@@ -1,4 +1,18 @@
 - commits:
+    - subject: Switch from custom `Dictionary` type to built in `Record` typing
+      hash: f7e32a6de615dfc3b62089a51ba66793a1d40c1f
+      body: |
+        This reduces the number of custom typings we maintain/need to know
+        about
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Pagan Gazzard
+      nested: []
+  version: 8.0.5
+  title: ""
+  date: 2026-06-17T13:32:51.209Z
+- commits:
     - subject: Bump @balena/compose-parser to 0.2.6
       hash: 12e96156935611225537b7ba3654ac0e1711c6ca
       body: |
