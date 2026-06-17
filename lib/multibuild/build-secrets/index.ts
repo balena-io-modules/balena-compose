@@ -52,21 +52,24 @@ export type SecretObject = t.TypeOf<typeof secretType>;
 export interface BalenaYml {
 	buildVariables: {
 		global?: VarList;
-		services?: Dictionary<VarList>;
+		services?: Record<string, VarList>;
 	};
 	buildSecrets: {
 		global?: SecretObject[];
-		services?: Dictionary<SecretObject[]>;
+		services?: Record<string, SecretObject[]>;
 	};
 }
 
 // We map the service name against the directory that the
 // secret files will be added to, and the secret files
 // themselves encoded in base64
-export type SecretsPopulationMap = Dictionary<{
-	tmpDirectory: string;
-	files: Dictionary<string>;
-}>;
+export type SecretsPopulationMap = Record<
+	string,
+	{
+		tmpDirectory: string;
+		files: Record<string, string>;
+	}
+>;
 
 export function generateSecretPopulationMap(
 	serviceNames: string[],

@@ -49,7 +49,7 @@ enum MetadataFileType {
 
 export class BuildMetadata {
 	public registrySecrets: RegistrySecrets;
-	protected metadataFiles: Dictionary<Buffer> = {};
+	protected metadataFiles: Record<string, Buffer> = {};
 	protected balenaYml: BalenaYml;
 
 	public constructor(protected metadataDirectories: string[]) {}
@@ -157,8 +157,8 @@ export class BuildMetadata {
 		this.parseRegistrySecrets();
 	}
 
-	public getBuildVarsForService(serviceName: string): Dictionary<string> {
-		const vars: Dictionary<string> = {};
+	public getBuildVarsForService(serviceName: string): Record<string, string> {
+		const vars: Record<string, string> = {};
 		if (this.balenaYml.buildVariables.global != null) {
 			Object.assign(vars, this.balenaYml.buildVariables.global);
 		}

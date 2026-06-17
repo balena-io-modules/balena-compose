@@ -74,7 +74,7 @@ export interface Resolver {
 	resolve(
 		bundle: Bundle,
 		specifiedDockerfilePath?: string,
-		additionalTemplateVars?: Dictionary<string>,
+		additionalTemplateVars?: Record<string, string>,
 	): Promise<FileInfo>;
 
 	/**

@@ -192,7 +192,7 @@ export async function fromImageDescriptors(
 				if (matchingTasks.length > 0) {
 					// Add the file to every matching context
 					const buf = await TarUtils.streamToBuffer(entryStream);
-					let contract: Dictionary<unknown> | undefined;
+					let contract: Record<string, unknown> | undefined;
 					for (const task of matchingTasks) {
 						const relative = path.posix.relative(task.context!, header.name);
 
@@ -285,7 +285,7 @@ export function performResolution(
 	architecture: string,
 	deviceType: string,
 	resolveListeners: ResolveListeners,
-	additionalTemplateVars?: Dictionary<string>,
+	additionalTemplateVars?: Record<string, string>,
 	dockerfilePreprocessHook?: (dockerfile: string) => string,
 ): BuildTask[] {
 	return tasks.map((task) => {
@@ -306,7 +306,7 @@ export function performSingleResolution(
 	architecture: string,
 	deviceType: string,
 	resolveListeners: ResolveListeners,
-	additionalTemplateVars?: Dictionary<string>,
+	additionalTemplateVars?: Record<string, string>,
 	dockerfilePreprocessHook?: (dockerfile: string) => string,
 ): BuildTask {
 	task.architecture = architecture;
@@ -428,7 +428,7 @@ export async function performSingleBuild(
 	docker: Dockerode,
 	registrySecrets: RegistrySecrets,
 	secretMap?: SecretsPopulationMap,
-	buildArgs?: Dictionary<string>,
+	buildArgs?: Record<string, string>,
 ): Promise<LocalImage> {
 	try {
 		return await runBuildTask(

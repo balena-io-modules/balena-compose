@@ -41,7 +41,7 @@ export function resolveTask(
 	architecture: string,
 	deviceType: string,
 	resolveListeners: ResolveListeners,
-	additionalVars: Dictionary<string> = {},
+	additionalVars: Record<string, string> = {},
 	dockerfilePreprocessHook?: (content: string) => string,
 ): BuildTask {
 	// set the platform / architecture for pulling multiarch images
