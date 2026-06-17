@@ -93,14 +93,16 @@ function taskHooks(
 
 const generateBuildArgs = (
 	task: BuildTask,
-	userArgs?: Dictionary<string>,
-): { buildargs?: Dictionary<string> } => {
+	userArgs?: Record<string, string>,
+): { buildargs?: Record<string, string> } => {
 	return {
 		buildargs: { ...task.args, ...userArgs },
 	};
 };
 
-const generateLabels = (task: BuildTask): { labels?: Dictionary<string> } => {
+const generateLabels = (
+	task: BuildTask,
+): { labels?: Record<string, string> } => {
 	return {
 		labels: task.labels,
 	};
@@ -119,7 +121,7 @@ export async function runBuildTask(
 	docker: Dockerode,
 	registrySecrets: RegistrySecrets,
 	secrets?: SecretsPopulationMap,
-	buildArgs?: Dictionary<string>,
+	buildArgs?: Record<string, string>,
 ): Promise<LocalImage> {
 	// Determine how we should handle the `platform` flag.
 	// This will be a combination of factors:

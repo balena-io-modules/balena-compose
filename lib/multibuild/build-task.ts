@@ -45,12 +45,12 @@ export interface BuildTask {
 	 * If this is a Docker build task, this field will be set to the build
 	 * arguments which are to passed into the daemon
 	 */
-	args?: Dictionary<string>;
+	args?: Record<string, string>;
 	/**
 	 * If this is a Docker build task, this field will be set to the labels
 	 * which should be attached to the resulting image.
 	 */
-	labels?: Dictionary<string>;
+	labels?: Record<string, string>;
 	/**
 	 * If this value is set, the resulting image will be tagged as this
 	 * once built (or pulled).
@@ -136,7 +136,7 @@ export interface BuildTask {
 	/**
 	 * The container contract for this service
 	 */
-	contract?: Dictionary<unknown>;
+	contract?: Record<string, unknown>;
 
 	/**
 	 * Promise to ensure that build task is resolved before

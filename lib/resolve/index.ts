@@ -73,7 +73,7 @@ export function resolveInput(
 	resolvers: Resolver[],
 	resolveListeners: ResolveListeners,
 	dockerfile?: string,
-	additionalTemplateVars?: Dictionary<string>,
+	additionalTemplateVars?: Record<string, string>,
 ): tar.Pack {
 	if (dockerfile != null) {
 		// Ensure that this will match the entry in the tar archive
@@ -167,7 +167,7 @@ async function resolveTarStreamOnFinish(
 	resolvers: Resolver[],
 	pack: tar.Pack,
 	dockerfile?: string,
-	additionalTemplateVars?: Dictionary<string>,
+	additionalTemplateVars?: Record<string, string>,
 ): Promise<void> {
 	// Detect if any of the resolvers have been satisfied
 	const satisfied = _.orderBy(
@@ -210,7 +210,7 @@ async function addResolverOutput(
 	resolver: Resolver,
 	pack: tar.Pack,
 	specifiedDockerfilePath?: string,
-	additionalTemplateVars?: Dictionary<string>,
+	additionalTemplateVars?: Record<string, string>,
 ): Promise<void> {
 	// Now read the file, allow the resolver to process it, and return it
 	const dockerfile = await resolver.resolve(

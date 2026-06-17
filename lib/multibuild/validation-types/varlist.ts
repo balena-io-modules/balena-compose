@@ -29,7 +29,7 @@ const validate = (value: unknown): value is VarList => {
 	if (Array.isArray(value)) {
 		return validateStringArray(value);
 	} else if (value != null && typeof value === 'object') {
-		return Object.entries(value as Dictionary<unknown>).every(([k, v]) => {
+		return Object.entries(value as Record<string, unknown>).every(([k, v]) => {
 			return typeof v === 'string' && typeof k === 'string';
 		});
 	}

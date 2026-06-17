@@ -14,8 +14,8 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "lint": "balena-lint -t ./tsconfig.test.json lib/ typings/ test/ && tsc --noEmit",
-    "lint-fix": "balena-lint -t ./tsconfig.test.json --fix lib/ typings/ test/",
+    "lint": "balena-lint -t ./tsconfig.test.json lib/ test/ && tsc --noEmit",
+    "lint-fix": "balena-lint -t ./tsconfig.test.json --fix lib/ test/",
     "copy": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",

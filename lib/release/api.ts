@@ -68,7 +68,7 @@ export interface Request {
 	semver?: BalenaModel['release']['Write']['semver'];
 
 	/** 'balena.yml' contract contents */
-	contract?: Dictionary<any>;
+	contract?: Record<string, any>;
 
 	/**
 	 * List of image descriptors returned
