@@ -312,25 +312,19 @@ async function createImage(
 	}
 
 	if (profiles) {
-		// image_profile is currently exposed only on the /resin model, so post there
-		// explicitly. balena-sdk clients ignore an apiPrefix override and take the
-		// model from apiVersion instead, so fall back to that when the rewrite is a
-		// no-op.
-		const resinApiPrefix = api.apiPrefix.replace(/\/[^/]+\/?$/, '/resin/');
-		let resinApi = api.clone({
-			apiPrefix: resinApiPrefix,
-		}) as unknown as PinejsClientCore;
-		if (resinApi.apiPrefix !== resinApiPrefix) {
-			resinApi = (api as unknown as BalenaPineClient).clone(
-				{},
-				{ apiVersion: 'resin' },
-			) as unknown as PinejsClientCore;
-		}
 		await pMap(
 			profiles,
 			async (profileName) => {
-				await resinApi
-					.post({
+				// image_profile is exposed only on the /resin model, so override the
+				// prefix for this write alone. Per-request is the only override that
+				// holds for every client: balena-sdk pins `apiPrefix` from `apiVersion`
+				// in its constructor, silently discarding a `clone({ apiPrefix })`.
+				// `request` rather than `post` because image_profile is absent from
+				// balena-sdk's (v7) model typings, which `post` is constrained to.
+				await api
+					.request({
+						method: 'POST',
+						apiPrefix: new URL('/resin/', api.apiPrefix).href,
 						resource: 'image_profile',
 						body: {
 							release_image: releaseImage.id,
