@@ -330,12 +330,17 @@ export function performSingleResolution(
  * 	Dockerode
  * @param tmpDir The location of the temporary directory on
  * 	the docker host
+ * @param onImage Called with each image as soon as its own task resolves,
+ * 	rather than once every task has. This lets a caller take a reference to
+ * 	an image while the other builds are still running. It is called for
+ * 	unsuccessful images too, and if it rejects, so does that task.
  * @return A promise which resolves to a list of LocalImages
  */
 export async function performBuilds(
 	tasks: BuildTask[],
 	docker: Dockerode,
 	tmpDir: string,
+	onImage?: (image: LocalImage, task: BuildTask) => Promise<void>,
 ): Promise<LocalImage[]> {
 	if (tasks.length === 0) {
 		return [];
@@ -350,13 +355,15 @@ export async function performBuilds(
 
 	const images = await Promise.all(
 		tasks.map(async (task: BuildTask) => {
-			return await performSingleBuild(
+			const image = await performSingleBuild(
 				task,
 				docker,
 				registrySecrets,
 				secretMap,
 				buildMetadata.getBuildVarsForService(task.serviceName),
 			);
+			await onImage?.(image, task);
+			return image;
 		}),
 	);
 
