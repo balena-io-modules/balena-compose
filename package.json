@@ -18,6 +18,7 @@
     "lint-fix": "balena-lint -t ./tsconfig.test.json --fix lib/ test/",
     "copy": "ncp lib/multibuild/build-secrets dist/multibuild/build-secrets --filter='build-secrets($|.Dockerfile.*)'",
     "build": "npm run clean && tsc --project ./ && npm run copy",
+    "pretest": "npm --prefix node_modules/@balena/compose-parser run build:go",
     "test": "npm run lint && ts-mocha --project ./tsconfig.test.json",
     "prepack": "npm run build"
   },
@@ -62,7 +63,7 @@
     "typescript": "^5.9.2"
   },
   "dependencies": {
-    "@balena/compose-parser": "^0.3.0",
+    "@balena/compose-parser": "1.1.0-build-runtime-9a6f1a6bc93f95edf4bc9064d3697780c387b213-1",
     "ajv": "^6.12.6",
     "docker-file-parser": "^1.0.7",
     "docker-progress": "^5.3.1",
@@ -79,7 +80,7 @@
     "memoizee": "^0.4.17",
     "p-map": "^4.0.0",
     "semver": "^7.7.2",
-    "tar-stream": "^3.1.7",
+    "tar-stream": "3.1.7",
     "tar-utils": "^3.1.0",
     "typed-error": "^3.2.2"
   },
