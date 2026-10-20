@@ -58,7 +58,10 @@ describe('normalization', () => {
 	let c: Compose.Composition;
 
 	before(async () => {
-		c = await Compose.parse('test/parse/fixtures/default.yml');
+		// env_file is only followed when parsing with the host environment
+		c = await Compose.parse('test/parse/fixtures/default.yml', {
+			hostEnvironment: true,
+		});
 	});
 
 	it('should generate image descriptors from composition services', () => {
@@ -111,11 +114,8 @@ describe('normalization', () => {
 		expect(c.services.s3.extra_hosts).to.deep.equal(['bar:8.8.8.8']);
 	});
 
-	it('should parse composition networks and add on default network', () => {
+	it('should parse composition networks and omit the unused default network', () => {
 		expect(c.networks).to.deep.equal({
-			default: {
-				ipam: {},
-			},
 			n1: {
 				ipam: {},
 			},
@@ -656,6 +656,7 @@ describe('env_file support', () => {
 	it('should read environment variables from env_file and fold into environment', async () => {
 		const c = await Compose.parse(
 			'./test/parse/fixtures/test-env-files/env-files.yml',
+			{ hostEnvironment: true },
 		);
 		expect(c).to.be.not.undefined;
 

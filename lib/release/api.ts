@@ -75,6 +75,8 @@ export interface Request {
 	 * by compose.parse
 	 */
 	imgDescriptors: ImageDescriptor[];
+
+	createImageProfiles?: boolean;
 }
 
 export interface Response {
@@ -94,11 +96,16 @@ export async function create(req: Request) {
 		getApplication(api, req.application),
 	]);
 
+	// Composition and its nested types are interfaces, which have no index
+	// signature and so aren't assignable to the JSON write type.
+	// TODO: drop this once compose-parser declares them as type aliases.
+	const composition =
+		req.composition as unknown as BalenaModel['release']['Write']['composition'];
+
 	const release = await createRelease(api, {
 		is_created_by__user: user.id,
 		belongs_to__application: application.id,
-		composition:
-			req.composition as any as BalenaModel['release']['Write']['composition'],
+		composition,
 		commit: req.commit,
 		status: 'running',
 		source: req.source,
@@ -128,12 +135,13 @@ export async function create(req: Request) {
 				(d) => d.serviceName === serviceName,
 			);
 
-			// Create images and attach labels and env vars
+			// Create images and attach labels, env vars and profiles
 			const img = await createImage(
 				api,
 				res.release.id,
 				serviceDescription.labels,
 				serviceDescription.environment,
+				req.createImageProfiles ? serviceDescription.profiles : undefined,
 				{
 					is_a_build_of__service: service.id,
 					status: 'running',
@@ -246,6 +254,7 @@ async function createImage(
 	release: number,
 	labels: Dict<string> | undefined,
 	envvars: Dict<string> | undefined,
+	profiles: string[] | undefined,
 	body: Partial<BalenaModel['image']['Write']>,
 ) {
 	const image = await api
@@ -299,6 +308,37 @@ async function createImage(
 							value: (value || '').toString(),
 						},
 					} as const)
+					.catch(models.wrapResponseError);
+			},
+			{
+				concurrency: MAX_CONCURRENT_REQUESTS,
+			},
+		);
+	}
+
+	if (profiles) {
+		// image_profile is currently exposed only on the /resin model, so post there
+		// explicitly. balena-sdk clients ignore an apiPrefix override and take the
+		// model from apiVersion instead, so fall back to that when the rewrite is a
+		// no-op.
+		const resinApiPrefix = api.apiPrefix.replace(/\/[^/]+\/?$/, '/resin/');
+		let resinApi = api.clone({
+			apiPrefix: resinApiPrefix,
+		}) as unknown as PinejsClientCore;
+		if (resinApi.apiPrefix !== resinApiPrefix) {
+			resinApi = api.clone({}, { apiVersion: 'resin' });
+		}
+		await pMap(
+			profiles,
+			async (profileName) => {
+				await resinApi
+					.post({
+						resource: 'image_profile',
+						body: {
+							release_image: releaseImage.id,
+							profile_name: profileName,
+						},
+					})
 					.catch(models.wrapResponseError);
 			},
 			{
