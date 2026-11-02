@@ -32,7 +32,7 @@
   },
   "homepage": "https://github.com/balena-io-modules/balena-compose#readme",
   "devDependencies": {
-    "@balena/lint": "^9.3.7",
+    "@balena/lint": "^11.0.0",
     "@types/docker-modem": "^3.0.6",
     "@types/dockerode": "^3.3.44",
     "@types/js-yaml": "^4.0.9",
