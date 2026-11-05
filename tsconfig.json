@@ -2,7 +2,6 @@
   "compilerOptions": {
     "module": "commonjs",
     "target": "es2021",
-    "skipLibCheck": true,
     "forceConsistentCasingInFileNames": false,
     "outDir": "./dist",
     "noImplicitAny": true,
