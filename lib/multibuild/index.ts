@@ -68,7 +68,35 @@ export function generateTasks(
 	buildStream: stream.Readable,
 	metadataDirectories = ['.balena/', '.resin/'],
 ): { tasks: BuildTask[]; strippedStream: stream.Readable } {
-	const images = Compose.toImageDescriptors(composition);
+	return generateTasksFromImageDescriptors(
+		Compose.toImageDescriptors(composition),
+		buildStream,
+		metadataDirectories,
+	);
+}
+
+/**
+ * The same as `generateTasks`, for a caller that already has image descriptors.
+ * Use it to build from another parser's output by converting it to
+ * `Compose.ImageDescriptor` first.
+ *
+ * The descriptors are not checked, so the caller must make sure that, as with
+ * a parsed composition:
+ * - each `serviceName` is unique
+ * - each build `context` is a path relative to the root of the build stream
+ *
+ * Tasks built from the same tar share one `BuildMetadata`, which is only filled
+ * in as `strippedStream` is read.
+ *
+ * @param images Image descriptors, as `Compose.toImageDescriptors` would return
+ * @param buildStream A stream which will output a valid tar archive when read
+ * @param metadataDirectories Directories to extract build metadata from
+ */
+export function generateTasksFromImageDescriptors(
+	images: Compose.ImageDescriptor[],
+	buildStream: stream.Readable,
+	metadataDirectories = ['.balena/', '.resin/'],
+): { tasks: BuildTask[]; strippedStream: stream.Readable } {
 	const buildMetadata = new BuildMetadata(metadataDirectories);
 
 	const strippedStream = buildMetadata.extractMetadata(buildStream);
