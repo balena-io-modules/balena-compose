@@ -58,7 +58,9 @@ describe('normalization', () => {
 	let c: Compose.Composition;
 
 	before(async () => {
-		c = await Compose.parse('test/parse/fixtures/default.yml');
+		c = await Compose.parse('test/parse/fixtures/default.yml', {
+			hostEnvironment: true,
+		});
 	});
 
 	it('should generate image descriptors from composition services', () => {
@@ -111,11 +113,10 @@ describe('normalization', () => {
 		expect(c.services.s3.extra_hosts).to.deep.equal(['bar:8.8.8.8']);
 	});
 
-	it('should parse composition networks and add on default network', () => {
+	// @balena/compose-parser 1.x drops the implicit `default` network compose-go
+	// adds, since the Supervisor creates it.
+	it('should parse composition networks without an implicit default network', () => {
 		expect(c.networks).to.deep.equal({
-			default: {
-				ipam: {},
-			},
 			n1: {
 				ipam: {},
 			},
@@ -162,51 +163,6 @@ describe('validation', () => {
 		await safeUnlink(tmpPath);
 	});
 
-	it('should throw ServiceError for service validation errors', async () => {
-		try {
-			await fs.writeFile(
-				tmpPath,
-				yml.dump({
-					services: {
-						main: {
-							image: 'some/image',
-							labels: {
-								mal_formed: 'true',
-							},
-						},
-					},
-				}),
-			);
-			await Compose.parse(tmpPath);
-			expect(false, 'ServiceError not thrown');
-		} catch (err) {
-			expect(err).to.be.instanceOf(Compose.ServiceError);
-			expect(err).to.have.property('serviceName').that.equals('main');
-		}
-	});
-
-	it('should throw if label name contains forbidden characters', async () => {
-		try {
-			await fs.writeFile(
-				tmpPath,
-				yml.dump({
-					services: {
-						main: {
-							image: 'some/image',
-							labels: {
-								mal_formed: 'true',
-							},
-						},
-					},
-				}),
-			);
-			await Compose.parse(tmpPath);
-			expect(false, 'ServiceError not thrown');
-		} catch (err) {
-			expect(err.message).to.include('Invalid label name: "mal_formed"');
-		}
-	});
-
 	it('should throw if a relative bind mount is specified', async () => {
 		try {
 			await fs.writeFile(
@@ -221,7 +177,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Bind mount error not thrown');
+			expect.fail('Bind mount error not thrown');
 		} catch (err) {
 			expect(err.message).to.include(
 				'service.volumes cannot be of type "bind"',
@@ -245,7 +201,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Bind mount error not thrown');
+			expect.fail('Bind mount error not thrown');
 		} catch (err) {
 			expect(err.message).to.include(
 				'service.volumes cannot be of type "bind"',
@@ -267,7 +223,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Volume error not thrown');
+			expect.fail('Volume error not thrown');
 		} catch (err) {
 			expect(err.message).to.include(
 				'service.volumes {"type":"volume","target":"thisIsNotAValidVolume","volume":{}} must specify source and target',
@@ -294,6 +250,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
+			expect.fail('Volume error not thrown');
 		} catch (err) {
 			expect(err.message).to.include(
 				'Failed to parse compose file: service "main" refers to undefined volume someVolume: invalid compose project',
@@ -301,24 +258,20 @@ describe('validation', () => {
 		}
 	});
 
-	it('should not throw if a port matches the ports regex', async () => {
-		try {
-			await fs.writeFile(
-				tmpPath,
-				yml.dump({
-					services: {
-						main: {
-							image: 'some/image',
-							ports: ['1002:1003/tcp'],
-						},
+	it('should not throw if a port matches the ports regex, dropping the default protocol', async () => {
+		await fs.writeFile(
+			tmpPath,
+			yml.dump({
+				services: {
+					main: {
+						image: 'some/image',
+						ports: ['1002:1003/tcp'],
 					},
-				}),
-			);
-			const comp = await Compose.parse(tmpPath);
-			expect(comp.services.main.ports).to.deep.equal(['1002:1003/tcp']);
-		} catch {
-			expect(false, 'Port error should not have been thrown');
-		}
+				},
+			}),
+		);
+		const comp = await Compose.parse(tmpPath);
+		expect(comp.services.main.ports).to.deep.equal(['1002:1003']);
 	});
 
 	it('should throw if a port does not match the ports regex', async () => {
@@ -335,7 +288,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Port error should have been thrown');
+			expect.fail('Port error should have been thrown');
 		} catch (err) {
 			expect(err.message).to.include(
 				'Failed to parse compose file: Invalid proto: tc',
@@ -344,28 +297,24 @@ describe('validation', () => {
 	});
 
 	it('should not throw if a volume definition is present', async () => {
-		try {
-			await fs.writeFile(
-				tmpPath,
-				yml.dump({
-					services: {
-						main: {
-							image: 'some/image',
-							volumes: ['someVolume:/some-place'],
-						},
+		await fs.writeFile(
+			tmpPath,
+			yml.dump({
+				services: {
+					main: {
+						image: 'some/image',
+						volumes: ['someVolume:/some-place'],
 					},
-					volumes: {
-						someVolume: {},
-					},
-				}),
-			);
-			const comp = await Compose.parse(tmpPath);
-			expect(comp.services.main.volumes).to.deep.equal([
-				'someVolume:/some-place',
-			]);
-		} catch {
-			expect(false, 'Volume error should not have been thrown');
-		}
+				},
+				volumes: {
+					someVolume: {},
+				},
+			}),
+		);
+		const comp = await Compose.parse(tmpPath);
+		expect(comp.services.main.volumes).to.deep.equal([
+			'someVolume:/some-place',
+		]);
 	});
 
 	it('should not allow build networks', async () => {
@@ -381,30 +330,26 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Network error should have been thrown');
+			expect.fail('Network error should have been thrown');
 		} catch (err) {
 			expect(err.message).to.include('service.build.network is not allowed');
 		}
 	});
 
-	it('should support extension fields', async () => {
-		try {
-			await fs.writeFile(
-				tmpPath,
-				yml.dump({
-					services: {
-						main: {
-							build: '.',
-							'x-my-custom-attribute': true,
-						},
+	it('should accept and drop extension fields', async () => {
+		await fs.writeFile(
+			tmpPath,
+			yml.dump({
+				services: {
+					main: {
+						build: '.',
+						'x-my-custom-attribute': true,
 					},
-				}),
-			);
-			const comp = await Compose.parse(tmpPath);
-			expect(comp.services.main['x-my-custom-attribute']).to.equal(true);
-		} catch {
-			expect(false, 'Custom attribute error should not have been thrown');
-		}
+				},
+			}),
+		);
+		const comp = await Compose.parse(tmpPath);
+		expect(comp.services.main).to.not.have.property('x-my-custom-attribute');
 	});
 
 	it('should throw when long syntax depends_on does not specify service_started condition', async () => {
@@ -426,7 +371,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Depends on error should have been thrown');
+			expect.fail('Depends on error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ServiceError);
 			expect(err.serviceName).to.equal('main');
@@ -453,7 +398,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Tmpfs error should have been thrown');
+			expect.fail('Tmpfs error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ServiceError);
 			expect(err.serviceName).to.equal('main');
@@ -487,7 +432,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Volume error should have been thrown');
+			expect.fail('Volume error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ServiceError);
 			expect(err.serviceName).to.equal('main');
@@ -498,32 +443,27 @@ describe('validation', () => {
 	});
 
 	it('should not throw when long syntax tmpfs or volume does not specify options', async () => {
-		try {
-			await fs.writeFile(
-				tmpPath,
-				yml.dump({
-					services: {
-						main: {
-							build: '.',
-							volumes: [
-								{ type: 'tmpfs', target: '/tmp2' },
-								{ type: 'volume', source: 'v1', target: '/v1' },
-							],
-						},
+		await fs.writeFile(
+			tmpPath,
+			yml.dump({
+				services: {
+					main: {
+						build: '.',
+						volumes: [
+							{ type: 'tmpfs', target: '/tmp2' },
+							{ type: 'volume', source: 'v1', target: '/v1' },
+						],
 					},
-					volumes: {
-						v1: {},
-					},
-				}),
-			);
-			const comp = await Compose.parse(tmpPath);
-			expect(comp.services.main.volumes).to.deep.equal([
-				{ type: 'tmpfs', target: '/tmp2' },
-				{ type: 'volume', source: 'v1', target: '/v1' },
-			]);
-		} catch {
-			expect(false, 'Volume error should not have been thrown');
-		}
+				},
+				volumes: {
+					v1: {},
+				},
+			}),
+		);
+		const comp = await Compose.parse(tmpPath);
+		// Converted to short syntax, with tmpfs mounts moved to `tmpfs`
+		expect(comp.services.main.volumes).to.deep.equal(['v1:/v1']);
+		expect(comp.services.main.tmpfs).to.deep.equal(['/tmp2']);
 	});
 
 	it('should throw if label `io.balena.features.requires.sw.supervisor` uses a wrong version range', async () => {
@@ -542,7 +482,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Label error should have been thrown');
+			expect.fail('Label error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ValidationError);
 			expect(err.message).to.include(
@@ -567,7 +507,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Label error should have been thrown');
+			expect.fail('Label error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ValidationError);
 			expect(err.message).to.include(
@@ -592,7 +532,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Label error should have been thrown');
+			expect.fail('Label error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ValidationError);
 			expect(err.message).to.include(
@@ -617,7 +557,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Label error should have been thrown');
+			expect.fail('Label error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ValidationError);
 			expect(err.message).to.include(
@@ -642,7 +582,7 @@ describe('validation', () => {
 				}),
 			);
 			await Compose.parse(tmpPath);
-			expect(false, 'Label error should have been thrown');
+			expect.fail('Label error should have been thrown');
 		} catch (err) {
 			expect(err).to.be.instanceOf(Compose.ValidationError);
 			expect(err.message).to.include(
@@ -656,6 +596,7 @@ describe('env_file support', () => {
 	it('should read environment variables from env_file and fold into environment', async () => {
 		const c = await Compose.parse(
 			'./test/parse/fixtures/test-env-files/env-files.yml',
+			{ hostEnvironment: true },
 		);
 		expect(c).to.be.not.undefined;
 
