@@ -12,7 +12,10 @@
     "declaration": true,
     "removeComments": true,
     "sourceMap": true,
-    "strictNullChecks": true
+    "strictNullChecks": true,
+    "paths": {
+      "tar-stream": ["./node_modules/@types/tar-stream"]
+    }
   },
   "include": [
     "lib/**/*.ts"
