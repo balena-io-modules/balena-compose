@@ -1,4 +1,60 @@
 - commits:
+    - subject: Add multibuild.generateTasksFromImageDescriptors()
+      hash: bcd2d07e35bfe99e77f17cfe572240733a313e35
+      body: |
+        - Lets a caller that already has image descriptors, such as the builder
+          with its legacy parser, build tasks without a @balena/compose-parser
+          composition
+        - generateTasks() now calls it
+        - Create the tasks before reading the build stream, here and in
+          fromImageDescriptors(), so an invalid descriptor throws before the
+          caller's stream is read
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Christina Ying Wang
+      nested: []
+    - subject: Update @balena/compose-parser to ^1.1.0
+      hash: 15e76d18caf05e57c3fbd742667c4d07554cc302
+      body: >
+        - By default the parser now ignores the host's environment variables and
+          throws if the compose file points to other files (`env_file`,
+          `label_file`, `include`, `extends`). The two parse tests whose fixtures
+          use `env_file` turn this back on with `hostEnvironment: true`
+        - It also no longer adds a `default` network, so the tests no longer
+          expect one
+        - Require node 22.14.0 and npm 11.5.1 or later, as the parser does, and
+          update @types/node to match
+        - Make the validation tests able to fail, and match them to what the
+          parser does. Drop the two label name tests, since the parser has never
+          checked label names
+      footer:
+        Change-type: major
+        change-type: major
+      author: Christina Ying Wang
+      nested: []
+    - subject: Build against @types/tar-stream
+      hash: 4a92c1f23cddb32be067f6cf9db41bbe1f613f57
+      body: >
+        - tar-stream 3.2.1 ships its own types, which replace @types/tar-stream
+        and
+          type its streams as streamx rather than Node streams, so the build fails
+        - Point TypeScript at @types/tar-stream until the code is moved to the
+        new
+          types
+        - Consumers still get the latest 3.x release, so the tar-stream types
+        our
+          published typings refer to are the new streamx ones, not the ones this
+          package is built against
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: Christina Ying Wang
+      nested: []
+  version: 9.0.0
+  title: ""
+  date: 2026-11-17T00:37:29.060Z
+- commits:
     - subject: Switch from custom `Dictionary` type to built in `Record` typing
       hash: f7e32a6de615dfc3b62089a51ba66793a1d40c1f
       body: |
