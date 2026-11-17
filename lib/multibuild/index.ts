@@ -68,13 +68,44 @@ export function generateTasks(
 	buildStream: stream.Readable,
 	metadataDirectories = ['.balena/', '.resin/'],
 ): { tasks: BuildTask[]; strippedStream: stream.Readable } {
-	const images = Compose.toImageDescriptors(composition);
+	return generateTasksFromImageDescriptors(
+		Compose.toImageDescriptors(composition),
+		buildStream,
+		metadataDirectories,
+	);
+}
+
+/**
+ * The same as `generateTasks`, for a caller that already has image descriptors.
+ * Use it to build from another parser's output by converting it to
+ * `Compose.ImageDescriptor` first.
+ *
+ * The descriptors are not checked, so the caller must make sure that, as with
+ * a parsed composition:
+ * - each `serviceName` is unique
+ * - each build `context` is a path relative to the root of the build stream
+ *
+ * Tasks built from the same tar share one `BuildMetadata`, which is filled in
+ * as `strippedStream` is read. `parseMetadata()` only sees what has been read
+ * by then, so read `strippedStream` to the end first (as `splitBuildStream()`
+ * does) to be sure it is complete.
+ *
+ * @param images Image descriptors, as `Compose.toImageDescriptors` would return
+ * @param buildStream A stream which will output a valid tar archive when read
+ * @param metadataDirectories Directories to extract build metadata from
+ */
+export function generateTasksFromImageDescriptors(
+	images: Compose.ImageDescriptor[],
+	buildStream: stream.Readable,
+	metadataDirectories = ['.balena/', '.resin/'],
+): { tasks: BuildTask[]; strippedStream: stream.Readable } {
 	const buildMetadata = new BuildMetadata(metadataDirectories);
 
-	const strippedStream = buildMetadata.extractMetadata(buildStream);
-
-	// Firstly create a list of BuildTasks based on the composition
+	// Create the tasks first, so invalid descriptors throw before the stream
+	// is read
 	const tasks = Utils.generateBuildTasks(images, buildMetadata);
+
+	const strippedStream = buildMetadata.extractMetadata(buildStream);
 
 	return { tasks, strippedStream };
 }
@@ -166,11 +197,13 @@ export async function fromImageDescriptors(
 ): Promise<BuildTask[]> {
 	const buildMetadata = new BuildMetadata(metadataDirectories);
 
+	// Create the tasks first, so invalid descriptors throw before the stream
+	// is read
+	const tasks = Utils.generateBuildTasks(images, buildMetadata);
+
 	const newStream = buildMetadata.extractMetadata(buildStream);
 
 	return new Promise<BuildTask[]>((resolve, reject) => {
-		// Firstly create a list of BuildTasks based on the composition
-		const tasks = Utils.generateBuildTasks(images, buildMetadata);
 		for (const task of tasks) {
 			if (!task.external) {
 				task.buildStream = tar.pack();
