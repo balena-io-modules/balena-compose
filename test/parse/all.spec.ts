@@ -52,6 +52,18 @@ describe('default composition', () => {
 			{ serviceName: 'main', image: 'some/image' },
 		]);
 	});
+
+	it('uses balena labels for the default feature set', () => {
+		const composition = defaultComposition();
+
+		expect(composition.services.main.labels).to.deep.equal({
+			'io.balena.features.kernel-modules': '1',
+			'io.balena.features.firmware': '1',
+			'io.balena.features.dbus': '1',
+			'io.balena.features.supervisor-api': '1',
+			'io.balena.features.resin-api': '1',
+		});
+	});
 });
 
 describe('normalization', () => {
