@@ -1,4 +1,17 @@
 - commits:
+    - subject: Update dependency flowzonify to v0.4.23
+      hash: 5517c898b881b3a858d54bf73c3cb21c0f21560d
+      body: |
+        Update flowzonify from 0.0.0 to 0.4.23
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: balena-renovate[bot]
+      nested: []
+  version: 9.0.1
+  title: ""
+  date: 2026-11-17T01:54:22.435Z
+- commits:
     - subject: Add multibuild.generateTasksFromImageDescriptors()
       hash: bcd2d07e35bfe99e77f17cfe572240733a313e35
       body: |
