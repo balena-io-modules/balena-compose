@@ -295,7 +295,6 @@ export async function getDockerfileImageReferences(
 		} else if (defaultValue !== undefined) {
 			globalArgs[name] = expandDockerfileVariables(defaultValue, {
 				...globalArgs,
-				...buildArgs,
 			});
 		}
 	}
@@ -324,7 +323,6 @@ export async function getDockerfileImageReferences(
 			}
 			imageReference = expandDockerfileVariables(value, {
 				...globalArgs,
-				...buildArgs,
 			});
 			break;
 		}
@@ -341,7 +339,7 @@ function expandDockerfileVariables(
 	variables: Record<string, string>,
 ): string {
 	return value.replace(
-		/\$\{([A-Za-z_][A-Za-z0-9_]*)(?:(:-|-|:\\+|\\+)([^}]*))?\}|\$([A-Za-z_][A-Za-z0-9_]*)/g,
+		/\$\{([A-Za-z_][A-Za-z0-9_]*)(?:(:-|-|:\+|\+)([^}]*))?\}|\$([A-Za-z_][A-Za-z0-9_]*)/g,
 		(match, bracedName: string, operator: string, fallback: string, plainName: string) => {
 			const name = bracedName ?? plainName;
 			const isDefined = Object.prototype.hasOwnProperty.call(variables, name);
