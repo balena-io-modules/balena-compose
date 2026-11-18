@@ -142,7 +142,10 @@ export async function runBuildTask(
 			'>=1.38.0',
 		) &&
 		(task.useDefaultPlatformForMultiarchBaseImages === true ||
-			(await checkAllowDockerPlatformHandling(task, docker)));
+			(await checkAllowDockerPlatformHandling(task, docker, {
+				...task.args,
+				...buildArgs,
+			})));
 
 	if (usePlatformOption) {
 		task.logger?.debug(
@@ -263,9 +266,111 @@ export async function runBuildTask(
 //        let Docker close its eyes and hope for the best.  This opens the possibility for an
 //        exec error, but also allows users to continue to use v1 images if they want to / need to.
 //
+export async function getDockerfileImageReferences(
+	dockerfile: string,
+	buildArgs: Record<string, string> = {},
+): Promise<string[]> {
+	const { DockerfileParser } = await import('dockerfile-ast');
+	const instructions = DockerfileParser.parse(dockerfile).getInstructions();
+	const globalArgs: Record<string, string> = {};
+	const declaredBuildArgs = new Set(Object.keys(buildArgs));
+
+	for (const instruction of instructions) {
+		if (instruction.getKeyword() === 'FROM') {
+			break;
+		}
+		if (instruction.getKeyword() !== 'ARG') {
+			continue;
+		}
+
+		const argument = instruction.getArguments()[0]?.getValue();
+		const match = argument?.match(/^([A-Za-z_][A-Za-z0-9_]*)(?:=(.*))?$/);
+		if (!match) {
+			continue;
+		}
+
+		const [, name, defaultValue] = match;
+		if (declaredBuildArgs.has(name)) {
+			globalArgs[name] = buildArgs[name];
+		} else if (defaultValue !== undefined) {
+			globalArgs[name] = expandDockerfileVariables(defaultValue, {
+				...globalArgs,
+				...buildArgs,
+			});
+		}
+	}
+
+	const fromInstructions = instructions.filter(
+		(instruction) => instruction.getKeyword() === 'FROM',
+	);
+	const imageReferences: string[] = [];
+	const stageNames = new Set<string>();
+
+	for (const instruction of fromInstructions) {
+		const args = instruction.getArguments();
+		let imageReference: string | undefined;
+		while (args.length > 0) {
+			const argument = args.shift()!;
+			const value = argument.getValue();
+			if (value.startsWith('--')) {
+				continue;
+			}
+			if (value.toLowerCase() === 'as') {
+				const stageName = args.shift();
+				if (stageName) {
+					stageNames.add(stageName.getValue());
+				}
+				break;
+			}
+			imageReference = expandDockerfileVariables(value, {
+				...globalArgs,
+				...buildArgs,
+			});
+			break;
+		}
+		if (imageReference) {
+			imageReferences.push(imageReference);
+		}
+	}
+
+	return imageReferences.filter((reference) => !stageNames.has(reference));
+}
+
+function expandDockerfileVariables(
+	value: string,
+	variables: Record<string, string>,
+): string {
+	return value.replace(
+		/\$\{([A-Za-z_][A-Za-z0-9_]*)(?:(:-|-|:\\+|\\+)([^}]*))?\}|\$([A-Za-z_][A-Za-z0-9_]*)/g,
+		(match, bracedName: string, operator: string, fallback: string, plainName: string) => {
+			const name = bracedName ?? plainName;
+			const isDefined = Object.prototype.hasOwnProperty.call(variables, name);
+			const variableValue = variables[name];
+			if (operator === ':-' && (!isDefined || variableValue === '')) {
+				return expandDockerfileVariables(fallback, variables);
+			}
+			if (operator === '-' && !isDefined) {
+				return expandDockerfileVariables(fallback, variables);
+			}
+			if (operator === ':+') {
+				return isDefined && variableValue !== ''
+					? expandDockerfileVariables(fallback, variables)
+					: '';
+			}
+			if (operator === '+') {
+				return isDefined
+					? expandDockerfileVariables(fallback, variables)
+					: '';
+			}
+			return isDefined ? variableValue : match;
+		},
+	);
+}
+
 async function checkAllowDockerPlatformHandling(
 	task: BuildTask,
 	docker: Dockerode,
+	buildArgs: Record<string, string> = {},
 ): Promise<boolean> {
 	const imageReferences: string[] = [];
 
@@ -282,47 +387,15 @@ async function checkAllowDockerPlatformHandling(
 			);
 			return false;
 		}
-		const { DockerfileParser } = await import('dockerfile-ast');
-		const parsedDockerfile = DockerfileParser.parse(task.dockerfile);
-		const dockerInstructions = parsedDockerfile.getInstructions();
-		const fromInstructions = dockerInstructions.filter(
-			(inst) => inst.getKeyword() === 'FROM',
+		const references = await getDockerfileImageReferences(
+			task.dockerfile,
+			buildArgs,
 		);
-		if (fromInstructions.length === 0) {
-			// Sanity check
+		if (references.length === 0) {
 			debug(`${task.serviceName}: Dockerfile does not reference any images`);
 			return false;
 		}
-
-		const potentialRefs: string[] = [];
-		const intermediateRefs: string[] = [];
-		for (const inst of fromInstructions) {
-			const args = inst.getArguments();
-			while (args.length > 0) {
-				const arg = args.shift()!;
-				const val = arg.getValue();
-				if (val.startsWith('--')) {
-					continue;
-				}
-
-				if (val.toLowerCase() === 'as') {
-					const nextArg = args.shift();
-					if (nextArg) {
-						intermediateRefs.push(nextArg.getValue());
-					}
-				} else {
-					potentialRefs.push(val);
-				}
-			}
-
-			// We don't want to check the plaform flag for
-			// intermediate images
-			for (const ref of potentialRefs) {
-				if (!intermediateRefs.includes(ref)) {
-					imageReferences.push(ref);
-				}
-			}
-		}
+		imageReferences.push(...references);
 	}
 
 	const imagesWithoutPlatformSupport: string[] = [];
