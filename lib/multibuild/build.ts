@@ -289,7 +289,8 @@ export async function getDockerfileImageReferences(
 			continue;
 		}
 
-		const [, name, defaultValue] = match;
+		const [, name, rawDefaultValue] = match;
+		const defaultValue = rawDefaultValue?.replace(/^(['"])(.*)\\1$/, '$2');
 		if (declaredBuildArgs.has(name)) {
 			globalArgs[name] = buildArgs[name];
 		} else if (defaultValue !== undefined) {
