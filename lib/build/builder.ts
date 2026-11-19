@@ -98,31 +98,20 @@ export default class Builder {
 		const buildPromise = (async () => {
 			const daemonStream = await this.docker.buildImage(internal, buildOpts);
 
-			await new Promise<void>((resolve, reject) => {
-				const outputStream = getDockerDaemonBuildOutputParserStream(
-					daemonStream,
-					layers,
-					fromTags,
-					reject,
-				);
-				outputStream.on('error', (error: Error) => {
-					daemonStream.unpipe();
-					reject(error);
-				});
-				outputStream.on('end', () =>
-					// The 'end' event was observed to be emitted under error
-					// conditions, hence the test for streamError.
-					{
-						if (streamError) {
-							reject(streamError);
-						} else {
-							resolve();
-						}
-					},
-				);
+			const outputStream = getDockerDaemonBuildOutputParserStream(
+				daemonStream,
+				layers,
+				fromTags,
+			);
+			try {
 				// Connect the output of the docker daemon to the duplex stream
-				stream.pipeline(outputStream, internal, _.noop);
-			});
+				await stream.promises.pipeline(outputStream, internal);
+				if (streamError != null) {
+					throw streamError;
+				}
+			} finally {
+				daemonStream.unpipe();
+			}
 		})(); // no .catch() here, but rejection is captured by Promise.all() below
 
 		// It is helpful for the following promises to run in parallel because
@@ -247,13 +236,11 @@ export default class Builder {
  * @param daemonStream: Docker daemon's output stream (dockerode.buildImage)
  * @param layers Array to which to push parsed image layer sha strings
  * @param fromImageTags Array to which to push parsed FROM image tags info
- * @param onError Error callback
  */
 function getDockerDaemonBuildOutputParserStream(
 	daemonStream: NodeJS.ReadableStream,
 	layers: string[],
 	fromImageTags: Utils.FromTagInfo[],
-	onError: (error: Error) => void,
 ): stream.Duplex {
 	const fromAliases = new Set();
 	return stream.pipeline(
@@ -297,10 +284,8 @@ function getDockerDaemonBuildOutputParserStream(
 						this.push(data.stream);
 					}
 					cb();
-				} catch (error) {
-					daemonStream.unpipe();
-					onError(error);
-					cb(error);
+				} catch (err) {
+					cb(err);
 				}
 			},
 		}),
