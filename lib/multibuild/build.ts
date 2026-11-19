@@ -104,7 +104,7 @@ const generateLabels = (
 	task: BuildTask,
 ): { labels?: Record<string, string> } => {
 	return {
-		labels: task.labels,
+		labels: { ...task.labels },
 	};
 };
 
