@@ -1,4 +1,37 @@
 - commits:
+    - subject: Bump @types/dockerode to v4
+      hash: ab80e9f252fbd04f17126b135189bbdd712ed866
+      body: |
+        docker-progress 5.4.28 depends on @types/dockerode ^4.0.0, so keeping
+        v3 here installs two incompatible copies and breaks the build in
+        lib/multibuild/external.ts.
+      footer:
+        Change-type: patch
+        change-type: patch
+        Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>
+        co-authored-by: Claude Opus 5.5 <noreply@anthropic.com>
+      author: Christina Ying Wang
+      nested: []
+    - subject: Register image_profile rows for service profiles
+      hash: b37d680bbd1ff372d67b6df48d68b2bf9ead0b98
+      body: |
+        Post an `image_profile` row per profile name for the created release
+        image, mirroring the existing image_label / image_environment_variable
+        writes. Service `profiles` are preserved in the parsed composition by
+        @balena/compose-parser.
+
+        image_profile is only exposed on the /resin model. Plain pinejs clients
+        take that prefix directly; balena-sdk clients ignore it and resolve the
+        model from apiVersion, so handle both.
+      footer:
+        Change-type: minor
+        change-type: minor
+      author: Christina Ying Wang
+      nested: []
+  version: 9.1.0
+  title: ""
+  date: 2026-11-24T20:48:50.534Z
+- commits:
     - subject: Update dependency flowzonify to v0.4.23
       hash: 5517c898b881b3a858d54bf73c3cb21c0f21560d
       body: |
