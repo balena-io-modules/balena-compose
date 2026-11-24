@@ -35,7 +35,7 @@
   "devDependencies": {
     "@balena/lint": "^9.3.7",
     "@types/docker-modem": "^3.0.6",
-    "@types/dockerode": "^3.3.44",
+    "@types/dockerode": "^4.0.2",
     "@types/js-yaml": "^4.0.9",
     "@types/jsesc": "^3.0.3",
     "@types/JSONStream": "npm:@types/jsonstream@^0.8.33",
