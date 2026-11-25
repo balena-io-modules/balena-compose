@@ -22,7 +22,7 @@ import * as TarUtils from 'tar-utils';
 
 import Bundle from './bundle';
 import { FileInfo } from './fileInfo';
-import { Resolver } from './resolver';
+import { Resolver, ResolverOptions } from './resolver';
 
 // Import some default resolvers
 import ArchDockerfileResolver from './resolvers/archDockerfile';
@@ -42,6 +42,7 @@ export {
 	DockerfileTemplateVariableError,
 	FileInfo,
 	Resolver,
+	ResolverOptions,
 };
 
 export interface ResolveListeners {
@@ -224,11 +225,11 @@ async function addResolverOutput(
 	pack.entry({ name: dockerfile.name, size: newContent.length }, newContent);
 }
 
-export function getDefaultResolvers(): Resolver[] {
+export function getDefaultResolvers(options: ResolverOptions = {}): Resolver[] {
 	return [
 		new DockerfileResolver(),
-		new DockerfileTemplateResolver(),
-		new ArchDockerfileResolver(),
+		new DockerfileTemplateResolver(options),
+		new ArchDockerfileResolver(options),
 		new NodeResolver(),
 	];
 }

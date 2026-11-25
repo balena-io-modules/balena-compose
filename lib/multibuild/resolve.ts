@@ -32,6 +32,8 @@ import type { BuildTask } from './build-task';
  * @param resolveListeners Event listeners for tar stream resolution.
  * @param additionalVars Additional template variables
  * @param dockerfilePreprocessHook Hook to allow dockerfile preprocessing
+ * @param resolverOptions Options for the default resolvers, see
+ * `Resolve.ResolverOptions`
  * You should always add at least an 'error' handler, or uncaught errors
  * may crash the app.
  * @returns The input task object, with a few updated fields
@@ -43,6 +45,7 @@ export function resolveTask(
 	resolveListeners: ResolveListeners,
 	additionalVars: Record<string, string> = {},
 	dockerfilePreprocessHook?: (content: string) => string,
+	resolverOptions?: Resolve.ResolverOptions,
 ): BuildTask {
 	// set the platform / architecture for pulling multiarch images
 	const platform = resolveDockerPlatform(architecture);
@@ -78,7 +81,7 @@ export function resolveTask(
 		dockerfileHook,
 	);
 
-	const resolvers = Resolve.getDefaultResolvers();
+	const resolvers = Resolve.getDefaultResolvers(resolverOptions);
 	const listeners: ResolveListeners = _.cloneDeep(resolveListeners);
 
 	listeners['resolver'] ??= [];
