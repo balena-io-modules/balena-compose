@@ -1,4 +1,26 @@
 - commits:
+    - subject: Keep dots in loosely matched Dockerfile output names
+      hash: f505417ff078c1bd2eaea8c00f5b7cdc2cc200db
+      body: |
+        - Since 8.0.1 a specified Dockerfile path also matches its `.template`
+          and architecture or device type variants
+        - getCanonicalName removed the extension by cutting at the last `.` in
+          the path, which was only correct for exact matches
+        - With a loose match the cut removed part of the real name:
+          `Dockerfile.prod` gave `Dockerfile`, which duplicated a real
+          `Dockerfile` in the build context, and `my.svc/Dockerfile` gave `my`
+        - The template resolver now removes only a `.template` extension
+        - The arch resolver removes the extension only when the specified path
+          is the file that it selected
+      footer:
+        Change-type: patch
+        change-type: patch
+      author: joshbwlng
+      nested: []
+  version: 9.2.1
+  title: ""
+  date: 2026-11-26T23:50:29.041Z
+- commits:
     - subject: Add an exactDockerfileMatch resolver option
       hash: cc6723eb098bf6bade2dfcfbaa0485c8805b927b
       body: |
