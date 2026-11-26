@@ -1,4 +1,30 @@
 - commits:
+    - subject: Add an exactDockerfileMatch resolver option
+      hash: cc6723eb098bf6bade2dfcfbaa0485c8805b927b
+      body: |
+        - Since 8.0.1 a specified Dockerfile path, such as `dockerfile:
+          Dockerfile`, also matches its `.template` and architecture or device
+          type variants, which compose-go needs since it specifies `Dockerfile`
+          for every service that does not name one
+        - That changed which file is built for projects that name a Dockerfile
+          next to such a variant: `Dockerfile` with `Dockerfile.aarch64` now
+          builds `Dockerfile.aarch64`
+        - exactDockerfileMatch restores the 7.x behaviour of building only the
+          specified file, for callers that must keep it, such as the builder's
+          /v3 endpoint
+        - getDefaultResolvers, performResolution, performSingleResolution and
+          resolveTask take the options; the default is unchanged
+      footer:
+        See: https://github.com/balena-io-experimental/builder-e2e/pull/4
+        see: https://github.com/balena-io-experimental/builder-e2e/pull/4
+        Change-type: minor
+        change-type: minor
+      author: Christina Ying Wang
+      nested: []
+  version: 9.2.0
+  title: ""
+  date: 2026-11-26T01:48:43.205Z
+- commits:
     - subject: Bump @types/dockerode to v4
       hash: ab80e9f252fbd04f17126b135189bbdd712ed866
       body: |
