@@ -48,6 +48,7 @@ import type { LocalImage } from './local-image';
 import * as PathUtils from './path-utils';
 import { posixContains } from './path-utils';
 import type { RegistrySecrets } from './registry-secrets';
+import type { ResolverOptions } from '../resolve';
 import { ResolveListeners, resolveTask } from './resolve';
 import * as Utils from './utils';
 
@@ -60,7 +61,7 @@ export { resolveDockerPlatform } from './resolve';
 export { getRegistryAndName } from './utils';
 export { BalenaYml, ParsedBalenaYml };
 export { PathUtils };
-export { ResolveListeners };
+export { ResolveListeners, ResolverOptions };
 export { CANONICAL_HUB_URL } from './constants';
 
 export function generateTasks(
@@ -311,6 +312,8 @@ export function buildHasSecrets(tasks: BuildTask[]): boolean {
  * to change the dockerfile after resolution. Note that to
  * provide a different hook per task, call
  * performSingleResolution with the hook for each task
+ * @param resolverOptions Options for the default resolvers, such as
+ * `exactDockerfileMatch`
  * @returns A list of resolved build tasks
  */
 export function performResolution(
@@ -320,6 +323,7 @@ export function performResolution(
 	resolveListeners: ResolveListeners,
 	additionalTemplateVars?: Record<string, string>,
 	dockerfilePreprocessHook?: (dockerfile: string) => string,
+	resolverOptions?: ResolverOptions,
 ): BuildTask[] {
 	return tasks.map((task) => {
 		task.architecture = architecture;
@@ -330,6 +334,7 @@ export function performResolution(
 			resolveListeners,
 			additionalTemplateVars,
 			dockerfilePreprocessHook,
+			resolverOptions,
 		);
 	});
 }
@@ -341,6 +346,7 @@ export function performSingleResolution(
 	resolveListeners: ResolveListeners,
 	additionalTemplateVars?: Record<string, string>,
 	dockerfilePreprocessHook?: (dockerfile: string) => string,
+	resolverOptions?: ResolverOptions,
 ): BuildTask {
 	task.architecture = architecture;
 	return resolveTask(
@@ -350,6 +356,7 @@ export function performSingleResolution(
 		resolveListeners,
 		additionalTemplateVars,
 		dockerfilePreprocessHook,
+		resolverOptions,
 	);
 }
 

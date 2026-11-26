@@ -18,7 +18,7 @@ import { posix } from 'path';
 
 import * as DockerfileTemplate from '../../dockerfile';
 
-import type { Bundle, FileInfo, Resolver } from '../resolver';
+import type { Bundle, FileInfo, Resolver, ResolverOptions } from '../resolver';
 import type { ParsedPathPlus } from '../utils';
 import { removeExtension } from '../utils';
 import { DockerfileTemplateVariableError } from './dockerfileTemplate';
@@ -35,6 +35,8 @@ export class ArchDockerfileResolver implements Resolver {
 
 	private archDockerfiles: ArchSpecificDockerfile[] = [];
 
+	constructor(private options: ResolverOptions = {}) {}
+
 	public entry(file: FileInfo): void {
 		// We know that this file is a Dockerfile, so just get the extension,
 		// and save it for resolving later
@@ -49,11 +51,14 @@ export class ArchDockerfileResolver implements Resolver {
 		// Note that both `entryPath` and `specifiedDockerfilePath` are normalized through
 		// `TarUtils.normalizeTarEntry()` before the call this method, so they won't have
 		// leading or trailing slashes or redundant path components.
-		// Consider two cases:
+		// Consider three cases:
 		// * If a `specifiedDockeriflePath` was specified, say `'service/MyDockerfile.armv7hf'`,
-		//   then this method will only match a tar entry whose full path is identical to that
+		//   then this method will match a tar entry whose full path is identical to that
 		//   (`entryPath.unparsed === specifiedDockerfilePath`), and provided that the
 		//   `specifiedDockeriflePath` has a non-empty file extension different to `'.template'`.
+		// * Unless `exactDockerfileMatch` is set, a specified path without such an extension,
+		//   say `'Dockerfile'`, also matches its variants, say `'Dockerfile.armv7hf'`
+		//   (`entryPath.minusExt === specifiedDockerfilePath`).
 		// * Otherwise, it will match `Dockerfile.xxx` where xxx is a non-empty file extension
 		//   different to `'.template'`. This will only be matched at the
 		//   root of the project directory tree, as `entryPath.minusExt` is the full path minus the
@@ -61,7 +66,8 @@ export class ArchDockerfileResolver implements Resolver {
 
 		const nameMatches = specifiedDockerfilePath
 			? entryPath.unparsed === specifiedDockerfilePath ||
-				entryPath.minusExt === specifiedDockerfilePath
+				(!this.options.exactDockerfileMatch &&
+					entryPath.minusExt === specifiedDockerfilePath)
 			: entryPath.minusExt === 'Dockerfile';
 
 		return nameMatches && !!entryPath.ext && entryPath.ext !== '.template';

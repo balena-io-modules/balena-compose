@@ -4,6 +4,16 @@ import type { ParsedPathPlus } from './utils';
 
 // Make the external types available to implementers
 export { Bundle, FileInfo };
+
+export interface ResolverOptions {
+	/**
+	 * When a Dockerfile path is specified, match only that exact file, as
+	 * @balena/compose 7 did. By default a specified path also matches its
+	 * `.template` and architecture or device type variants, since compose-go
+	 * specifies `Dockerfile` for every service that does not name one.
+	 */
+	exactDockerfileMatch?: boolean;
+}
 /**
  * Resolver: Base interface for any project type resolver.
  */

@@ -17,7 +17,7 @@
 import { TypedError } from 'typed-error';
 
 import * as DockerfileTemplate from '../../dockerfile';
-import type { Bundle, FileInfo, Resolver } from '../resolver';
+import type { Bundle, FileInfo, Resolver, ResolverOptions } from '../resolver';
 import type { ParsedPathPlus } from '../utils';
 import { removeExtension } from '../utils';
 
@@ -30,6 +30,8 @@ export class DockerfileTemplateResolver implements Resolver {
 
 	private hasDockerfileTemplate = false;
 	private templateContent: Buffer;
+
+	constructor(private options: ResolverOptions = {}) {}
 
 	public entry(file: FileInfo): void {
 		this.templateContent = file.contents;
@@ -51,7 +53,8 @@ export class DockerfileTemplateResolver implements Resolver {
 		// * If a `specifiedDockerfilePath` was specified without a `'.template'` extension,
 		//   say `'Dockerfile'` or `'service/MyDockerfile'`, then this method will match a
 		//   tar entry that is the template version of that path
-		//   (`entryPath.minusExt === specifiedDockerfilePath`).
+		//   (`entryPath.minusExt === specifiedDockerfilePath`), unless
+		//   `exactDockerfileMatch` is set.
 		// * Otherwise, it will match `Dockerfile.template` at the root of the project directory
 		//   tree, as `entryPath.minusExt` is the full entry path minus the file extension, which
 		//   must be exactly `'Dockerfile'`.
@@ -59,7 +62,8 @@ export class DockerfileTemplateResolver implements Resolver {
 			entryPath.ext === '.template' &&
 			(specifiedDockerfilePath
 				? entryPath.unparsed === specifiedDockerfilePath ||
-					entryPath.minusExt === specifiedDockerfilePath
+					(!this.options.exactDockerfileMatch &&
+						entryPath.minusExt === specifiedDockerfilePath)
 				: entryPath.minusExt === 'Dockerfile')
 		);
 	}

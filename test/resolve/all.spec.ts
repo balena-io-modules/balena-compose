@@ -113,6 +113,7 @@ async function testResolveInput({
 	tarFilePath,
 	additionalTemplateVars,
 	dockerfileHook,
+	resolverOptions,
 }: {
 	architecture?: string;
 	deviceType?: string;
@@ -124,6 +125,7 @@ async function testResolveInput({
 	tarFilePath: string;
 	additionalTemplateVars?: { [key: string]: string };
 	dockerfileHook?: (content: string) => string | Promise<string>;
+	resolverOptions?: Resolve.ResolverOptions;
 }) {
 	let content: string;
 	let resolvedName: string;
@@ -154,7 +156,7 @@ async function testResolveInput({
 
 	const outputStream = Resolve.resolveInput(
 		bundle,
-		defaultResolvers(),
+		Resolve.getDefaultResolvers(resolverOptions),
 		listeners,
 		specifiedDockerfilePath,
 		additionalTemplateVars,
@@ -622,6 +624,81 @@ describe('Additional template variables', () => {
 				TEST_VAR: 'test1',
 				SECOND_TEST_VAR: 'test2',
 			},
+		});
+	});
+});
+
+describe('Exact dockerfile match', () => {
+	// @balena/compose 7 built exactly the specified Dockerfile. Since 8.0.1 a
+	// specified path also matches its variants, unless exactDockerfileMatch is set.
+
+	it('should prefer an architecture variant of a specified Dockerfile by default', () => {
+		return testResolveInput({
+			architecture: 'i386',
+			dockerfileContentMatcher: (contents) => contents === 'i386',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/SpecifiedDockerfileWithArch/archive.tar',
+		});
+	});
+
+	it('should build only the specified Dockerfile when exactDockerfileMatch is set', () => {
+		return testResolveInput({
+			architecture: 'i386',
+			dockerfileContentMatcher: (contents) => contents === 'plain',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Standard Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile',
+			tarFilePath: './test-files/SpecifiedDockerfileWithArch/archive.tar',
+			resolverOptions: { exactDockerfileMatch: true },
+		});
+	});
+
+	it('should not fall back to a Dockerfile.template when exactDockerfileMatch is set', async () => {
+		let errorMessage: string | undefined;
+		try {
+			await testResolveInput({
+				expectedResolvedDockerfilePath: undefined,
+				expectedResolverName: undefined,
+				shouldCallHook: false,
+				specifiedDockerfilePath: 'Dockerfile',
+				tarFilePath: './test-files/DockerfileTemplate/archive.tar',
+				resolverOptions: { exactDockerfileMatch: true },
+			});
+		} catch (err) {
+			errorMessage = err.message;
+		}
+		expect(errorMessage).to.equal(
+			'Specified file not found or is invalid: Dockerfile',
+		);
+	});
+
+	it('should still resolve a specified Dockerfile.template when exactDockerfileMatch is set', () => {
+		const deviceType = 'device-type-test';
+		const arch = 'architecture-test';
+		return testResolveInput({
+			architecture: arch,
+			deviceType,
+			dockerfileContentMatcher: (contents) =>
+				contents === `FROM resin/${deviceType}-node:slim\nRUN echo ${arch}`,
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Dockerfile.template',
+			specifiedDockerfilePath: 'Dockerfile.template',
+			tarFilePath: './test-files/DockerfileTemplate/archive.tar',
+			resolverOptions: { exactDockerfileMatch: true },
+		});
+	});
+
+	it('should still resolve architecture variants when no Dockerfile is specified', () => {
+		return testResolveInput({
+			architecture: 'i386',
+			dockerfileContentMatcher: (contents) => contents === 'i386',
+			expectedResolvedDockerfilePath: 'Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: undefined,
+			tarFilePath: './test-files/SpecifiedDockerfileWithArch/archive.tar',
+			resolverOptions: { exactDockerfileMatch: true },
 		});
 	});
 });
