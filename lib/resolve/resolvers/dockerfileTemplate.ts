@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { posix } from 'path';
 import { TypedError } from 'typed-error';
 
 import * as DockerfileTemplate from '../../dockerfile';
@@ -103,8 +104,12 @@ export class DockerfileTemplateResolver implements Resolver {
 	}
 
 	public getCanonicalName(filename: string): string {
-		// All that needs to be done for this class of Dockerfile is to remove the extension
-		return removeExtension(filename);
+		// Only remove a `.template` extension. A path without it is the loosely
+		// matched output name already, e.g. `Dockerfile.prod` for
+		// `Dockerfile.prod.template`, and its own dots must be kept.
+		return posix.extname(filename) === '.template'
+			? removeExtension(filename)
+			: filename;
 	}
 }
 

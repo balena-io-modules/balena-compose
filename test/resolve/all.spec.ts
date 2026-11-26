@@ -702,3 +702,114 @@ describe('Exact dockerfile match', () => {
 		});
 	});
 });
+
+describe('Specified Dockerfile paths with dots', () => {
+	// A loosely matched path has no `.template` or `.<arch>` extension, so the
+	// output name must keep the dots that are part of the real name.
+
+	function getTarEntryNames(stream: Readable): Promise<string[]> {
+		return new Promise((resolve, reject) => {
+			const names: string[] = [];
+			const extract = tar.extract();
+			extract.on('entry', (header, entryStream, next) => {
+				names.push(TarUtils.normalizeTarEntry(header.name));
+				entryStream.on('end', next);
+				entryStream.resume();
+			});
+			extract.on('finish', () => {
+				resolve(names);
+			});
+			extract.on('error', reject);
+			stream.on('error', reject);
+			stream.pipe(extract);
+		});
+	}
+
+	it('should keep a dotted name for a loosely matched Dockerfile.template', () => {
+		return testResolveInput({
+			expectedResolvedDockerfilePath: 'Dockerfile.prod',
+			expectedResolverName: 'Dockerfile.template',
+			specifiedDockerfilePath: 'Dockerfile.prod',
+			tarFilePath: './test-files/SpecifiedDottedNameTemplate/archive.tar',
+		});
+	});
+
+	it('should not add a second Dockerfile entry for a loosely matched Dockerfile.template', async () => {
+		const tarStream = fs.createReadStream(
+			require.resolve('./test-files/SpecifiedDottedNameTemplate/archive.tar'),
+		);
+		const bundle = new Resolve.Bundle(tarStream, '', '');
+		const names = await getTarEntryNames(
+			Resolve.resolveInput(bundle, defaultResolvers(), {}, 'Dockerfile.prod'),
+		);
+		expect(names.filter((name) => name === 'Dockerfile')).to.have.length(1);
+		expect(names).to.include('Dockerfile.prod');
+	});
+
+	it('should keep a dotted directory for a loosely matched Dockerfile.template', () => {
+		return testResolveInput({
+			expectedResolvedDockerfilePath: 'my.svc/Dockerfile',
+			expectedResolverName: 'Dockerfile.template',
+			specifiedDockerfilePath: 'my.svc/Dockerfile',
+			tarFilePath: './test-files/SpecifiedDottedDirTemplate/archive.tar',
+		});
+	});
+
+	it('should remove the extension of an exactly specified Dockerfile.template in a dotted directory', () => {
+		return testResolveInput({
+			expectedResolvedDockerfilePath: 'my.svc/Dockerfile',
+			expectedResolverName: 'Dockerfile.template',
+			specifiedDockerfilePath: 'my.svc/Dockerfile.template',
+			tarFilePath: './test-files/SpecifiedDottedDirTemplate/archive.tar',
+		});
+	});
+
+	it('should remove the extension of an exactly specified Dockerfile.template with a dotted name', () => {
+		return testResolveInput({
+			expectedResolvedDockerfilePath: 'Dockerfile.prod',
+			expectedResolverName: 'Dockerfile.template',
+			specifiedDockerfilePath: 'Dockerfile.prod.template',
+			tarFilePath: './test-files/SpecifiedDottedNameTemplate/archive.tar',
+		});
+	});
+
+	it('should keep a dotted name for a loosely matched arch-specific Dockerfile', () => {
+		return testResolveInput({
+			architecture: 'armv7hf',
+			expectedResolvedDockerfilePath: 'Dockerfile.prod',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile.prod',
+			tarFilePath: './test-files/SpecifiedDottedNameArch/archive.tar',
+		});
+	});
+
+	it('should keep a dotted directory for a loosely matched arch-specific Dockerfile', () => {
+		return testResolveInput({
+			architecture: 'armv7hf',
+			expectedResolvedDockerfilePath: 'my.svc/Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'my.svc/Dockerfile',
+			tarFilePath: './test-files/SpecifiedDottedDirArch/archive.tar',
+		});
+	});
+
+	it('should remove the extension of an exactly specified arch-specific Dockerfile in a dotted directory', () => {
+		return testResolveInput({
+			architecture: 'armv7hf',
+			expectedResolvedDockerfilePath: 'my.svc/Dockerfile',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'my.svc/Dockerfile.armv7hf',
+			tarFilePath: './test-files/SpecifiedDottedDirArchOnly/archive.tar',
+		});
+	});
+
+	it('should remove the extension of an exactly specified arch-specific Dockerfile with a dotted name', () => {
+		return testResolveInput({
+			architecture: 'armv7hf',
+			expectedResolvedDockerfilePath: 'Dockerfile.prod',
+			expectedResolverName: 'Architecture-specific Dockerfile',
+			specifiedDockerfilePath: 'Dockerfile.prod.armv7hf',
+			tarFilePath: './test-files/SpecifiedDottedNameArchOnly/archive.tar',
+		});
+	});
+});

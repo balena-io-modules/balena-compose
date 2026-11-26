@@ -34,6 +34,8 @@ export class ArchDockerfileResolver implements Resolver {
 	public dockerfileContents: string;
 
 	private archDockerfiles: ArchSpecificDockerfile[] = [];
+	// The tar entry path of the Dockerfile that `resolve()` selected
+	private resolvedEntryPath: string | undefined;
 
 	constructor(private options: ResolverOptions = {}) {}
 
@@ -87,12 +89,7 @@ export class ArchDockerfileResolver implements Resolver {
 	) {
 		// Return the satisfied arch/deviceType specific dockerfile,
 		// as a plain Dockerfile, and the docker daemon will then
-		// execute that
-		const name =
-			specifiedDockerfilePath != null
-				? this.getCanonicalName(specifiedDockerfilePath)
-				: 'Dockerfile';
-
+		// execute that.
 		// device type takes precedence
 		const satisfiedPair = this.getSatisfiedArch(bundle);
 		let satisfied: ArchSpecificDockerfile;
@@ -106,6 +103,12 @@ export class ArchDockerfileResolver implements Resolver {
 				'Resolve called without a satisfied architecture specific dockerfile',
 			);
 		}
+
+		this.resolvedEntryPath = satisfied[1].name;
+		const name =
+			specifiedDockerfilePath != null
+				? this.getCanonicalName(specifiedDockerfilePath)
+				: 'Dockerfile';
 
 		// Generate the variables to replace
 		const vars: DockerfileTemplate.TemplateVariables = {
@@ -133,7 +136,12 @@ export class ArchDockerfileResolver implements Resolver {
 	}
 
 	public getCanonicalName(filename: string): string {
-		// All that needs to be done for this class of Dockerfile is to remove the extension
+		// If the specified path loosely matched the selected Dockerfile, e.g.
+		// `Dockerfile.prod` for `Dockerfile.prod.armv7hf`, it is the output name
+		// already, and its own dots must be kept. Otherwise remove the extension.
+		if (this.resolvedEntryPath != null && this.resolvedEntryPath !== filename) {
+			return filename;
+		}
 		return removeExtension(filename);
 	}
 
